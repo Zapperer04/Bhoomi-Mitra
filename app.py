@@ -393,7 +393,18 @@ def hard_delete_crop(crop_id):
         return jsonify({"error": "Unauthorized"}), 403
 
     live = Interest.query.filter(
-        Interest.crop_id == crop_id,@app.route("/api/interests", methods=["POST"])
+        Interest.crop_id == crop_id,
+        Interest.status.in_(["pending", "negotiating", "accepted"]),
+    ).first()
+    if live:
+        return api_response(success=False, error="Cannot remove a crop with live or accepted deals.", status=409)
+
+    db.session.delete(crop)
+    db.session.commit()
+    return api_response(data={"message": "Crop permanently deleted"})
+
+
+@app.route("/api/interests", methods=["POST"])
 @jwt_required()
 @with_db_retry()
 def create_interest():
@@ -450,52 +461,6 @@ def create_interest():
     db.session.add(interest)
     db.session.commit()
     return api_response(data={"message": "Interest sent", "interest_id": interest.id}, status=201)
-antity()
-    if available_qty <= 0:
-        return jsonify({"error": "No quantity remaining on this crop"}), 409
-
-    existing = Interest.query.filter_by(crop_id=crop.id, contractor_id=user_id).first()
-
-    if existing:
-        if existing.status != "rejected":
-            return jsonify({"error": "You have already shown interest in this crop"}), 409
-
-        # Re-submission after rejection — validate quantity (FIX BUG-02 re-submit path)
-        new_qty = int(data.get("quantity", available_qty))
-        if new_qty > available_qty:
-            return jsonify({
-                "error": f"Requested quantity ({new_qty}q) exceeds available ({available_qty}q)"
-            }), 400
-
-        existing.quantity_requested = new_qty
-        existing.price_offered      = float(data.get("price", crop.price))
-        existing.message            = data.get("message", "")
-        existing.status             = "pending"
-        existing.accepted_by        = None
-        existing.created_at         = datetime.utcnow()
-        db.session.commit()
-        return jsonify({"message": "Interest re-submitted", "interest_id": existing.id}), 200
-
-    qty_req = int(data.get("quantity", available_qty))
-    if qty_req > available_qty:
-        return jsonify({
-            "error": f"Requested quantity ({qty_req}q) exceeds available quantity ({available_qty}q)"
-        }), 400
-
-    interest = Interest(
-        crop_id            = crop.id,
-        farmer_id          = crop.farmer_id,
-        contractor_id      = user_id,
-        quantity_requested = qty_req,
-        price_offered      = float(data.get("price", crop.price)),
-        message            = data.get("message", ""),
-        status             = "pending",
-    )
-    db.session.add(interest)
-    db.session.commit()
-    return jsonify({"message": "Interest sent", "interest_id": interest.id}), 201
-
-
 @app.route("/api/interests/details/<int:interest_id>", methods=["GET"])
 @jwt_required()
 def get_interest_details(interest_id):
