@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Government Schemes – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='gov.css') }}">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <div class="logo">Bhoomi Mitra</div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('farmer_dashboard') }}" class="nav-item">Dashboard</a>
+            <a href="{{ url_for('gov_page') }}" class="nav-item active">Gov Schemes</a>
+
+        </div>
+    </div>
+
+    <div class="nav-actions">
+        <span class="role-badge">Farmer</span>
+        <button class="logout-btn">Logout</button>
+    </div>
+</nav>
+
+<main class="gov-page">
+
+    <section class="gov-header">
+        <h1>Government Schemes for Farmers</h1>
+        <p>
+            Verified central and state government schemes with direct links
+            to official portals for detailed information and application.
+        </p>
+    </section>
+
+    <section class="scheme-grid">
+
+        <div class="scheme-card">
+            <h3>PM-KISAN</h3>
+            <p>
+                Income support of ₹6,000 per year to eligible farmer families,
+                paid in three installments.
+            </p>
+
+            <div class="scheme-footer">
+                <span class="tag">Income Support</span>
+                <a href="https://pmkisan.gov.in" target="_blank" class="scheme-link">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3>PM Fasal Bima Yojana</h3>
+            <p>
+                Crop insurance scheme protecting farmers against losses
+                due to natural calamities and pests.
+            </p>
+
+            <div class="scheme-footer">
+                <span class="tag">Insurance</span>
+                <a href="https://pmfby.gov.in" target="_blank" class="scheme-link">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3>Soil Health Card Scheme</h3>
+            <p>
+                Provides soil testing reports and fertilizer recommendations
+                to improve crop productivity.
+            </p>
+
+            <div class="scheme-footer">
+                <span class="tag">Soil & Fertility</span>
+                <a href="https://soilhealth.dac.gov.in" target="_blank" class="scheme-link">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3>Kisan Credit Card (KCC)</h3>
+            <p>
+                Enables farmers to access short-term credit for cultivation
+                and allied activities.
+            </p>
+
+            <div class="scheme-footer">
+                <span class="tag">Credit</span>
+                <a href="https://www.myscheme.gov.in/schemes/kcc" target="_blank" class="scheme-link">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3>Pradhan Mantri Krishi Sinchayee Yojana</h3>
+            <p>
+                Improves irrigation efficiency and promotes water conservation
+                through modern techniques.
+            </p>
+
+            <div class="scheme-footer">
+                <span class="tag">Irrigation</span>
+                <a href="https://pmksy.gov.in" target="_blank" class="scheme-link">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

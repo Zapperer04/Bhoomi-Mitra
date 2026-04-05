@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Messages - Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='messages.css') }}">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <div class="logo">Bhoomi Mitra</div>
+        <div class="nav-links">
+            <a href="javascript:history.back()" class="nav-item">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="nav-actions">
+        <span class="role-badge" id="roleBadge">User</span>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+</nav>
+
+<main class="messages-container">
+    
+    <aside class="conversations-sidebar">
+        <div class="sidebar-header">
+            <h2>💬 Messages</h2>
+            <p class="subtitle">Chat with your deals</p>
+        </div>
+        
+        <div id="conversationsList" class="conversations-list">
+            <div class="loading-state">Loading conversations...</div>
+        </div>
+    </aside>
+
+    <section class="chat-area">
+        <div id="emptyState" class="empty-state">
+            <div class="empty-icon">💬</div>
+            <h3>Select a conversation</h3>
+            <p>Choose a deal from the left to start messaging</p>
+        </div>
+
+        <div id="chatContainer" class="chat-container hidden">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <h3 id="chatPersonName">Person Name</h3>
+                    <p id="chatCropName">Crop Name</p>
+                </div>
+                <div class="chat-header-actions">
+                    <a id="callButton" class="btn-call" href="#" target="_blank">
+                        📞 Call
+                    </a>
+                </div>
+            </div>
+
+            <div id="messagesArea" class="messages-area">
+                <div class="loading-state">Loading messages...</div>
+            </div>
+
+            <div class="message-input-area">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Type your message..."
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="btn-send">
+                    Send
+                </button>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script src="{{ url_for('static', filename='toast.js') }}"></script>
+<script src="{{ url_for('static', filename='messages.js') }}"></script>
+</body>
+</html>

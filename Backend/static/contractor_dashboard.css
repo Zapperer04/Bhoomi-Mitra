@@ -1,0 +1,156 @@
+/* ============================================================
+   contractor_dashboard.css — Contractor Dashboard
+   ============================================================ */
+
+:root {
+    --green-dark:   #064e3b;
+    --green-mid:    #059669;
+    --green-light:  #ecfdf5;
+    --accent:       #10b981;
+    --amber:        #f59e0b;
+    --red:          #ef4444;
+    --blue:         #3b82f6;
+    --gray-50:      #f9fafb;
+    --gray-100:     #f3f4f6;
+    --gray-200:     #e5e7eb;
+    --gray-800:     #1f2937;
+    --white:        #ffffff;
+    --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-premium: 16px;
+    --glass: rgba(255, 255, 255, 0.8);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: radial-gradient(circle at top right, #f0fdf4, #f9fafb);
+    color: var(--gray-800);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, .logo, .role-badge, .btn, .logout-btn {
+    font-family: 'Sora', sans-serif;
+}
+
+.dash-nav {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    color: var(--white);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-premium);
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--white);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-messages-link {
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.nav-messages-link:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.dashboard {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.intro-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--radius-premium);
+    box-shadow: var(--shadow-premium);
+    margin-bottom: 2rem;
+    border-left: 6px solid var(--accent);
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.controls input, .controls select {
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    font-size: 0.9rem;
+}
+
+.crop-grid, .interest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.crop-card, .interest-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius-premium);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-100);
+    transition: all 0.3s ease;
+}
+
+.crop-card:hover {
+    transform: translateY(-5px);
+}
+
+.btn {
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-primary { background: var(--accent); color: var(--white); }
+.btn-primary:hover { opacity: 0.9; }
+
+.status-accepted { border-left: 4px solid var(--accent); }
+.status-pending { border-left: 4px solid var(--amber); }
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.hidden { display: none !important; }

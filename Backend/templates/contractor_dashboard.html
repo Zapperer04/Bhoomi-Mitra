@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contractor Dashboard | Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- FIX: Matching font pair with farmer dashboard -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='contractor_dashboard.css') }}">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo">Bhoomi Mitra</span>
+        <a href="{{ url_for('messages_page') }}" class="nav-messages-link">
+            💬 <span data-i18n="nav.messages">Messages</span>
+            <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <!-- Language Selector -->
+        <div class="lang-selector" id="langSelector">
+            <button class="lang-btn" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
+            <div class="lang-dropdown hidden" id="langDropdown">
+                <button data-lang="en">English</button>
+                <button data-lang="hi">हिंदी</button>
+                <button data-lang="mr">मराठी</button>
+                <button data-lang="te">తెలుగు</button>
+                <button data-lang="kn">ಕನ್ನಡ</button>
+                <button data-lang="ta">தமிழ்</button>
+                <button data-lang="gu">ગુજરાતી</button>
+                <button data-lang="pa">ਪੰਜਾਬੀ</button>
+                <button data-lang="bn">বাংলা</button>
+                <button data-lang="or">ଓଡ଼ିଆ</button>
+            </div>
+        </div>
+        <a href="{{ url_for('profile_page') }}" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
+            <span class="profile-nav-avatar" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
+        </a>
+        <span class="role-badge" data-i18n="contractor.role_badge">Contractor</span>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
+    </div>
+</nav>
+
+<main class="dashboard">
+
+    <section class="intro-card">
+        <h2 data-i18n="contractor.greeting">👋 Hi Contractor</h2>
+        <p data-i18n="contractor.greeting_sub">Browse crops listed by farmers and show interest in purchasing.</p>
+    </section>
+
+    <section class="controls">
+        <!-- FIX: Removed inline styles, moved to CSS -->
+        <input type="text" id="searchInput"
+               data-i18n="contractor.search"
+               data-i18n-attr="placeholder"
+               placeholder="Search crop or location...">
+        <select id="sortSelect">
+            <option value="" data-i18n="contractor.sort">Sort by</option>
+            <option value="price_asc" data-i18n="contractor.price_asc">Price: Low to High</option>
+            <option value="price_desc" data-i18n="contractor.price_desc">Price: High to Low</option>
+        </select>
+        <select id="locationFilter">
+            <option value="" data-i18n="contractor.all_locations">All Locations</option>
+        </select>
+    </section>
+
+    <section class="crop-section">
+        <h3 data-i18n="contractor.available">🌾 Available Crops for Sale</h3>
+        <div id="availableCropsContainer" class="crop-grid">
+            <div class="loading-state" data-i18n="contractor.loading_crops">Loading crops...</div>
+        </div>
+    </section>
+
+    <hr>
+
+    <section class="interest-section">
+        <h3 data-i18n="contractor.my_interests">📨 My Interests</h3>
+        <div id="myInterestsContainer" class="interest-grid">
+            <div class="loading-state" data-i18n="contractor.loading_interests">Loading interests...</div>
+        </div>
+    </section>
+
+</main>
+
+<!-- FIX: All modal labels now use data-i18n attributes for translation -->
+<div id="interestModal" class="modal hidden">
+    <div class="modal-content">
+        <h3 data-i18n="contractor.modal_title">Show Interest</h3>
+        <p id="modalCropInfo"></p>
+        <label data-i18n="contractor.modal_qty_label">Quantity (Quintals)</label>
+        <input type="number" id="interestQuantity"
+               data-i18n="contractor.modal_qty_placeholder"
+               data-i18n-attr="placeholder"
+               placeholder="Ex: 10">
+        <label data-i18n="contractor.modal_price_label">Offer Price per Quintal (₹)</label>
+        <input type="number" id="interestPrice"
+               data-i18n="contractor.modal_price_placeholder"
+               data-i18n-attr="placeholder"
+               placeholder="Ex: 2100">
+        <label data-i18n="contractor.modal_msg_label">Message to Farmer</label>
+        <textarea id="interestMessage"
+                  data-i18n="contractor.modal_msg_placeholder"
+                  data-i18n-attr="placeholder"
+                  placeholder="Write a message..."></textarea>
+        <div class="modal-actions">
+            <button id="cancelModal" class="btn" data-i18n="contractor.modal_cancel">Cancel</button>
+            <button id="submitInterest" class="btn btn-primary" data-i18n="contractor.modal_submit">Submit Interest</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='dashboard_i18n.js') }}?v=6"></script>
+<script src="{{ url_for('static', filename='toast.js') }}"></script>
+<script src="{{ url_for('static', filename='contractor_dashboard.js') }}?v=6"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}?v=6"></script>
+<script>
+// ── Language Selector ──────────────────────────────────────────────────────
+(function () {
+  const LANG_LABELS = {
+    en:"EN", hi:"HI", mr:"MR", te:"TE", kn:"KN", ta:"TA", gu:"GU", pa:"PA", bn:"BN", or:"OR"
+  };
+  const btn      = document.getElementById("langBtn");
+  const label    = document.getElementById("langLabel");
+  const dropdown = document.getElementById("langDropdown");
+
+  function applyLang(lang) {
+    if (window.DT) {
+      window.DT.setLang(lang);
+      label.textContent = LANG_LABELS[lang] || lang.toUpperCase();
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key  = el.getAttribute("data-i18n");
+        const attr = el.getAttribute("data-i18n-attr");
+        const text = window.DT.t(key);
+        if (attr) { el.setAttribute(attr, text); }
+        else {
+          const hasChildEls = [...el.childNodes].some(n => n.nodeType === Node.ELEMENT_NODE);
+          if (!hasChildEls) { el.textContent = text; }
+          else {
+            const tn = [...el.childNodes].find(n => n.nodeType === Node.TEXT_NODE);
+            if (tn) tn.textContent = text + " ";
+          }
+        }
+      });
+      window.dispatchEvent(new Event("bhoomi:langchange"));
+    }
+    dropdown.classList.add("hidden");
+  }
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle("hidden");
+  });
+
+  dropdown.querySelectorAll("button[data-lang]").forEach(b => {
+    b.addEventListener("click", () => applyLang(b.dataset.lang));
+  });
+
+  document.addEventListener("click", () => dropdown.classList.add("hidden"));
+
+  window.DT?.ready.then(() => {
+    label.textContent = LANG_LABELS[window.DT.getLang()] || "EN";
+  });
+})();
+</script>
+</body>
+</html>

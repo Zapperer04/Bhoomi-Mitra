@@ -1,0 +1,328 @@
+/* ================= RESET ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ================= COLOR SYSTEM ================= */
+:root {
+    --green-dark:  #1B5E20;
+    --green-main:  #2E7D32;
+    --green-soft:  #E8F5E9;
+    --olive:       #6B8E23;
+    --text-main:   #1F2937;
+    --text-muted:  #4B5563;
+    --bg-main:     #F9FBF8;
+    --radius-lg:   16px;
+    --radius-md:   12px;
+}
+
+/* ================= BASE ================= */
+body {
+    /* FIX: Replaced generic Inter with Sora + DM Sans */
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, .logo, .btn, .hero-badge, .lang-btn {
+    font-family: 'Sora', system-ui, sans-serif;
+}
+
+/* ================= NAVBAR ================= */
+.nav {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--green-dark);
+    letter-spacing: -0.5px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.nav-link {
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 6px 2px;
+    transition: color 0.2s;
+    font-family: 'Sora', sans-serif;
+}
+
+.nav-link:hover {
+    color: var(--green-dark);
+}
+
+.nav-link.login {
+    background: var(--green-main);
+    color: white !important;
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    transition: background 0.2s, transform 0.15s;
+}
+
+.nav-link.login:hover {
+    background: var(--green-dark);
+    transform: translateY(-1px);
+}
+
+/* ================= LANGUAGE SELECTOR ================= */
+.lang-selector {
+    position: relative;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f3f4f6;
+    border: 1.5px solid #e5e7eb;
+    color: var(--text-main);
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.lang-btn:hover {
+    background: var(--green-soft);
+    border-color: #c8e6c9;
+    color: var(--green-dark);
+}
+
+/* Variant used on login/signup pages */
+.lang-btn-light {
+    background: var(--green-soft);
+    border-color: #c8e6c9;
+    color: var(--green-dark);
+}
+
+.lang-btn-light:hover {
+    background: #d4edda;
+}
+
+.lang-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: white;
+    border: 1.5px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    min-width: 140px;
+    z-index: 2000;
+    overflow: hidden;
+    animation: dropIn 0.15s ease;
+}
+
+@keyframes dropIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.lang-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.lang-dropdown button:hover {
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.lang-dropdown.hidden {
+    display: none;
+}
+
+/* ================= HERO ================= */
+.hero {
+    max-width: 1100px;
+    margin: 100px auto 80px;
+    padding: 0 24px;
+    text-align: center;
+}
+
+.hero-badge {
+    display: inline-block;
+    background: var(--green-soft);
+    color: var(--green-main);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    border: 1px solid #c8e6c9;
+    letter-spacing: 0.3px;
+}
+
+.hero h1 {
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+    color: var(--green-dark);
+    line-height: 1.15;
+}
+
+.hero p {
+    max-width: 680px;
+    margin: 0 auto 44px;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+/* ================= CTA ================= */
+.cta-group {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 32px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.2px;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.15);
+}
+
+.farmer-btn {
+    background: var(--green-main);
+    color: white;
+}
+
+.farmer-btn:hover {
+    background: var(--green-dark);
+}
+
+.contractor-btn {
+    background: var(--olive);
+    color: white;
+}
+
+.contractor-btn:hover {
+    background: #5a7a1a;
+}
+
+/* ================= FEATURES ================= */
+.features {
+    max-width: 1100px;
+    margin: 80px auto 100px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+.card-icon {
+    font-size: 2rem;
+    margin-bottom: 14px;
+    display: block;
+}
+
+.card {
+    background: white;
+    padding: 36px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid #f3f4f6;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.14);
+}
+
+.card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+    color: var(--green-dark);
+}
+
+.card p {
+    font-size: 0.96rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+}
+
+.card.highlight {
+    background: linear-gradient(135deg, var(--green-main), var(--green-dark));
+    border-color: transparent;
+}
+
+.card.highlight h3,
+.card.highlight p,
+.card.highlight .card-icon {
+    color: white;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 640px) {
+    .hero {
+        margin-top: 60px;
+    }
+
+    .nav {
+        padding: 14px 20px;
+    }
+
+    .nav-right {
+        gap: 10px;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .cta-group {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}

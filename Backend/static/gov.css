@@ -1,0 +1,186 @@
+/* ================= RESET ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #F4FAF5;
+    color: #1F2937;
+}
+
+/* ================= NAVBAR (REUSED STYLE) ================= */
+.dash-nav {
+    background: #ffffff;
+    padding: 16px 32px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.logo {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #1B5E20;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+}
+
+.nav-item {
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #374151;
+
+    padding: 8px 14px;
+    border-radius: 10px;
+
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-item:hover {
+    background: #E8F5E9;
+    color: #1B5E20;
+}
+
+.nav-item.active {
+    background: #E8F5E9;
+    color: #1B5E20;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.role-badge {
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.logout-btn {
+    border: none;
+    background: #EF4444;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ================= PAGE ================= */
+.gov-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 24px;
+}
+
+/* ================= HEADER ================= */
+.gov-header {
+    margin-bottom: 40px;
+}
+
+.gov-header h1 {
+    font-size: 2rem;
+    color: #1B5E20;
+    margin-bottom: 8px;
+}
+
+.gov-header p {
+    color: #6B7280;
+    max-width: 700px;
+}
+
+/* ================= SCHEMES ================= */
+.scheme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.scheme-card {
+    background: white;
+    padding: 28px;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.scheme-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.16);
+}
+
+.scheme-card h3 {
+    color: #1B5E20;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.scheme-card p {
+    font-size: 0.95rem;
+    color: #4B5563;
+    margin-bottom: 16px;
+}
+
+/* TAG */
+.tag {
+    display: inline-block;
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 640px) {
+    .dash-nav {
+        padding: 14px 20px;
+    }
+}
+/* SCHEME FOOTER */
+.scheme-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+/* CTA LINK */
+.scheme-link {
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1B5E20;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #E8F5E9;
+
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.scheme-link:hover {
+    background: #D1FAE5;
+    transform: translateY(-2px);
+}

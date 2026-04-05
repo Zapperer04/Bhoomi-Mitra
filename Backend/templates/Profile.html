@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='Profile.css') }}">
+</head>
+<body>
+
+<nav class="prof-nav">
+    <a href="javascript:history.back()" class="nav-back">← Back</a>
+    <span class="nav-logo">Bhoomi Mitra</span>
+    <button id="logoutBtn" class="nav-logout">Logout</button>
+</nav>
+
+<main class="prof-main">
+
+    <header class="prof-hero">
+        <div class="hero-bg-text" id="heroBgLetter">?</div>
+        <div class="hero-content">
+            <div class="avatar-ring">
+                <div class="avatar" id="avatarInitial">?</div>
+            </div>
+            <div class="hero-text">
+                <h1 id="displayName">Loading…</h1>
+                <div class="hero-meta">
+                    <span class="role-badge" id="displayRole">—</span>
+                    <span class="hero-phone" id="displayPhone">—</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="prof-grid">
+
+        <section class="pcard" style="--delay:0.05s">
+            <div class="pcard-label">Display Name</div>
+            <div class="pcard-icon">✏️</div>
+            <p class="pcard-desc">How you appear to farmers and contractors in deals.</p>
+            <div class="field-group">
+                <input class="prof-input" type="text" id="inputName"
+                       placeholder="Your full name" maxlength="100" autocomplete="name">
+                <button class="btn-primary" id="btnSaveName">Save</button>
+            </div>
+            <div class="feedback" id="fbName"></div>
+        </section>
+
+        <section class="pcard" style="--delay:0.10s">
+            <div class="pcard-label">Phone Number</div>
+            <div class="pcard-icon">📱</div>
+            <p class="pcard-desc">Shared with the other party only after a deal is accepted.</p>
+            <div class="field-group">
+                <input class="prof-input" type="tel" id="inputPhone"
+                       placeholder="+91XXXXXXXXXX" maxlength="15" autocomplete="tel">
+                <button class="btn-primary" id="btnSavePhone">Save</button>
+            </div>
+            <div class="feedback" id="fbPhone"></div>
+        </section>
+
+        <section class="pcard pcard-wide" style="--delay:0.15s">
+            <div class="pcard-label">Change Password</div>
+            <div class="pcard-icon">🔒</div>
+            <p class="pcard-desc">Use a strong password with letters, numbers and symbols.</p>
+
+            <div class="pw-grid">
+                <div class="pw-field">
+                    <label>Current Password</label>
+                    <input class="prof-input" type="password" id="inputCurrentPw"
+                           placeholder="Enter current password" autocomplete="current-password">
+                </div>
+                <div class="pw-field">
+                    <label>New Password</label>
+                    <input class="prof-input" type="password" id="inputNewPw"
+                           placeholder="Minimum 8 characters" autocomplete="new-password">
+                    <div class="strength-wrap" id="strengthWrap">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <span class="strength-label" id="strengthLabel"></span>
+                    </div>
+                </div>
+                <div class="pw-field">
+                    <label>Confirm New Password</label>
+                    <input class="prof-input" type="password" id="inputConfirmPw"
+                           placeholder="Repeat new password" autocomplete="new-password">
+                </div>
+            </div>
+
+            <button class="btn-primary full" id="btnSavePw">Change Password</button>
+            <div class="feedback" id="fbPw"></div>
+        </section>
+
+        <section class="pcard pcard-danger" style="--delay:0.20s">
+            <div class="pcard-label">Danger Zone</div>
+            <div class="pcard-icon">⚠️</div>
+            <p class="pcard-desc">
+                Permanently delete your account and all your data.
+                Active crop listings must be removed first.
+                <strong>This cannot be undone.</strong>
+            </p>
+            <button class="btn-danger" id="btnDeleteAccount">Delete My Account</button>
+        </section>
+
+    </div>
+</main>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <button class="modal-close" id="cancelDelete">✕</button>
+        <div class="modal-icon">⚠️</div>
+        <h3>Delete Account</h3>
+        <p>This will permanently erase all your data — crops, deals, messages. Enter your password to confirm.</p>
+        <input class="prof-input" type="password" id="deleteConfirmPw" placeholder="Your current password">
+        <div class="modal-btns">
+            <button class="btn-neutral" id="cancelDelete2">Cancel</button>
+            <button class="btn-danger" id="confirmDelete">Yes, Delete Forever</button>
+        </div>
+        <div class="feedback" id="fbDelete"></div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='Profile.js') }}"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}"></script>
+</body>
+</html>

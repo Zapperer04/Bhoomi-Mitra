@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Post Crop – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='post_crop.css') }}">
+</head>
+<body>
+
+<nav class="task-nav">
+    <a href="{{ url_for('farmer_dashboard') }}" class="back-link">
+        ← Back to Dashboard
+    </a>
+</nav>
+
+<main class="post-crop-page">
+
+    <section class="form-wrapper">
+
+        <header class="form-header">
+            <h1>Post Crop for Sale</h1>
+            <p>
+                Add crop details so contractors can contact you directly.
+            </p>
+        </header>
+
+        <form id="postCropForm">
+
+            <div class="form-section">
+                <h3>Crop Details</h3>
+
+                <div class="field-group">
+                    <label>Crop Name</label>
+                    <input type="text" name="crop" placeholder="Wheat, Paddy" required>
+                </div>
+
+                <div class="field-group">
+                    <label>Quantity (Quintals)</label>
+                    <input type="number" name="quantity" min="1" required>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Pricing</h3>
+
+                <div class="field-group">
+                    <label>Expected Price (₹ / Quintal)</label>
+                    <input type="number" name="price" min="1">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Availability</h3>
+
+                <div class="field-group">
+                    <label>Available From</label>
+                    <input type="date" name="availability" id="availabilityDate" required>
+                </div>
+
+                <div class="field-group">
+                    <label>Location</label>
+                    <input type="text" name="location" placeholder="Village / District" required>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Post Crop
+            </button>
+
+        </form>
+
+    </section>
+
+</main>
+
+<script src="{{ url_for('static', filename='toast.js') }}"></script>
+<script src="{{ url_for('static', filename='post_crop.js') }}"></script>
+</body>
+</html>

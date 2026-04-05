@@ -1,0 +1,152 @@
+/* ============================================================
+   Profile.css — Premium Upgrade
+   ============================================================ */
+
+:root {
+    --green-dark:   #064e3b;
+    --green-mid:    #059669;
+    --green-light:  #ecfdf5;
+    --accent:       #10b981;
+    --amber:        #f59e0b;
+    --red:          #ef4444;
+    --gray-50:      #f9fafb;
+    --gray-100:     #f3f4f6;
+    --gray-200:     #e5e7eb;
+    --gray-800:     #1f2937;
+    --white:        #ffffff;
+    --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-premium: 16px;
+    --font-display: 'Sora', sans-serif;
+    --font-body:    'DM Sans', sans-serif;
+}
+
+body {
+    font-family: var(--font-body);
+    background: radial-gradient(circle at top right, #f0fdf4, #f9fafb);
+    color: var(--gray-800);
+    margin: 0;
+    min-height: 100vh;
+}
+
+.prof-nav {
+    background: var(--green-dark);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.nav-logo {
+    font-family: var(--font-display);
+    font-weight: 800;
+}
+
+.prof-hero {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    padding: 4rem 2rem;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.avatar-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid var(--white);
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.avatar {
+    font-size: 3rem;
+    font-weight: 800;
+}
+
+.prof-main {
+    max-width: 900px;
+    margin: -2rem auto 4rem;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 10;
+}
+
+.prof-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.pcard {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--radius-premium);
+    box-shadow: var(--shadow-premium);
+    border: 1px solid var(--gray-100);
+}
+
+.pcard-wide { grid-column: 1 / -1; }
+
+.pcard-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--green-dark);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.prof-input {
+    width: 100%;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--green-mid);
+}
+
+.pcard-danger {
+    border-left: 6px solid var(--red);
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+    background: var(--white);
+    padding: 3rem;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 450px;
+}

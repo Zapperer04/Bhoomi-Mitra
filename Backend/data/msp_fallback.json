@@ -1,0 +1,36 @@
+{
+  "wheat": 2275,
+  "rice": 2183,
+  "paddy": 2183,
+  "barley": 1850,
+  "maize": 2090,
+  "jowar": 3180,
+  "bajra": 2500,
+  "ragi": 4290,
+
+  "gram": 5440,
+  "chickpea": 5440,
+  "tur": 7000,
+  "arhar": 7000,
+  "moong": 8558,
+  "urad": 6950,
+  "lentil": 6425,
+  "masur": 6425,
+
+  "groundnut": 6377,
+  "soybean": 4892,
+  "sunflower": 6760,
+  "sesame": 9267,
+  "mustard": 5650,
+  "rapeseed": 5650,
+  "safflower": 5210,
+  "nigerseed": 7734,
+
+  "copra_milling": 11718,
+  "copra_ball": 12100,
+  "cotton_medium": 7121,
+  "cotton_long": 7521,
+
+  "jute": 5050,
+  "sugarcane": 315
+}
