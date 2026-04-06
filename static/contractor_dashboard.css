@@ -2,7 +2,7 @@
    contractor_dashboard.css  ★ Premium Edition ★
    ============================================================ */
 
-/* ── DESIGN TOKENS ────────────────────────────────────────── */
+/* ── DESIGN TOKENS (Unified with Farmer Dashboard) ────────── */
 :root {
     /* Brand Colors - Deep Nature Palette */
     --green-900:    #064e3b;
@@ -49,7 +49,6 @@
     --shadow-md:    0 4px 12px rgba(0,0,0,.08);
     --shadow-lg:    0 12px 24px rgba(6,78,59,.12);
     --shadow-xl:    0 20px 40px rgba(0,0,0,.15);
-    --shadow-white: 0 0 20px rgba(255,255,255,.5);
     --shadow-brand: 0 10px 20px rgba(5,150,105,.2);
 
     /* Radii */
@@ -82,7 +81,7 @@ h1, h2, h3, h4 {
     line-height: 1.2;
 }
 
-/* ── NAVIGATION ───────────────────────────────────────────── */
+/* ── NAVIGATION (Harmonized) ─────────────────────────────── */
 .dash-nav {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(16px);
@@ -108,6 +107,7 @@ h1, h2, h3, h4 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.03em;
+    font-family: 'Sora', sans-serif;
 }
 
 .nav-messages-link {
@@ -188,8 +188,9 @@ h1, h2, h3, h4 {
     background: linear-gradient(135deg, var(--green-600), var(--green-400));
     color: white; font-weight: 800; font-size: 0.8rem;
     display: flex; align-items: center; justify-content: center;
+    font-family: 'Sora', sans-serif;
 }
-.profile-nav-name { color: var(--gray-800); font-weight: 700; font-size: 0.85rem; }
+.profile-nav-name { color: var(--gray-800); font-weight: 700; font-size: 0.85rem; font-family: 'Sora', sans-serif; }
 
 .role-badge {
     background: var(--green-50);
@@ -199,6 +200,7 @@ h1, h2, h3, h4 {
     font-size: 0.75rem; font-weight: 800;
     text-transform: uppercase; letter-spacing: 0.05em;
     border: 1px solid var(--green-100);
+    font-family: 'Sora', sans-serif;
 }
 
 .logout-btn {
@@ -209,6 +211,7 @@ h1, h2, h3, h4 {
     border-radius: var(--radius-md);
     cursor: pointer; font-weight: 700; font-size: 0.85rem;
     transition: all var(--transition);
+    font-family: 'Sora', sans-serif;
 }
 .logout-btn:hover {
     background: var(--red);
@@ -216,6 +219,17 @@ h1, h2, h3, h4 {
     border-color: var(--red);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
+
+.unread-badge-nav {
+    background: var(--red);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    margin-left: 4px;
+}
+.unread-badge-nav.hidden { display: none; }
 
 /* ── MAIN DASHBOARD ───────────────────────────────────────── */
 .dashboard {
@@ -230,7 +244,7 @@ h1, h2, h3, h4 {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Hero Section */
+/* Hero Section (Intro Card) */
 .intro-card {
     background: linear-gradient(135deg, var(--green-900) 0%, var(--green-800) 100%);
     padding: 3rem;
@@ -291,8 +305,8 @@ h1, h2, h3, h4 {
     display: flex; align-items: center; gap: 0.75rem;
     color: var(--gray-900);
 }
-.crop-section h3::before { content: '🌿'; font-size: 1.2rem; }
-.interest-section h3::before { content: '✉️'; font-size: 1.2rem; }
+.crop-section h3::before { content: '🌿'; }
+.interest-section h3::before { content: '✉️'; }
 
 hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacity: 0.5; }
 
@@ -333,8 +347,6 @@ hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacit
     font-weight: 800; font-size: 0.9rem;
 }
 
-.crop-card .actions { margin-top: 1rem; }
-
 /* ── INTEREST CARD ────────────────────────────────────────── */
 .interest-card {
     background: var(--white);
@@ -362,41 +374,69 @@ hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacit
 .status-accepted    { background: var(--green-100); color: var(--green-700); }
 .status-rejected    { background: var(--red-light); color: var(--red); }
 
-/* ── BUTTONS ──────────────────────────────────────────────── */
-.btn {
-    display: inline-flex; align-items: center; justify-content: center;
+/* ── BUTTONS & ACTIONS ────────────────────────────────────── */
+.btn, .btn-primary, .btn-chat, .btn-warning, .btn-danger, .btn-secondary, 
+.delete-btn, .hard-delete-btn, .btn-message, .btn-accept, .btn-reject, .action-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     padding: 0.75rem 1.5rem;
     border-radius: var(--radius-md);
     font-weight: 700; font-family: 'Sora', sans-serif;
     font-size: 0.9rem; cursor: pointer; border: none;
     transition: all var(--transition);
+    text-decoration: none;
+    white-space: nowrap;
 }
 
-.btn-primary {
+.btn-primary, .action-btn.primary, .btn-accept {
     background: linear-gradient(135deg, var(--green-600), var(--green-700));
     color: white;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
-.btn-primary:hover {
+.btn-primary:hover, .action-btn.primary:hover, .btn-accept:hover {
     background: linear-gradient(135deg, var(--green-700), var(--green-800));
     box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
     transform: translateY(-2px);
 }
 
-.btn-chat {
+.btn-chat, .btn-message, .action-btn.secondary {
     background: var(--white);
     color: var(--blue);
     border: 1.5px solid var(--blue-light);
 }
-.btn-chat:hover { background: var(--blue-light); }
-
-.btn-view {
-    background: var(--gray-100);
-    color: var(--gray-700);
+.btn-chat:hover, .btn-message:hover, .action-btn.secondary:hover { 
+    background: var(--blue-light); 
+    transform: translateY(-2px);
 }
-.btn-view:hover { background: var(--gray-200); }
 
-/* ── MODALS ───────────────────────────────────────────────── */
+.btn-danger, .delete-btn, .hard-delete-btn, .btn-reject {
+    background: var(--white);
+    color: var(--red);
+    border: 1.5px solid var(--red-light);
+}
+.btn-danger:hover, .delete-btn:hover, .hard-delete-btn:hover, .btn-reject:hover {
+    background: var(--red);
+    color: var(--white);
+    border-color: var(--red);
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background: var(--amber-light);
+    color: var(--amber-dark);
+}
+.btn-warning:hover { background: var(--amber); color: white; transform: translateY(-2px); }
+
+.action-btn.light {
+    background: var(--white);
+    color: var(--green-700);
+    border: 1.5px solid var(--green-100);
+}
+.action-btn.light:hover { background: var(--green-50); border-color: var(--green-200); }
+
+.actions { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
+.actions .btn, .actions button { flex: 1; }
+
+/* ── MODALS (Unified) ────────────────────────────────────── */
 .modal {
     position: fixed; inset: 0;
     background: rgba(11, 25, 20, 0.4);
@@ -412,49 +452,13 @@ hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacit
     border-radius: var(--radius-xl);
     width: 100%; max-width: 550px;
     box-shadow: var(--shadow-xl);
-    animation: modalSlideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@keyframes modalSlideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.modal-content h3 { font-size: 1.75rem; margin-bottom: 2rem; }
-
-.modal-content label {
-    display: block; font-weight: 700; font-size: 0.85rem;
-    margin-bottom: 0.5rem; color: var(--gray-600);
-    text-transform: uppercase; letter-spacing: 0.05em;
-}
-
-.modal-content input, .modal-content textarea {
-    width: 100%; padding: 0.9rem 1.25rem;
-    border-radius: var(--radius-md);
-    border: 1.5px solid var(--gray-100);
-    margin-bottom: 1.5rem;
-    font-family: inherit; font-size: 1rem;
-    background: var(--gray-50);
-}
-.modal-content textarea { height: 120px; resize: none; }
-
-.modal-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
-
-/* ── LOADING ──────────────────────────────────────────────── */
-.loading-state {
-    grid-column: 1 / -1;
-    text-align: center; padding: 4rem;
-    color: var(--gray-400); font-weight: 600;
-    background: rgba(255,255,255,0.5);
-    border: 2px dashed var(--gray-200);
-    border-radius: var(--radius-lg);
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 768px) {
     .dash-nav { padding: 1rem; }
-    .nav-left .logo { font-size: 1.25rem; }
-    .nav-messages-link span:not(#unreadBadge) { display: none; }
+    .logo { font-size: 1.25rem; }
+    .nav-messages-link span:not(.unread-badge-nav) { display: none; }
     .profile-nav-name { display: none; }
     
     .dashboard { padding: 0 1rem; margin-top: 2rem; }

@@ -16,18 +16,16 @@
 
 <nav class="dash-nav">
     <div class="nav-left">
-        <div class="logo">Bhoomi Mitra</div>
-        <div class="nav-links">
-            <a href="{{ url_for('gov_page') }}" class="nav-item" data-i18n="nav.gov_schemes">Gov Schemes</a>
-            <a href="{{ url_for('messages_page') }}" class="nav-item">
-                💬 <span data-i18n="nav.messages">Messages</span>
-                <span id="unreadBadge" class="unread-badge hidden">0</span>
-            </a>
-            <a href="#interestSection" class="nav-item" data-i18n="nav.interests">Interests</a>
-        </div>
+        <span class="logo">Bhoomi Mitra</span>
+        <a href="{{ url_for('gov_page') }}" class="nav-messages-link">
+            🏛️ <span data-i18n="nav.gov_schemes">Gov Schemes</span>
+        </a>
+        <a href="{{ url_for('messages_page') }}" class="nav-messages-link">
+            💬 <span data-i18n="nav.messages">Messages</span>
+            <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
+        </a>
     </div>
-
-    <div class="nav-actions">
+    <div class="nav-right">
         <!-- Language Selector -->
         <div class="lang-selector" id="langSelector">
             <button class="lang-btn" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
@@ -39,7 +37,7 @@
                 <button data-lang="kn">ಕನ್ನಡ</button>
                 <button data-lang="ta">தமிழ்</button>
                 <button data-lang="gu">ગુજરાતી</button>
-                <button data-lang="pa">ਪੰਜਾਬੀ</button>
+                <button data-lang="pa">ਪੰਜਾਬी</button>
                 <button data-lang="bn">বাংলা</button>
                 <button data-lang="or">ଓଡ଼ିଆ</button>
             </div>
@@ -49,7 +47,7 @@
             <span class="profile-nav-name" id="navName">Profile</span>
         </a>
         <span class="role-badge" data-i18n="farmer.role_badge">Farmer</span>
-        <button class="logout-btn" id="logoutBtn" data-i18n="nav.logout">Logout</button>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
     </div>
 </nav>
 
