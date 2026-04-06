@@ -86,15 +86,20 @@ async function loadConversations() {
     conversations.forEach(conv => {
       const item = document.createElement("div");
       item.className = `conversation-item ${conv.interest_id === currentInterestId ? 'active' : ''}`;
+      
+      const timeStr = formatTimeAgo(conv.last_message_time);
+      const previewText = conv.last_message || 'No messages';
+      const unreadHtml = conv.unread_count > 0 ? `<span class="sidebar-unread">${conv.unread_count}</span>` : '';
+
       item.innerHTML = `
-        <div class="conversation-header">
+        <div class="conv-row">
           <span class="conversation-name">${conv.other_user_name}</span>
-          <span class="conversation-time">${formatTimeAgo(conv.last_message_time)}</span>
+          <span class="conversation-time">${timeStr}</span>
         </div>
-        <div class="conversation-crop">🌾 ${conv.crop_name}</div>
-        <div class="conversation-preview">
-          <span>${conv.last_message || 'No messages'}</span>
-          ${conv.unread_count > 0 ? `<span class="unread-badge">${conv.unread_count}</span>` : ''}
+        <div class="conversation-crop">${conv.crop_name}</div>
+        <div class="conv-row">
+          <span class="conversation-preview">${previewText}</span>
+          ${unreadHtml}
         </div>
       `;
       item.onclick = () => openConversation(conv, item);
@@ -137,7 +142,7 @@ async function loadMessages(id) {
       messages.forEach(msg => {
         const div = document.createElement("div");
         div.className = `message ${msg.sender_id === currentUserId ? 'sent' : ''}`;
-        div.innerHTML = `<div class="message-bubble">${escapeHtml(msg.content)}</div>`;
+        div.textContent = msg.content; // Use textContent for safety
         area.appendChild(div);
         lastMessageId = Math.max(lastMessageId, msg.id);
       });
