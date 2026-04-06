@@ -38,8 +38,7 @@ body {
     justify-content: space-between;
     align-items: center;
     color: white;
-    position: sticky;
-    top: 0;
+    height: 70px;
     z-index: 100;
 }
 
@@ -154,8 +153,8 @@ body {
 
 /* ── Main Layout ── */
 .prof-main {
-    max-width: 1000px;
-    margin: -3rem auto 4rem;
+    max-width: 900px;
+    margin: -4rem auto 4rem;
     padding: 0 1.5rem;
     position: relative;
     z-index: 10;
@@ -213,6 +212,8 @@ body {
     font-size: 15px;
     outline: none;
     transition: all 0.2s;
+    height: 48px;
+    max-width: 100%;
 }
 
 .prof-input:focus {
