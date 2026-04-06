@@ -1,4 +1,6 @@
-/* dashboard.css — Farmer Dashboard ★ Premium Edition ★ v2.2 */
+/* ============================================================
+   dashboard.css — Farmer Dashboard  ★ Premium Edition ★
+   ============================================================ */
 
 /* ── DESIGN TOKENS (Unified with Contractor Dashboard) ────── */
 :root {
@@ -60,8 +62,6 @@
     --transition:   0.3s cubic-bezier(0.23, 1, 0.32, 1);
     --glass:        rgba(255,255,255,.8);
 }
-html { font-size: 16px !important; }
-html { font-size: 16px !important; }
 
 /* ── RESET & BASE ─────────────────────────────────────────── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -96,9 +96,8 @@ h1, h2, h3, h4 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.25rem;
-    height: 70px !important;
-    min-height: 70px !important;
+    gap: 1.5rem;
+    height: 70px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
@@ -148,10 +147,8 @@ h1, h2, h3, h4 {
     font-weight: 700;
     font-size: 0.85rem;
     transition: all var(--transition);
-    height: 40px !important;
-    width: auto !important;
-    min-width: 80px !important;
-    flex-shrink: 0 !important;
+    height: 40px;
+    flex-shrink: 0;
 }
 .lang-btn:hover { border-color: var(--green-400); box-shadow: var(--shadow-sm); }
 
@@ -185,10 +182,8 @@ h1, h2, h3, h4 {
     padding: 0.3rem 1rem 0.3rem 0.3rem;
     border-radius: var(--radius-full);
     transition: all var(--transition);
-    height: 40px !important;
-    width: auto !important;
-    max-width: 180px !important;
-    flex-shrink: 0 !important;
+    height: 40px;
+    flex-shrink: 0;
 }
 .profile-nav-btn:hover {
     border-color: var(--green-400);

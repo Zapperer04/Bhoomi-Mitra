@@ -30,6 +30,7 @@
     gu: { label: "GU", name: "àª—à«àªœàª°àª¾àª¤à«€" },
     pa: { label: "PA", name: "à¨ªà©°à¨œà¨¾à¨¬à©€" },
     bn: { label: "BN", name: "à¦¬à¦¾à¦‚à¦²à¦¾" },
+    or: { label: "OR", name: "à¬“à¬¡à¬¼à¬¿à¬†" }
     or: { label: "OR", name: "ଓଡ଼ିଆ" }
   };
 
