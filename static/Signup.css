@@ -29,21 +29,27 @@ body {
 
 /* ── Navigation ──────────────────────────────────────────────────────────── */
 .signup-nav {
-    padding: 24px 40px;
+    padding: 1rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: absolute;
     top: 0;
     width: 100%;
-    z-index: 100;
+    z-index: 500;
 }
+
+.nav-left { display: flex; align-items: center; }
+.nav-right { display: flex; align-items: center; gap: 1rem; }
 
 .nav-logo {
     font-family: 'Sora', sans-serif;
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--green-dark);
+    background: linear-gradient(135deg, #064e3b, #059669);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     text-decoration: none;
     letter-spacing: -0.5px;
 }
@@ -75,24 +81,27 @@ body {
 .lang-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: var(--white);
     border: 1.5px solid var(--gray-200);
-    padding: 8px 14px;
+    padding: 0.6rem 0.9rem;
     border-radius: 12px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 700;
     font-family: 'Sora', sans-serif;
-    color: var(--gray-700);
+    color: var(--gray-600);
     transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .lang-btn:hover {
     border-color: var(--accent);
     background: var(--green-light);
-    color: var(--green-dark);
+}
+
+.lang-btn-light {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
 }
 
 .lang-dropdown {
@@ -184,30 +193,34 @@ h2 {
 .role-toggle {
     display: flex;
     background: var(--gray-100);
-    border-radius: 18px;
-    padding: 6px;
-    margin-bottom: 2.5rem;
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    margin-bottom: 2.25rem;
     border: 1px solid var(--gray-200);
 }
 
 .role-btn {
     flex: 1;
-    padding: 1rem;
+    min-width: 110px; /* Prevent overlap on narrow screens */
+    padding: 0.85rem;
     border: none;
     background: transparent;
     font-weight: 700;
     font-family: 'Sora', sans-serif;
     cursor: pointer;
     border-radius: 14px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
     color: var(--gray-500);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .role-btn.active {
     background: var(--white);
     color: var(--green-dark);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 /* ── Form Inputs ── */

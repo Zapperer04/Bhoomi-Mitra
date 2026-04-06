@@ -12,22 +12,16 @@
 <body>
 
 <nav class="signup-nav">
-    <a href="{{ url_for('index') }}" class="nav-logo">Bhoomi Mitra</a>
-    <div style="display:flex;align-items:center;gap:12px;">
-        <a href="{{ url_for('index') }}" class="nav-back" data-i18n="home.back_home">← Back to Home</a>
+    <div class="nav-left">
+        <a href="{{ url_for('index') }}" class="nav-logo">Bhoomi Mitra</a>
+    </div>
+    <div class="nav-right">
+        <a href="{{ url_for('index') }}" class="nav-back" data-i18n="home.back_home">← <span data-i18n="nav.back_home">Back to Home</span></a>
         <div class="lang-selector" id="langSelector">
             <button class="lang-btn lang-btn-light" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
             <div class="lang-dropdown hidden" id="langDropdown">
                 <button data-lang="en">English</button>
                 <button data-lang="hi">हिंदी</button>
-                <button data-lang="mr">मराठी</button>
-                <button data-lang="te">తెలుగు</button>
-                <button data-lang="kn">ಕನ್ನಡ</button>
-                <button data-lang="ta">தமிழ்</button>
-                <button data-lang="gu">ગુજરાતી</button>
-                <button data-lang="pa">ਪੰਜਾਬੀ</button>
-                <button data-lang="bn">বাংলা</button>
-                <button data-lang="or">ଓଡ଼ିଆ</button>
             </div>
         </div>
     </div>
