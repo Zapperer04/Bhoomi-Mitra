@@ -57,13 +57,13 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-    padding: 0.75rem 2rem;
+    padding: 0.6rem 1.5rem;
     position: sticky; top: 0; z-index: 500;
     display: flex; justify-content: space-between; align-items: center;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
-.nav-left { display: flex; align-items: center; gap: 2rem; }
+.nav-left { display: flex; align-items: center; gap: 1rem; }
 
 .logo {
     font-size: 1.5rem; font-weight: 800;
@@ -76,7 +76,7 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 }
 
 .nav-messages-link {
-    display: flex; align-items: center; gap: 0.4rem;
+    display: flex; align-items: center; gap: 0.5rem;
     text-decoration: none; color: var(--gray-700);
     font-weight: 600; font-size: 0.9rem;
     padding: 0.6rem 1rem; border-radius: var(--radius-md);
@@ -85,14 +85,36 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 }
 .nav-messages-link:hover { background: var(--green-100); color: var(--green-800); transform: translateY(-1px); }
 
-.nav-right { display: flex; align-items: center; gap: 1rem; }
+.unread-badge-nav {
+    background: #ef4444; color: white;
+    font-size: 0.7rem; font-weight: 800;
+    padding: 2px 6px; border-radius: var(--radius-full);
+}
 
+.nav-right { display: flex; align-items: center; gap: 1.25rem; }
+
+/* Language Selector */
+.lang-selector { position: relative; }
 .lang-btn {
     display: flex; align-items: center; gap: 4px;
     background: white; border: 1.5px solid var(--gray-200);
     padding: 0.6rem 0.9rem; border-radius: var(--radius-md);
     font-weight: 700; cursor: pointer;
 }
+
+.lang-dropdown {
+    position: absolute; top: calc(100% + 0.5rem); right: 0;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md); box-shadow: var(--shadow-xl);
+    min-width: 150px; z-index: 1000; overflow: hidden;
+}
+.lang-dropdown button {
+    display: block; width: 100%; padding: 0.75rem 1rem;
+    border: none; background: none; text-align: left;
+    cursor: pointer; font-size: 0.85rem; color: var(--gray-700);
+}
+.lang-dropdown button:hover { background: var(--green-50); }
+.lang-dropdown.hidden { display: none; }
 
 .profile-nav-btn {
     display: flex; align-items: center; gap: 0.75rem;
@@ -112,7 +134,8 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .role-badge {
     background: var(--green-50); color: var(--green-700);
     padding: 0.4rem 0.8rem; border-radius: var(--radius-full);
-    font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    border: 1px solid var(--green-100);
 }
 
 .logout-btn {
