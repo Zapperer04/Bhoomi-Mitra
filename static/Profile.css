@@ -58,8 +58,11 @@ body {
 .nav-logo {
     font-family: 'Sora', sans-serif;
     font-weight: 800;
-    font-size: 1.25rem;
     letter-spacing: -0.5px;
+    background: linear-gradient(135deg, white, rgba(255,255,255,0.7));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .nav-logout {
@@ -187,8 +190,10 @@ body {
 .pcard-label {
     font-family: 'Sora', sans-serif;
     font-weight: 700;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     color: var(--green-dark);
+    margin-bottom: 0.5rem;
+    max-width: 100%;
 }
 
 .pcard-desc {

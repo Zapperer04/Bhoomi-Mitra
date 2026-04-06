@@ -80,7 +80,7 @@ h1, h2, h3, h4 {
     color: var(--gray-900);
     line-height: 1.25;
     overflow-wrap: break-word;
-    word-wrap: break-word;
+    margin-bottom: 0.5rem;
 }
 
 /* ── NAVIGATION ───────────────────────────────────────────── */
@@ -108,6 +108,7 @@ h1, h2, h3, h4 {
     font-weight: 800;
     background: linear-gradient(135deg, var(--green-700), var(--green-500));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.03em;
     font-family: 'Sora', sans-serif;
