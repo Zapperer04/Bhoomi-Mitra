@@ -15,24 +15,17 @@
     <div class="logo">Bhoomi Mitra</div>
     <div class="nav-right">
         <a href="{{ url_for('index') }}" class="nav-link" data-i18n="home.nav_home">Home</a>
-        <a href="{{ url_for('login') }}" class="nav-link login" data-i18n="home.nav_login">Login</a>
-
+        
         <!-- Language Selector -->
         <div class="lang-selector" id="langSelector">
             <button class="lang-btn" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
             <div class="lang-dropdown hidden" id="langDropdown">
                 <button data-lang="en">English</button>
                 <button data-lang="hi">हिंदी</button>
-                <button data-lang="mr">मराठी</button>
-                <button data-lang="te">తెలుగు</button>
-                <button data-lang="kn">ಕನ್ನಡ</button>
-                <button data-lang="ta">தமிழ்</button>
-                <button data-lang="gu">ગુજરાતી</button>
-                <button data-lang="pa">ਪੰਜਾਬੀ</button>
-                <button data-lang="bn">বাংলা</button>
-                <button data-lang="or">ଓଡ଼ିଆ</button>
             </div>
         </div>
+
+        <a href="{{ url_for('login') }}" class="nav-link login" data-i18n="home.nav_login">Login</a>
     </div>
 </nav>
 
