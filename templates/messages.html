@@ -24,8 +24,7 @@
         <div class="lang-selector" id="langSelector">
             <button class="lang-btn" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
             <div class="lang-dropdown hidden" id="langDropdown">
-                <button data-lang="en">English</button>
-                <button data-lang="hi">हिंदी</button>
+                <!-- Dynamically populated by i18n.js -->
             </div>
         </div>
         <a href="{{ url_for('profile_page') }}" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
@@ -41,8 +40,8 @@
     
     <aside class="conversations-sidebar">
         <div class="sidebar-header">
-            <h2>💬 Messages</h2>
-            <p class="subtitle">Chat with your deals</p>
+            <h2 data-i18n="messages.sidebar_title">💬 Messages</h2>
+            <p class="subtitle" data-i18n="messages.sidebar_sub">Chat with your deals</p>
         </div>
         
         <div id="conversationsList" class="conversations-list">
@@ -53,8 +52,8 @@
     <section class="chat-area">
         <div id="emptyState" class="empty-state">
             <div class="empty-icon">💬</div>
-            <h3>Select a conversation</h3>
-            <p>Choose a deal from the left to start messaging</p>
+            <h3 data-i18n="messages.empty_title">Select a conversation</h3>
+            <p data-i18n="messages.empty_sub">Choose a deal from the left to start messaging</p>
         </div>
 
         <div id="chatContainer" class="chat-container hidden">
@@ -64,7 +63,7 @@
                     <p id="chatCropName">Crop Name</p>
                 </div>
                 <div class="chat-header-actions">
-                    <a id="callButton" class="btn-call" href="#" target="_blank">
+                    <a id="callButton" class="btn-call" href="#" target="_blank" data-i18n="messages.call_btn">
                         📞 Call
                     </a>
                 </div>
@@ -78,9 +77,11 @@
                 <textarea 
                     id="messageInput" 
                     placeholder="Type your message..."
+                    data-i18n="messages.input_placeholder"
+                    data-i18n-attr="placeholder"
                     rows="1"
                 ></textarea>
-                <button id="sendButton" class="btn-send">
+                <button id="sendButton" class="btn-send" data-i18n="messages.send_btn">
                     Send
                 </button>
             </div>
@@ -89,7 +90,9 @@
 
 </main>
 
+<script src="{{ url_for('static', filename='dashboard_i18n.js') }}?v=7"></script>
 <script src="{{ url_for('static', filename='toast.js') }}"></script>
-<script src="{{ url_for('static', filename='messages.js') }}"></script>
+<script src="{{ url_for('static', filename='messages.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}?v=7"></script>
 </body>
 </html>

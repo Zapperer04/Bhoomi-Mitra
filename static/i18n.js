@@ -57,9 +57,67 @@
     });
   }
 
-  applyAll();
+  /**
+   * AUTOMATED UI INITIALIZER
+   * Finds #langSelector and populates its dropdown with buttons for all
+   * languages defined in dashboard_i18n.js.
+   */
+  function initLangSelector() {
+    const selector = document.getElementById("langSelector");
+    if (!selector) return;
 
-  // Re-run whenever a language-switcher component fires this event.
+    const btn      = selector.querySelector("#langBtn");
+    const dropdown = selector.querySelector("#langDropdown");
+    const label    = selector.querySelector("#langLabel");
+
+    if (!btn || !dropdown) return;
+
+    const languages = window.DT.getLanguages();
+    const current   = window.DT.getLang();
+
+    // 1. Update current label
+    if (label) label.textContent = languages[current].label;
+
+    // 2. Populate dropdown
+    dropdown.innerHTML = "";
+    Object.entries(languages).forEach(([code, cfg]) => {
+      const button = document.createElement("button");
+      button.setAttribute("data-lang", code);
+      button.textContent = cfg.name;
+      if (code === current) button.classList.add("active");
+
+      button.onclick = (e) => {
+        e.stopPropagation();
+        if (code === current) {
+          dropdown.classList.add("hidden");
+          return;
+        }
+
+        window.DT.setLang(code);
+        if (label) label.textContent = cfg.label;
+        dropdown.classList.add("hidden");
+
+        // Notify all listeners to translate the DOM
+        window.dispatchEvent(new CustomEvent("bhoomi:langchange"));
+      };
+
+      dropdown.appendChild(button);
+    });
+
+    // 3. Toggle Logic
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("hidden");
+    };
+
+    // 4. Click-outside to close
+    document.addEventListener("click", () => dropdown.classList.add("hidden"));
+  }
+
+  applyAll();
+  initLangSelector();
+
+  // Re-run whenever a language-switching event occurs.
   window.addEventListener("bhoomi:langchange", applyAll);
 
 })();

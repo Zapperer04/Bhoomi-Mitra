@@ -28,8 +28,7 @@
         <div class="lang-selector" id="langSelector">
             <button class="lang-btn" id="langBtn">🌐 <span id="langLabel">EN</span></button>
             <div class="lang-dropdown hidden" id="langDropdown">
-                <button data-lang="en">English</button>
-                <button data-lang="hi">हिंदी</button>
+                <!-- Dynamically populated by i18n.js -->
             </div>
         </div>
         <a href="{{ url_for('profile_page') }}" class="profile-nav-btn" id="profileNavBtn">
@@ -46,52 +45,52 @@
     <section class="form-wrapper">
 
         <header class="form-header">
-            <h1>Post Crop for Sale</h1>
-            <p>
-                Add crop details so contractors can contact you directly.
+            <h1 data-i18n="farmer.post_crop">Post Crop for Sale</h1>
+            <p data-i18n="farmer.post_crop_sub">
+                Add crop details and let contractors contact you directly.
             </p>
         </header>
 
         <form id="postCropForm">
 
             <div class="form-section">
-                <h3>Crop Details</h3>
+                <h3 data-i18n="farmer.crop_details">Crop Details</h3>
 
                 <div class="field-group">
-                    <label>Crop Name</label>
+                    <label data-i18n="farmer.crop_name">Crop Name</label>
                     <input type="text" name="crop" placeholder="Wheat, Paddy" required>
                 </div>
 
                 <div class="field-group">
-                    <label>Quantity (Quintals)</label>
+                    <label data-i18n="farmer.quantity_quintals">Quantity (Quintals)</label>
                     <input type="number" name="quantity" min="1" required>
                 </div>
             </div>
 
             <div class="form-section">
-                <h3>Pricing</h3>
+                <h3 data-i18n="farmer.pricing_title">Pricing</h3>
 
                 <div class="field-group">
-                    <label>Expected Price (₹ / Quintal)</label>
+                    <label data-i18n="farmer.expected_price">Expected Price (₹ / Quintal)</label>
                     <input type="number" name="price" min="1">
                 </div>
             </div>
 
             <div class="form-section">
-                <h3>Availability</h3>
+                <h3 data-i18n="farmer.availability_title">Availability</h3>
 
                 <div class="field-group">
-                    <label>Available From</label>
+                    <label data-i18n="farmer.available_from">Available From</label>
                     <input type="date" name="availability" id="availabilityDate" required>
                 </div>
 
                 <div class="field-group">
-                    <label>Location</label>
+                    <label data-i18n="farmer.location_lbl">Location</label>
                     <input type="text" name="location" placeholder="Village / District" required>
                 </div>
             </div>
 
-            <button type="submit" class="submit-btn">
+            <button type="submit" class="submit-btn" data-i18n="farmer.post_crop_btn">
                 Post Crop
             </button>
 
@@ -101,7 +100,9 @@
 
 </main>
 
+<script src="{{ url_for('static', filename='dashboard_i18n.js') }}?v=7"></script>
 <script src="{{ url_for('static', filename='toast.js') }}"></script>
-<script src="{{ url_for('static', filename='post_crop.js') }}"></script>
+<script src="{{ url_for('static', filename='post_crop.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}?v=7"></script>
 </body>
 </html>

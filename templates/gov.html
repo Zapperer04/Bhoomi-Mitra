@@ -21,8 +21,7 @@
         <div class="lang-selector" id="langSelector">
             <button class="lang-btn" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
             <div class="lang-dropdown hidden" id="langDropdown">
-                <button data-lang="en">English</button>
-                <button data-lang="hi">हिंदी</button>
+                <!-- Dynamically populated by i18n.js -->
             </div>
         </div>
         <a href="{{ url_for('profile_page') }}" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
@@ -37,8 +36,8 @@
 <main class="gov-page">
 
     <section class="gov-header">
-        <h1>Government Schemes for Farmers</h1>
-        <p>
+        <h1 data-i18n="gov.title">Government Schemes for Farmers</h1>
+        <p data-i18n="gov.subtitle">
             Verified central and state government schemes with direct links
             to official portals for detailed information and application.
         </p>
@@ -125,6 +124,8 @@
 
 </main>
 
-<script src="{{ url_for('static', filename='gov.js') }}"></script>
+<script src="{{ url_for('static', filename='dashboard_i18n.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='gov.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}?v=7"></script>
 </body>
 </html>
