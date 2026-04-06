@@ -167,6 +167,8 @@ body {
     text-align: center;
     border: 1px solid rgba(229, 231, 235, 0.8);
     backdrop-filter: blur(20px);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     animation: slideUp 0.5s ease-out;
 }
 
@@ -193,16 +195,17 @@ h2 {
 /* ── Role Toggle ── */
 .role-toggle {
     display: flex;
+    flex-wrap: wrap;
     background: var(--gray-100);
     border-radius: var(--radius-lg);
     padding: 4px;
     margin-bottom: 2.25rem;
     border: 1px solid var(--gray-200);
+    gap: 4px;
 }
 
 .role-btn {
-    flex: 1;
-    min-width: 110px; /* Prevent overlap on narrow screens */
+    flex: 1 1 110px;
     padding: 0.85rem;
     border: none;
     background: transparent;
@@ -213,9 +216,9 @@ h2 {
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
     color: var(--gray-500);
     font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.2;
 }
 
 .role-btn.active {
@@ -275,6 +278,9 @@ form input::placeholder {
     margin-top: 1rem;
     cursor: pointer;
     font-size: 1.1rem;
+    white-space: normal;
+    height: auto;
+    min-height: 56px;
     transition: all 0.3s;
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
 }

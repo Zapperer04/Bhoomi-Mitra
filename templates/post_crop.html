@@ -36,7 +36,7 @@
             <span class="profile-nav-name" id="navName">Profile</span>
         </a>
         <span class="role-badge">Farmer</span>
-        <button id="logoutBtn" class="logout-btn">Logout</button>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
     </div>
 </nav>
 
@@ -58,7 +58,10 @@
 
                 <div class="field-group">
                     <label data-i18n="farmer.crop_name">Crop Name</label>
-                    <input type="text" name="crop" placeholder="Wheat, Paddy" required>
+                    <input type="text" name="crop" 
+                           data-i18n="farmer.crop_placeholder"
+                           data-i18n-attr="placeholder"
+                           placeholder="Wheat, Paddy" required>
                 </div>
 
                 <div class="field-group">
@@ -86,7 +89,10 @@
 
                 <div class="field-group">
                     <label data-i18n="farmer.location_lbl">Location</label>
-                    <input type="text" name="location" placeholder="Village / District" required>
+                    <input type="text" name="location" 
+                           data-i18n="signup.village_placeholder"
+                           data-i18n-attr="placeholder"
+                           placeholder="Village / District" required>
                 </div>
             </div>
 

@@ -23,6 +23,20 @@ async function apiCall(url, options = {}) {
   return json.data;
 }
 
+const STATUS_MAP = {
+  active: "status.active",
+  partially_sold: "status.partially_sold",
+  negotiating: "status.negotiating",
+  sold: "status.sold",
+  pending: "status.pending",
+  accepted: "status.sold",
+  rejected: "status.rejected"
+};
+
+function tStatus(status) {
+  return DT.t(STATUS_MAP[status] || "status.pending");
+}
+
 /** Helper to disable button during API call and refresh dashboard */
 async function runAction(btn, task) {
   if (!btn || btn.disabled) return;
@@ -147,7 +161,7 @@ async function loadMyInterests() {
 
       div.innerHTML = `
         <h4>${i.crop_name}</h4>
-        <p>Status: <b>${i.status}</b></p>
+        <p>${DT.t("label.status")}: <b>${tStatus(i.status)}</b></p>
         <div class="actions">${actions}</div>
       `;
 
@@ -182,7 +196,7 @@ function setupModal() {
         method: "POST",
         body: JSON.stringify({ crop_id: currentCropId, quantity: qty, price: prc, message: msg })
       });
-      Toast.success("Interest sent!");
+      Toast.success(DT.t("toast.interest_sent"));
       document.getElementById("interestModal").classList.add("hidden");
     });
   };

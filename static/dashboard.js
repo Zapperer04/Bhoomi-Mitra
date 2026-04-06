@@ -23,6 +23,18 @@ async function apiCall(url, options = {}) {
   return json.data;
 }
 
+const STATUS_MAP = {
+  active: "status.active",
+  partially_sold: "status.partially_sold",
+  negotiating: "status.negotiating",
+  sold: "status.sold",
+  pending: "status.pending"
+};
+
+function tStatus(status) {
+  return DT.t(STATUS_MAP[status] || "status.active");
+}
+
 /** Helper to disable button during API call and refresh dashboard */
 async function runAction(btn, task) {
   if (!btn || btn.disabled) return;
@@ -97,8 +109,8 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
         card.className = "crop-card";
         card.innerHTML = `
           <h4>${crop.crop_name}</h4>
-          <p><b>Qty:</b> ${crop.quantity_remaining} / ${crop.quantity} ${DT.t("quintals")}</p>
-          <p><b>Status:</b> ${crop.status}</p>
+          <p><b>${DT.t("label.qty")}:</b> ${crop.quantity_remaining} / ${crop.quantity} ${DT.t("farmer.quantity_quintals")}</p>
+          <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
           <button class="delete-btn" data-id="${crop.id}">${DT.t("remove_listing")}</button>
         `;
         card.querySelector(".delete-btn").onclick = async (e) => {
@@ -121,8 +133,8 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
         card.className = "crop-card history";
         card.innerHTML = `
           <h4>${crop.crop_name}</h4>
-          <p><b>Status:</b> ${crop.status}</p>
-          <button class="hard-delete-btn" data-id="${crop.id}">Clear</button>
+          <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
+          <button class="hard-delete-btn" data-id="${crop.id}">${DT.t("btn.clear")}</button>
         `;
         card.querySelector(".hard-delete-btn").onclick = (e) => {
           runAction(e.target, () => apiCall(`/api/crops/${crop.id}/hard`, { method: "DELETE" }));
@@ -157,8 +169,8 @@ function renderInterests(interests, container) {
 
     card.innerHTML = `
       <h4>${i.crop_name}</h4>
-      <p>Contractor: <b>${i.contractor_name}</b></p>
-      <p>Offered: ₹<b>${i.price_offered}</b></p>
+      <p>${DT.t("label.contractor")}: <b>${i.contractor_name}</b></p>
+      <p>${DT.t("label.offered")}: ₹<b>${i.price_offered}</b></p>
       <div class="actions">${actions}</div>
     `;
 
