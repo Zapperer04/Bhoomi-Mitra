@@ -23,7 +23,30 @@ async function apiCall(url, options = {}) {
   return json.data;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // Header Initialization (Premium Parity)
+    try {
+        const me = await apiCall("/api/me");
+        if (me) {
+            const initial = (me.name || "?").charAt(0).toUpperCase();
+            document.getElementById("navAvatar").textContent = initial;
+            document.getElementById("navName").textContent   = me.name || "Profile";
+        }
+        
+        const data = await apiCall("/api/messages/unread-count");
+        const badge = document.getElementById("unreadBadge");
+        if (badge && data.unread_count > 0) {
+            badge.textContent = data.unread_count;
+            badge.classList.remove("hidden");
+        }
+    } catch (err) { console.error("Header init failed", err); }
+
+    // Logout logic
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        localStorage.removeItem("access_token");
+        window.location.href = "/login";
+    });
+
     const dateInput = document.getElementById("availabilityDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
 

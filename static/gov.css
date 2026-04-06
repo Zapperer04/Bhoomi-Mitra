@@ -1,186 +1,196 @@
-/* ================= RESET ================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ============================================================
+   gov.css — Gov Schemes  ★ Premium Edition ★
+   ============================================================ */
+
+/* ── DESIGN TOKENS (Unified with Cinema Design System) ────── */
+:root {
+    /* Brand Colors - Deep Nature Palette */
+    --green-900:    #064e3b;
+    --green-800:    #065f46;
+    --green-700:    #047857;
+    --green-600:    #059669;
+    --green-50:     #f0fdf4;
+
+    /* Neutrals */
+    --white:        #ffffff;
+    --gray-50:      #f9fafb;
+    --gray-100:     #f3f4f6;
+    --gray-200:     #e5e7eb;
+    --gray-400:     #9ca3af;
+    --gray-500:     #6b7280;
+    --gray-800:     #1f2937;
+    --gray-900:     #111827;
+
+    /* Shadows & Glows */
+    --shadow-sm:    0 2px 4px rgba(0,0,0,.06);
+    --shadow-md:    0 4px 12px rgba(0,0,0,.08);
+    --shadow-lg:    0 12px 24px rgba(6,78,59,.12);
+    --shadow-xl:    0 20px 40px rgba(0,0,0,.15);
+
+    /* Radii */
+    --radius-sm:    8px;
+    --radius-md:    12px;
+    --radius-lg:    20px;
+    --radius-xl:    32px;
+    --radius-full:  9999px;
+
+    /* Animation & Transitions */
+    --transition:   0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-    font-family: "Inter", system-ui, sans-serif;
-    background: #F4FAF5;
-    color: #1F2937;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: radial-gradient(circle at top right, #d1fae5 0%, #f9fafb 40%, #ffffff 100%);
+    color: var(--gray-800);
+    line-height: 1.6;
+    min-height: 100vh;
 }
 
-/* ================= NAVBAR (REUSED STYLE) ================= */
+h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
+
+/* ── NAVIGATION (Harmonized) ─────────────────────────────── */
 .dash-nav {
-    background: #ffffff;
-    padding: 16px 32px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    padding: 0.75rem 2rem;
+    position: sticky; top: 0; z-index: 500;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-}
+.nav-left { display: flex; align-items: center; gap: 2rem; }
 
 .logo {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #1B5E20;
+    font-size: 1.5rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--green-700), var(--green-500));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.03em;
+    font-family: 'Sora', sans-serif;
 }
 
-.nav-links {
-    display: flex;
-    align-items: center;
+.nav-messages-link {
+    display: flex; align-items: center; gap: 0.4rem;
+    text-decoration: none; color: var(--gray-700);
+    font-weight: 600; font-size: 0.9rem;
+    padding: 0.6rem 1rem; border-radius: var(--radius-md);
+    transition: all var(--transition);
+    background: var(--gray-50);
+}
+.nav-messages-link:hover { background: var(--green-100); color: var(--green-800); transform: translateY(-1px); }
+
+.nav-right { display: flex; align-items: center; gap: 1rem; }
+
+.lang-btn {
+    display: flex; align-items: center; gap: 4px;
+    background: white; border: 1.5px solid var(--gray-200);
+    padding: 0.6rem 0.9rem; border-radius: var(--radius-md);
+    font-weight: 700; cursor: pointer;
 }
 
-.nav-item {
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #374151;
-
-    padding: 8px 14px;
-    border-radius: 10px;
-
-    transition: background 0.2s ease, color 0.2s ease;
+.profile-nav-btn {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.4rem 1rem 0.4rem 0.4rem;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--gray-200);
+    background: white; transition: all var(--transition);
 }
+.profile-nav-btn:hover { border-color: var(--green-500); transform: translateY(-1px); }
 
-.nav-item:hover {
-    background: #E8F5E9;
-    color: #1B5E20;
-}
-
-.nav-item.active {
-    background: #E8F5E9;
-    color: #1B5E20;
-}
-
-.nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.profile-nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-600), var(--green-400));
+    color: white; font-weight: 800; display: flex; align-items: center; justify-content: center;
 }
 
 .role-badge {
-    background: #E8F5E9;
-    color: #2E7D32;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    background: var(--green-50); color: var(--green-700);
+    padding: 0.4rem 0.8rem; border-radius: var(--radius-full);
+    font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
 }
 
 .logout-btn {
-    border: none;
-    background: #EF4444;
-    color: white;
-    padding: 8px 14px;
-    border-radius: 8px;
-    cursor: pointer;
+    background: white; border: 1.5px solid #fee2e2;
+    color: #ef4444; padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-md); font-weight: 700; cursor: pointer;
 }
 
-/* ================= PAGE ================= */
+/* ── GOV PAGE ────────────────────────────────────────────── */
 .gov-page {
     max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 24px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    animation: fadeInUp 0.6s ease-out;
 }
 
-/* ================= HEADER ================= */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .gov-header {
-    margin-bottom: 40px;
+    background: linear-gradient(135deg, var(--green-900) 0%, var(--green-800) 100%);
+    padding: 4rem;
+    border-radius: var(--radius-xl);
+    color: white;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
 }
+.gov-header h1 { color: white; font-size: 2.5rem; margin-bottom: 1rem; font-weight: 800; }
+.gov-header p { font-size: 1.15rem; opacity: 0.9; max-width: 700px; line-height: 1.6; }
 
-.gov-header h1 {
-    font-size: 2rem;
-    color: #1B5E20;
-    margin-bottom: 8px;
-}
-
-.gov-header p {
-    color: #6B7280;
-    max-width: 700px;
-}
-
-/* ================= SCHEMES ================= */
+/* ── SCHEME GRID ─────────────────────────────────────────── */
 .scheme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
 }
 
 .scheme-card {
-    background: white;
-    padding: 28px;
-    border-radius: 18px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-100);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    display: flex; flex-direction: column; gap: 1rem;
 }
+.scheme-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); border-color: var(--green-200); }
 
-.scheme-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 45px rgba(0,0,0,0.16);
-}
+.scheme-card h3 { font-size: 1.4rem; color: var(--green-900); font-weight: 800; }
+.scheme-card p { font-size: 1rem; color: var(--gray-600); margin-bottom: 1rem; }
 
-.scheme-card h3 {
-    color: #1B5E20;
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-}
-
-.scheme-card p {
-    font-size: 0.95rem;
-    color: #4B5563;
-    margin-bottom: 16px;
-}
-
-/* TAG */
-.tag {
-    display: inline-block;
-    background: #E8F5E9;
-    color: #2E7D32;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-/* ================= RESPONSIVE ================= */
-@media (max-width: 640px) {
-    .dash-nav {
-        padding: 14px 20px;
-    }
-}
-/* SCHEME FOOTER */
 .scheme-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
+    margin-top: auto;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1.5px solid var(--gray-50); padding-top: 1.5rem;
 }
 
-/* CTA LINK */
+.tag {
+    background: var(--green-50); color: var(--green-900);
+    font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 4px 10px; border-radius: var(--radius-md);
+}
+
 .scheme-link {
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #1B5E20;
-    padding: 6px 12px;
-    border-radius: 8px;
-    background: #E8F5E9;
-
-    transition: background 0.2s ease, transform 0.2s ease;
+    color: var(--green-700); font-weight: 800;
+    text-decoration: none; font-size: 0.9rem;
+    transition: all var(--transition);
 }
+.scheme-link:hover { color: var(--green-900); transform: translateX(5px); }
 
-.scheme-link:hover {
-    background: #D1FAE5;
-    transform: translateY(-2px);
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .gov-header { padding: 2.5rem; }
+    .gov-header h1 { font-size: 1.75rem; }
+    .scheme-grid { grid-template-columns: 1fr; }
 }

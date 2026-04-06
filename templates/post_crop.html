@@ -13,10 +13,32 @@
 </head>
 <body>
 
-<nav class="task-nav">
-    <a href="{{ url_for('farmer_dashboard') }}" class="back-link">
-        ← Back to Dashboard
-    </a>
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo">Bhoomi Mitra</span>
+        <a href="{{ url_for('farmer_dashboard') }}" class="nav-messages-link">
+            ← <span data-i18n="nav.dashboard">Dashboard</span>
+        </a>
+        <a href="{{ url_for('messages_page') }}" class="nav-messages-link">
+            💬 <span data-i18n="nav.messages">Messages</span>
+            <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div class="lang-selector" id="langSelector">
+            <button class="lang-btn" id="langBtn">🌐 <span id="langLabel">EN</span></button>
+            <div class="lang-dropdown hidden" id="langDropdown">
+                <button data-lang="en">English</button>
+                <button data-lang="hi">हिंदी</button>
+            </div>
+        </div>
+        <a href="{{ url_for('profile_page') }}" class="profile-nav-btn" id="profileNavBtn">
+            <span class="profile-nav-avatar" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
+        </a>
+        <span class="role-badge">Farmer</span>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
 </nav>
 
 <main class="post-crop-page">
