@@ -1,5 +1,5 @@
 /* ============================================================
-   Signup.css — Premium Auth UI for Bhoomi Mitra
+   Signup.css — Premium Auth UI
    ============================================================ */
 
 :root {
@@ -7,27 +7,24 @@
     --green-mid:    #059669;
     --green-light:  #ecfdf5;
     --accent:       #10b981;
+    --white:        #ffffff;
     --gray-50:      #f9fafb;
     --gray-100:     #f3f4f6;
     --gray-200:     #e5e7eb;
     --gray-400:     #9ca3af;
     --gray-600:     #4b5563;
     --gray-800:     #1f2937;
-    --white:        #ffffff;
     --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: 'DM Sans', sans-serif;
     background: radial-gradient(circle at top right, #f0fdf4, #f9fafb);
     min-height: 100vh;
     color: var(--gray-800);
+    overflow-x: hidden;
 }
 
 /* ── Navigation ──────────────────────────────────────────────────────────── */
@@ -39,7 +36,7 @@ body {
     position: absolute;
     top: 0;
     width: 100%;
-    z-index: 10;
+    z-index: 100;
 }
 
 .nav-logo {
@@ -56,14 +53,92 @@ body {
     color: var(--gray-600);
     font-weight: 600;
     font-size: 0.9rem;
-    transition: color 0.2s;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
 }
 
 .nav-back:hover {
     color: var(--green-dark);
+    background: var(--white);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────────── */
+/* ── Language Selector ── */
+.lang-selector {
+    position: relative;
+    z-index: 1001;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    padding: 8px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    color: var(--gray-700);
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.lang-btn:hover {
+    border-color: var(--accent);
+    background: var(--green-light);
+    color: var(--green-dark);
+}
+
+.lang-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--white);
+    border: 1.5px solid var(--gray-100);
+    border-radius: 16px;
+    box-shadow: var(--shadow-premium);
+    min-width: 180px;
+    padding: 8px;
+    animation: fadeInScale 0.2s ease-out;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.lang-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-700);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.lang-dropdown button:hover {
+    background: var(--green-light);
+    color: var(--green-dark);
+}
+
+.lang-dropdown.hidden {
+    display: none;
+}
+
+/* ── Layout ── */
 .signup-page {
     display: flex;
     align-items: center;
@@ -74,18 +149,19 @@ body {
 
 .signup-card {
     background: var(--white);
-    padding: 3rem 2.5rem;
-    border-radius: 28px;
+    padding: 3.5rem 3rem;
+    border-radius: 32px;
     box-shadow: var(--shadow-premium);
     width: 100%;
-    max-width: 480px;
+    max-width: 520px;
     text-align: center;
-    border: 1px solid var(--gray-100);
-    animation: fadeIn 0.4s ease-out;
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    backdrop-filter: blur(20px);
+    animation: slideUp 0.5s ease-out;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -94,114 +170,115 @@ h2 {
     font-weight: 800;
     color: var(--green-dark);
     margin-bottom: 0.5rem;
-    font-size: 1.8rem;
-    letter-spacing: -0.5px;
+    font-size: 2rem;
+    letter-spacing: -0.8px;
 }
 
 .subtitle {
     color: var(--gray-600);
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
 }
 
-/* ── Role Toggle ─────────────────────────────────────────────────────────── */
+/* ── Role Toggle ── */
 .role-toggle {
     display: flex;
     background: var(--gray-100);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 6px;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    border: 1px solid var(--gray-200);
 }
 
 .role-btn {
     flex: 1;
-    padding: 0.9rem;
+    padding: 1rem;
     border: none;
     background: transparent;
     font-weight: 700;
     font-family: 'Sora', sans-serif;
     cursor: pointer;
-    border-radius: 12px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--gray-600);
-    font-size: 0.9rem;
+    border-radius: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--gray-500);
+    font-size: 0.95rem;
 }
 
 .role-btn.active {
     background: var(--white);
     color: var(--green-dark);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-/* ── Form Inputs ─────────────────────────────────────────────────────────── */
+/* ── Form Inputs ── */
 form input {
     width: 100%;
-    padding: 1rem 1.2rem;
+    padding: 1.1rem 1.4rem;
     background: var(--gray-50);
-    border: 1.5px solid var(--gray-200);
-    border-radius: 14px;
-    font-size: 0.95rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 16px;
+    font-size: 1rem;
     font-family: 'DM Sans', sans-serif;
-    margin-bottom: 1.2rem;
-    transition: all 0.2s;
+    margin-bottom: 1.25rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
+    color: var(--gray-800);
 }
 
 form input:focus {
     border-color: var(--accent);
     background: var(--white);
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+form input::placeholder {
+    color: var(--gray-400);
 }
 
 .role-field {
-    animation: slideDown 0.3s ease-out;
+    animation: fadeInScaleUp 0.3s ease-out;
 }
 
-@keyframes slideDown {
-    from { opacity: 0; max-height: 0; overflow: hidden; }
-    to { opacity: 1; max-height: 500px; }
+@keyframes fadeInScaleUp {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .hidden {
     display: none !important;
 }
 
-/* ── Submit Button ───────────────────────────────────────────────────────── */
+/* ── Submit Button ── */
 .submit-btn {
-    background: var(--green-mid);
+    background: linear-gradient(135deg, var(--accent), var(--green-mid));
     color: var(--white);
-    padding: 1.1rem;
-    border-radius: 16px;
+    padding: 1.2rem;
+    border-radius: 18px;
     font-weight: 800;
     font-family: 'Sora', sans-serif;
     width: 100%;
     border: none;
     margin-top: 1rem;
     cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2);
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
 }
 
 .submit-btn:hover {
-    background: var(--green-dark);
+    background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.35);
 }
 
 .submit-btn:active {
     transform: translateY(0);
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
+/* ── Responsive ── */
 @media (max-width: 640px) {
-    .signup-nav {
-        padding: 20px;
-    }
-    .signup-card {
-        padding: 2rem 1.5rem;
-    }
-    h2 {
-        font-size: 1.5rem;
-    }
+    .signup-nav { padding: 20px; }
+    .signup-card { padding: 2.5rem 1.75rem; border-radius: 24px; }
+    h2 { font-size: 1.6rem; }
+    .nav-back span { display: none; }
 }

@@ -90,6 +90,22 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 with app.app_context():
     db.create_all()
 
+    # ── Safe Migration: add columns introduced after initial deploy ──────────
+    # These ALTER TABLE statements are idempotent — they fail silently if the
+    # column already exists, so it is safe to run on every startup.
+    migrations = [
+        "ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)",
+    ]
+    with db.engine.connect() as conn:
+        for sql in migrations:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+                logger.info(f"[MIGRATION] Applied: {sql[:60]}...")
+            except Exception:
+                pass  # Column/index already exists — safe to ignore
+
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}})
 
 
@@ -402,6 +418,33 @@ def hard_delete_crop(crop_id):
     db.session.delete(crop)
     db.session.commit()
     return api_response(data={"message": "Crop permanently deleted"})
+
+
+@app.route("/api/marketplace/crops", methods=["GET"])
+@jwt_required()
+def list_marketplace_crops():
+    """Crops available for contractors to browse (active/partially_sold only, not their own)."""
+    user_id = _current_user_id()
+    crops = Crop.query.filter(
+        Crop.status.in_(["active", "partially_sold"]),
+        Crop.farmer_id != user_id,
+    ).order_by(Crop.created_at.desc()).all()
+    return api_response(data=[c.to_dict() for c in crops])
+
+
+@app.route("/api/interests/contractor", methods=["GET"])
+@jwt_required()
+def list_contractor_interests():
+    """All interests submitted by the currently logged-in contractor."""
+    user_id   = _current_user_id()
+    interests = Interest.query.filter_by(contractor_id=user_id).order_by(Interest.created_at.desc()).all()
+    result = []
+    for i in interests:
+        d = i.to_dict()
+        d["crop_name"]       = i.crop.crop_name if i.crop else "Unknown"
+        d["farmer_name"]     = i.farmer_user.name if i.farmer_user else "Unknown"
+        result.append(d)
+    return api_response(data=result)
 
 
 @app.route("/api/interests", methods=["POST"])

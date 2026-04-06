@@ -1,5 +1,5 @@
 /* ============================================================
-   Profile.css — Premium Upgrade
+   Profile.css — Premium Profile Page
    ============================================================ */
 
 :root {
@@ -12,22 +12,25 @@
     --gray-50:      #f9fafb;
     --gray-100:     #f3f4f6;
     --gray-200:     #e5e7eb;
+    --gray-400:     #9ca3af;
+    --gray-500:     #6b7280;
+    --gray-600:     #4b5563;
+    --gray-700:     #374151;
     --gray-800:     #1f2937;
     --white:        #ffffff;
-    --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --radius-premium: 16px;
-    --font-display: 'Sora', sans-serif;
-    --font-body:    'DM Sans', sans-serif;
+    --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: var(--font-body);
+    font-family: 'DM Sans', sans-serif;
     background: radial-gradient(circle at top right, #f0fdf4, #f9fafb);
-    color: var(--gray-800);
-    margin: 0;
     min-height: 100vh;
+    color: var(--gray-800);
 }
 
+/* ── Navigation ──────────────────────────────────────────────────────────── */
 .prof-nav {
     background: var(--green-dark);
     padding: 1rem 2rem;
@@ -35,25 +38,70 @@ body {
     justify-content: space-between;
     align-items: center;
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-back {
+    text-decoration: none;
+    color: rgba(255,255,255,0.8);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.nav-back:hover {
+    color: white;
+    transform: translateX(-3px);
 }
 
 .nav-logo {
-    font-family: var(--font-display);
+    font-family: 'Sora', sans-serif;
     font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
 }
 
+.nav-logout {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    padding: 7px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+}
+
+.nav-logout:hover {
+    background: var(--red);
+    border-color: var(--red);
+}
+
+/* ── Hero Banner ── */
 .prof-hero {
     background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
-    padding: 4rem 2rem;
+    padding: 5rem 2rem;
     color: white;
     text-align: center;
     position: relative;
     overflow: hidden;
 }
 
+.prof-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E") repeat;
+    pointer-events: none;
+}
+
 .avatar-ring {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     border: 4px solid var(--white);
     margin: 0 auto 1.5rem;
@@ -61,16 +109,53 @@ body {
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 2;
 }
 
 .avatar {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 800;
+    font-family: 'Sora', sans-serif;
 }
 
+.hero-text h1 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 2.2rem;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+}
+
+.hero-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.role-badge {
+    background: rgba(255,255,255,0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.hero-phone {
+    font-weight: 600;
+    opacity: 0.9;
+    font-size: 15px;
+}
+
+/* ── Main Layout ── */
 .prof-main {
-    max-width: 900px;
-    margin: -2rem auto 4rem;
+    max-width: 1000px;
+    margin: -3rem auto 4rem;
     padding: 0 1.5rem;
     position: relative;
     z-index: 10;
@@ -78,67 +163,177 @@ body {
 
 .prof-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 1.5rem;
 }
 
 .pcard {
     background: var(--white);
-    padding: 2rem;
-    border-radius: var(--radius-premium);
+    padding: 2.5rem;
+    border-radius: 24px;
     box-shadow: var(--shadow-premium);
-    border: 1px solid var(--gray-100);
+    border: 1px solid rgba(229, 231, 235, 0.82);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.2s;
+    position: relative;
+    overflow: hidden;
 }
 
-.pcard-wide { grid-column: 1 / -1; }
+.pcard-wide {
+    grid-column: 1 / -1;
+}
 
 .pcard-label {
-    font-family: var(--font-display);
+    font-family: 'Sora', sans-serif;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     color: var(--green-dark);
+}
+
+.pcard-desc {
+    color: var(--gray-500);
+    font-size: 14px;
     margin-bottom: 1rem;
-    display: block;
+}
+
+.field-group {
+    display: flex;
+    gap: 10px;
 }
 
 .prof-input {
-    width: 100%;
-    padding: 0.8rem 1.2rem;
-    border-radius: 12px;
-    border: 1px solid var(--gray-200);
+    flex: 1;
+    padding: 0.9rem 1.25rem;
+    border-radius: 14px;
+    border: 2px solid var(--gray-100);
     background: var(--gray-50);
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.prof-input:focus {
+    border-color: var(--accent);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
 .btn-primary {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--green-mid));
     color: white;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem 1.8rem;
     border-radius: 12px;
-    font-weight: 700;
+    font-weight: 800;
+    font-family: 'Sora', sans-serif;
     border: none;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .btn-primary:hover {
-    background: var(--green-mid);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
+.feedback {
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 18px;
+}
+
+.feedback.success { color: var(--green-mid); }
+.feedback.error   { color: var(--red); }
+
+/* ── Password UI ── */
+.pw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.pw-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+    font-family: 'Sora', sans-serif;
+}
+
+.btn-primary.full {
+    width: 100%;
+    padding: 1.1rem;
+    margin-top: 1rem;
+}
+
+/* Strength Bar */
+.strength-wrap {
+    margin-top: -10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+}
+
+.strength-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+/* ── Danger Zone ── */
 .pcard-danger {
     border-left: 6px solid var(--red);
 }
 
+.btn-danger {
+    background: #fff;
+    color: var(--red);
+    border: 2px solid var(--red);
+    padding: 1rem;
+    border-radius: 14px;
+    font-weight: 800;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+}
+
+.btn-danger:hover {
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* ── Modal ── */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
+    background: rgba(6, 78, 59, 0.4);
+    backdrop-filter: blur(8px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 20px;
 }
 
 .modal-overlay.open { display: flex; }
@@ -146,7 +341,54 @@ body {
 .modal-box {
     background: var(--white);
     padding: 3rem;
-    border-radius: 20px;
+    border-radius: 32px;
     width: 100%;
-    max-width: 450px;
+    max-width: 480px;
+    box-shadow: 0 40px 60px -20px rgba(0,0,0,0.3);
+    text-align: center;
+    position: relative;
+    animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal-box h3 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin-bottom: 1rem;
+}
+
+.modal-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-neutral {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    padding: 1rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .prof-hero { padding: 4rem 1rem; }
+    .hero-text h1 { font-size: 1.6rem; }
+    .prof-grid { grid-template-columns: 1fr; }
+    .pcard { padding: 1.5rem; }
+    .pw-grid { grid-template-columns: 1fr; }
 }
