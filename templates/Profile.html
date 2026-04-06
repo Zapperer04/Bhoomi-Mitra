@@ -5,40 +5,35 @@
     <title>My Profile – Bhoomi Mitra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='Profile.css') }}">
 </head>
 <body>
 
 <nav class="prof-nav">
-    <a href="javascript:history.back()" class="nav-back">← Back</a>
+    <a href="javascript:history.back()" class="nav-back">← Back to Dashboard</a>
     <span class="nav-logo">Bhoomi Mitra</span>
     <button id="logoutBtn" class="nav-logout">Logout</button>
 </nav>
 
-<main class="prof-main">
-
-    <header class="prof-hero">
-        <div class="hero-bg-text" id="heroBgLetter">?</div>
-        <div class="hero-content">
-            <div class="avatar-ring">
-                <div class="avatar" id="avatarInitial">?</div>
-            </div>
-            <div class="hero-text">
-                <h1 id="displayName">Loading…</h1>
-                <div class="hero-meta">
-                    <span class="role-badge" id="displayRole">—</span>
-                    <span class="hero-phone" id="displayPhone">—</span>
-                </div>
-            </div>
+<header class="prof-hero">
+    <div class="avatar-ring">
+        <div class="avatar" id="avatarInitial">?</div>
+    </div>
+    <div class="hero-text">
+        <h1 id="displayName">Loading…</h1>
+        <div class="hero-meta">
+            <span class="role-badge" id="displayRole">—</span>
+            <span class="hero-phone" id="displayPhone">—</span>
         </div>
-    </header>
+    </div>
+</header>
 
+<main class="prof-main">
     <div class="prof-grid">
 
-        <section class="pcard" style="--delay:0.05s">
+        <section class="pcard">
             <div class="pcard-label">Display Name</div>
-            <div class="pcard-icon">✏️</div>
             <p class="pcard-desc">How you appear to farmers and contractors in deals.</p>
             <div class="field-group">
                 <input class="prof-input" type="text" id="inputName"
@@ -48,9 +43,8 @@
             <div class="feedback" id="fbName"></div>
         </section>
 
-        <section class="pcard" style="--delay:0.10s">
+        <section class="pcard">
             <div class="pcard-label">Phone Number</div>
-            <div class="pcard-icon">📱</div>
             <p class="pcard-desc">Shared with the other party only after a deal is accepted.</p>
             <div class="field-group">
                 <input class="prof-input" type="tel" id="inputPhone"
@@ -60,9 +54,8 @@
             <div class="feedback" id="fbPhone"></div>
         </section>
 
-        <section class="pcard pcard-wide" style="--delay:0.15s">
+        <section class="pcard pcard-wide">
             <div class="pcard-label">Change Password</div>
-            <div class="pcard-icon">🔒</div>
             <p class="pcard-desc">Use a strong password with letters, numbers and symbols.</p>
 
             <div class="pw-grid">
@@ -93,9 +86,8 @@
             <div class="feedback" id="fbPw"></div>
         </section>
 
-        <section class="pcard pcard-danger" style="--delay:0.20s">
+        <section class="pcard pcard-danger">
             <div class="pcard-label">Danger Zone</div>
-            <div class="pcard-icon">⚠️</div>
             <p class="pcard-desc">
                 Permanently delete your account and all your data.
                 Active crop listings must be removed first.

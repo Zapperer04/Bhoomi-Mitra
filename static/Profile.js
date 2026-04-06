@@ -26,7 +26,7 @@ async function apiCall(url, options = {}) {
 document.addEventListener("DOMContentLoaded", async () => {
   if (!localStorage.getItem("access_token")) { window.location.href = "/login"; return; }
 
-  await loadProfile();
+  await loadData();
   setupNameSave();
   setupPhoneSave();
   setupPasswordSave();
@@ -39,18 +39,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 });
 
-async function loadProfile() {
+async function loadData() {
   try {
     const user = await apiCall("/auth/profile");
     const initial = (user.name || "?").charAt(0).toUpperCase();
-    document.getElementById("avatarInitial").textContent = initial;
-    document.getElementById("heroBgLetter").textContent = initial;
-    document.getElementById("displayName").textContent = user.name;
-    document.getElementById("displayPhone").textContent = user.phone;
-    document.getElementById("displayRole").textContent = user.role === "farmer" ? "🌾 Farmer" : "🏗️ Contractor";
-    document.getElementById("inputName").value = user.name;
-    document.getElementById("inputPhone").value = user.phone;
-  } catch (err) { showFeedback("fbName", "error", "Failed to load profile."); }
+    
+    const avatarEl = document.getElementById("avatarInitial");
+    if (avatarEl) avatarEl.textContent = initial;
+
+    const displayTitle = document.getElementById("displayName");
+    if (displayTitle) displayTitle.textContent = user.name;
+
+    const displayPhone = document.getElementById("displayPhone");
+    if (displayPhone) displayPhone.textContent = user.phone;
+
+    const displayRole = document.getElementById("displayRole");
+    if (displayRole) {
+        displayRole.textContent = user.role === "farmer" ? "🌾 Farmer" : "🏗️ Contractor";
+    }
+
+    const inputName = document.getElementById("inputName");
+    if (inputName) inputName.value = user.name;
+
+    const inputPhone = document.getElementById("inputPhone");
+    if (inputPhone) inputPhone.value = user.phone;
+
+  } catch (err) { 
+    console.error("Profile load error:", err);
+    showFeedback("fbName", "error", "Failed to load profile. Please refresh."); 
+  }
 }
 
 function setupNameSave() {
