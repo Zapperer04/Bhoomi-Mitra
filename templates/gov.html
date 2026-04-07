@@ -5,6 +5,9 @@
     <title>Government Schemes – Bhoomi Mitra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='gov.css') }}">
 </head>
 <body>
@@ -28,7 +31,7 @@
             <span class="profile-nav-avatar" id="navAvatar">?</span>
             <span class="profile-nav-name" id="navName">Profile</span>
         </a>
-        <span class="role-badge">Farmer</span>
+        <span class="role-badge" data-i18n="farmer.role_badge">Farmer</span>
         <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
     </div>
 </nav>
