@@ -94,11 +94,23 @@ function buildCustomUI() {
             document.getElementById('customLangLabel').innerText = lang.name;
             dropdown.style.display = 'none'; // close dropdown
             
-            // Push selection to Google Translate secretly
+            // 1. Set the cookie natively so it propagates
+            document.cookie = "googtrans=/en/" + lang.code + "; path=/";
+            document.cookie = "googtrans=/en/" + lang.code + "; domain=" + window.location.hostname + "; path=/";
+            
+            // 2. Try pushing selection to Google Translate secretly
             const selectElement = document.querySelector('.goog-te-combo');
             if (selectElement) {
                 selectElement.value = lang.code;
-                selectElement.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+                try {
+                    selectElement.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+                } catch(e) {
+                    let ev = document.createEvent("HTMLEvents");
+                    ev.initEvent("change", true, true);
+                    selectElement.dispatchEvent(ev);
+                }
+            } else {
+                location.reload(); // Fallback if widget is missing
             }
         });
         dropdown.appendChild(option);
@@ -131,4 +143,11 @@ function buildCustomUI() {
     
     // Inject into the DOM right where google translate was dropped
     googleDiv.parentNode.insertBefore(customWrapper, googleDiv.nextSibling);
+
+    // Initial label set based on current cookie
+    const match = document.cookie.match(/googtrans=\/en\/([a-z]{2})/);
+    if (match && match[1]) {
+        const found = languages.find(l => l.code === match[1]);
+        if (found) document.getElementById('customLangLabel').innerText = found.name;
+    }
 }
