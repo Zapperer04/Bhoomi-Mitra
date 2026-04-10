@@ -7,50 +7,125 @@ function googleTranslateElementInit() {
   }, 'google_translate_element');
 }
 
-// Style the Google Translate Widget to match Bhoomi Mitra's dark mode vibe
+// 1. Hide the native Google elements globally
 var css = `
-    .skiptranslate iframe {
+    .skiptranslate iframe, .goog-te-banner-frame {
         display: none !important;
     }
     body {
         top: 0px !important;
     }
-    #google_translate_element select {
-        background-color: #1e293b;
-        color: #ffffff;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        padding: 5px 10px;
-        font-family: 'DM Sans', sans-serif;
-        font-size: 14px;
-        outline: none;
-        cursor: pointer;
-    }
-    #google_translate_element select:hover {
-        border-color: #10b981;
-    }
-    /* Hide the google branding */
-    .goog-te-gadget {
-        color: transparent !important;
-        font-size: 0px;
-    }
-    .goog-te-gadget .goog-te-combo {
-        margin: 0;
-    }
-    .goog-logo-link {
+    #google_translate_element {
         display: none !important;
-    }
-    .goog-te-gadget .goog-te-combo {
-        color: #fff !important;
     }
 `;
 var style = document.createElement('style');
 style.appendChild(document.createTextNode(css));
 document.head.appendChild(style);
 
+// 2. Load the Google Translate Script
 (function() {
   var gtScript = document.createElement('script');
   gtScript.type = 'text/javascript';
   gtScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
   document.body.appendChild(gtScript);
 })();
+
+// 3. Inject a Fully Custom, Premium Button & Menu
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(buildCustomUI, 500); // slight delay to map to DOM rendering
+});
+
+function buildCustomUI() {
+    const googleDiv = document.getElementById('google_translate_element');
+    if (!googleDiv) return;
+
+    // Create wrapper
+    const customWrapper = document.createElement('div');
+    customWrapper.className = 'lang-selector'; 
+    customWrapper.style.position = 'relative';
+    customWrapper.style.zIndex = '9999';
+
+    // Create the clean CTA Button
+    const btn = document.createElement('button');
+    btn.className = 'btn-secondary action-btn light'; // Try to hook into global CTA classes if available
+    btn.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; background: #ffffff; border: 1.5px solid #d1fae5; color: #047857; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: "DM Sans", sans-serif; transition: 0.2s; white-space: nowrap; height: 40px;';
+    btn.innerHTML = '🌐 <span id="customLangLabel">English</span>';
+    
+    // Create the Dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'lang-dropdown hidden';
+    dropdown.style.cssText = 'position: absolute; top: calc(100% + 8px); right: 0; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; min-width: 160px; z-index: 10000; overflow: hidden; border: 1px solid #e5e7eb; display: none; flex-direction: column;';
+
+    const languages = [
+        { code: 'en', name: 'English' },
+        { code: 'hi', name: 'हिंदी' },
+        { code: 'bn', name: 'বাংলা' },
+        { code: 'te', name: 'తెలుగు' },
+        { code: 'mr', name: 'मराठी' },
+        { code: 'ta', name: 'தமிழ்' },
+        { code: 'gu', name: 'ગુજરાતી' },
+        { code: 'ur', name: 'اردو' },
+        { code: 'kn', name: 'ಕನ್ನಡ' },
+        { code: 'or', name: 'ଓଡ଼ିଆ' },
+        { code: 'pa', name: 'ਪੰਜਾਬੀ' },
+        { code: 'ml', name: 'മലയാളം' }
+    ];
+
+    languages.forEach(lang => {
+        const option = document.createElement('button');
+        option.style.cssText = 'display: block; width: 100%; padding: 12px 16px; border: none; background: transparent; text-align: left; cursor: pointer; color: #374151; font-family: "DM Sans", sans-serif; font-weight: 600; font-size: 14px; transition: 0.15s;';
+        option.innerHTML = lang.name;
+        
+        // Hover effects
+        option.addEventListener('mouseover', () => {
+            option.style.background = '#f0fdf4';
+            option.style.color = '#047857';
+        });
+        option.addEventListener('mouseout', () => {
+            option.style.background = 'transparent';
+            option.style.color = '#374151';
+        });
+        
+        option.addEventListener('click', () => {
+            document.getElementById('customLangLabel').innerText = lang.name;
+            dropdown.style.display = 'none'; // close dropdown
+            
+            // Push selection to Google Translate secretly
+            const selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.value = lang.code;
+                selectElement.dispatchEvent(new Event('change'));
+            }
+        });
+        dropdown.appendChild(option);
+    });
+
+    // Toggle dropdown
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // prevent window click from closing immediately
+        if (dropdown.style.display === 'none') {
+            dropdown.style.display = 'flex';
+            btn.style.borderColor = '#10b981'; // Activate border
+        } else {
+            dropdown.style.display = 'none';
+            btn.style.borderColor = '#d1fae5'; // Deactivate border
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', () => {
+        dropdown.style.display = 'none';
+        btn.style.borderColor = '#d1fae5';
+    });
+    
+    // Hover effects on the main CTA
+    btn.addEventListener('mouseover', () => btn.style.background = '#f0fdf4');
+    btn.addEventListener('mouseout', () => btn.style.background = '#ffffff');
+
+    customWrapper.appendChild(btn);
+    customWrapper.appendChild(dropdown);
+    
+    // Inject into the DOM right where google translate was dropped
+    googleDiv.parentNode.insertBefore(customWrapper, googleDiv.nextSibling);
+}
