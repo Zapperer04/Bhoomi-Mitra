@@ -16,7 +16,10 @@ var css = `
         top: 0px !important;
     }
     #google_translate_element {
-        display: none !important;
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        opacity: 0;
     }
 `;
 var style = document.createElement('style');
@@ -95,7 +98,7 @@ function buildCustomUI() {
             const selectElement = document.querySelector('.goog-te-combo');
             if (selectElement) {
                 selectElement.value = lang.code;
-                selectElement.dispatchEvent(new Event('change'));
+                selectElement.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
             }
         });
         dropdown.appendChild(option);
