@@ -113,6 +113,7 @@ with app.app_context():
                 conn.commit()
                 logger.info(f"[MIGRATION] Applied: {sql[:60]}...")
             except Exception as e:
+                conn.rollback()
                 logger.warning(f"[MIGRATION] Skipped (already exists or error): {str(e)[:100]}")
                 pass  # Column/index already exists — safe to ignore
 
