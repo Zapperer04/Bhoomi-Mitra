@@ -6,6 +6,14 @@ from datetime import timedelta, date, datetime, timedelta as py_timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
 
+# ================= LOGGING SETUP =================
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger(__name__)
+
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from flask_jwt_extended import (
@@ -80,7 +88,8 @@ if db_url.startswith("postgres://"):
 app.config["SQLALCHEMY_DATABASE_URI"]     = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"]   = {"pool_pre_ping": True}
-app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "dev-secret")
+# Required >= 32 chars for JWT to prevent InsecureKeyLengthWarning -> 502 crashes in strict envs
+app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "fallback-dev-secret-key-at-least-32-chars")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"]    = timedelta(days=30)
 
 db.init_app(app)
@@ -103,19 +112,11 @@ with app.app_context():
                 conn.execute(text(sql))
                 conn.commit()
                 logger.info(f"[MIGRATION] Applied: {sql[:60]}...")
-            except Exception:
+            except Exception as e:
+                logger.warning(f"[MIGRATION] Skipped (already exists or error): {str(e)[:100]}")
                 pass  # Column/index already exists — safe to ignore
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}})
-
-
-# ================= LOGGING SETUP =================
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.StreamHandler()]
-)
-logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
