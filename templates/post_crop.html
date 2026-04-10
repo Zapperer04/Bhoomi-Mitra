@@ -25,12 +25,7 @@
         </a>
     </div>
     <div class="nav-right">
-        <div class="lang-selector" id="langSelector">
-            <button class="lang-btn" id="langBtn">🌐 <span id="langLabel">EN</span></button>
-            <div class="lang-dropdown hidden" id="langDropdown">
-                <!-- Dynamically populated by i18n.js -->
-            </div>
-        </div>
+        <div id="google_translate_element"></div>
         <a href="{{ url_for('profile_page') }}" class="profile-nav-btn" id="profileNavBtn">
             <span class="profile-nav-avatar" id="navAvatar">?</span>
             <span class="profile-nav-name" id="navName">Profile</span>
@@ -106,9 +101,8 @@
 
 </main>
 
-<script src="{{ url_for('static', filename='dashboard_i18n.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script src="{{ url_for('static', filename='toast.js') }}"></script>
 <script src="{{ url_for('static', filename='post_crop.js') }}?v=7"></script>
-<script src="{{ url_for('static', filename='i18n.js') }}?v=7"></script>
 </body>
 </html>

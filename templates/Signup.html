@@ -17,12 +17,7 @@
     </div>
     <div class="nav-right">
         <a href="{{ url_for('index') }}" class="nav-back" data-i18n="home.back_home">← <span data-i18n="nav.back_home">Back to Home</span></a>
-        <div class="lang-selector" id="langSelector">
-            <button class="lang-btn lang-btn-light" id="langBtn" title="Change Language">🌐 <span id="langLabel">EN</span></button>
-            <div class="lang-dropdown hidden" id="langDropdown">
-                <!-- Dynamically populated by i18n.js -->
-            </div>
-        </div>
+        <div id="google_translate_element"></div>
     </div>
 </nav>
 
@@ -77,8 +72,7 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='dashboard_i18n.js') }}?v=6"></script>
-<script src="{{ url_for('static', filename='i18n.js') }}?v=6"></script>
+<script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 <script>
 // ── Role toggle ───────────────────────────────────────────────────────────────
