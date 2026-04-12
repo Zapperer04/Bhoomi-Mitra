@@ -132,6 +132,19 @@ def api_response(success=True, data=None, error=None, status=200):
         "error":   error
     }), status
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Ensure all server crashes return JSON, not HTML, to prevent frontend parse errors."""
+    logger.error(f"[SERVER_CRASH] {str(e)}", exc_info=True)
+    try:
+        # If it's a 404 or other HTTP error, preserve its code
+        code = getattr(e, 'code', 500)
+        if not isinstance(code, int): code = 500
+        return api_response(success=False, error=f"Server error: {str(e)}", status=code)
+    except:
+        # Ultimate fallback if EVEN the error handler crashes
+        return jsonify({"success": False, "error": "Critical Server Error"}), 500
+
 
 def with_db_retry(max_retries=5, delay=0.2, total_timeout=5.0):
     """
@@ -1015,14 +1028,20 @@ def send_message():
             logger.info(f"[MSG_DEDUP] Nonce {nonce} already exists")
             return api_response(data=existing.to_dict(), status=200)
 
-    interest = Interest.query.get_or_404(interest_id)
+    interest = Interest.query.get_or_404(int(interest_id))
     if interest.farmer_id != user_id and interest.contractor_id != user_id:
         return api_response(success=False, error="Unauthorized", status=403)
 
-    # 2. Transaction Safety
-    with db.session.begin():
-        msg = Message(interest_id=interest_id, sender_id=user_id, content=content, is_read=False, nonce=nonce)
-        db.session.add(msg)
+    # 2. Simple Save Pattern (Ultra-compatible)
+    msg = Message(
+        interest_id = int(interest_id), 
+        sender_id   = int(user_id), 
+        content     = str(content), 
+        is_read     = False, 
+        nonce       = nonce
+    )
+    db.session.add(msg)
+    db.session.commit()
     
     logger.info(f"[MSG_CREATED] User {user_id} -> Interest {interest_id}")
     return api_response(data=msg.to_dict(), status=201)

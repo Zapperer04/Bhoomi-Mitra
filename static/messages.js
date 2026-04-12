@@ -10,17 +10,31 @@ async function apiCall(url, options = {}) {
     ...(options.headers || {}),
   };
 
-  const res = await fetch(url, { ...options, headers });
-  const json = await res.json();
+  try {
+    const res = await fetch(url, { ...options, headers });
+    
+    if (res.status === 401) {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+      return;
+    }
 
-  if (res.status === 401) {
-    localStorage.removeItem("access_token");
-    window.location.href = "/login";
-    return;
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await res.text();
+      console.error("Non-JSON response from server:", text.substring(0, 200));
+      throw new Error(`Server returned non-JSON response (${res.status}). Please check your connection.`);
+    }
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || `Request failed with status ${res.status}`);
+    }
+    return json.data;
+  } catch (err) {
+    console.error(`API Call failed [${url}]:`, err);
+    throw err;
   }
-
-  if (!json.success) throw new Error(json.error || "Request failed");
-  return json.data;
 }
 
 /** Helper to disable button during API call */
