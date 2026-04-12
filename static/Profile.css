@@ -229,35 +229,44 @@ body {
 
 /* ── Phone Prefix styling ── */
 .phone-input-group {
+    flex: 1;
     display: flex;
     align-items: center;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: 14px;
     overflow: hidden;
     transition: all 0.2s;
 }
 
 .phone-input-group:focus-within {
     border-color: var(--accent);
+    background: var(--white);
     box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
 .phone-prefix {
     background: var(--gray-100);
-    border: 2px solid var(--gray-200);
-    border-right: none;
-    border-radius: 14px 0 0 14px;
+    border-right: 2px solid var(--gray-200);
     height: 48px;
     display: flex;
     align-items: center;
-    padding: 0 0.8rem;
+    padding: 0 1rem;
     font-weight: 800;
     color: var(--gray-500);
     font-size: 14px;
     font-family: 'Sora', sans-serif;
     user-select: none;
+    white-space: nowrap;
 }
 
 .phone-input-group .prof-input {
-    border-radius: 0 14px 14px 0;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding-left: 0.8rem;
+    margin-bottom: 0;
+    box-shadow: none !important;
 }
 
 .btn-primary {

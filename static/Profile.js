@@ -68,7 +68,7 @@ async function loadData() {
     if (inputName) inputName.value = user.name;
 
     const inputPhone = document.getElementById("inputPhone");
-    if (inputPhone) inputPhone.value = user.phone;
+    if (inputPhone) inputPhone.value = user.phone.replace('+91', '');
 
   } catch (err) { 
     console.error("Profile load error:", err);
@@ -83,7 +83,7 @@ function setupNameSave() {
     try {
       const data = await apiCall("/auth/profile/name", { method: "PATCH", body: JSON.stringify({ name }) });
       document.getElementById("displayName").textContent = data.name;
-      loadProfile(); // Refresh avatars
+      await loadData();
       showFeedback("fbName", "success", "✓ Name updated");
     } catch (err) { showFeedback("fbName", "error", err.message); }
     finally { setLoading("btnSaveName", false); }

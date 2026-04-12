@@ -24,8 +24,8 @@
         <div class="avatar notranslate" id="avatarInitial">?</div>
     </div>
     <div class="hero-text">
-        <h1 id="displayName">Loading…</h1>
-        <div class="hero-meta">
+        <h1 class="notranslate" id="displayName">Loading…</h1>
+        <div class="hero-meta notranslate">
             <span class="role-badge" id="displayRole">—</span>
             <span class="hero-phone" id="displayPhone">—</span>
         </div>
@@ -49,10 +49,12 @@
         <section class="pcard">
             <div class="pcard-label">Phone Number</div>
             <p class="pcard-desc">Shared with the other party only after a deal is accepted.</p>
-            <div class="field-group phone-input-group">
-                <span class="phone-prefix">+91</span>
-                <input class="prof-input" type="tel" id="inputPhone"
-                       placeholder="XXXXXXXXXX" maxlength="10" autocomplete="tel">
+            <div class="field-group">
+                <div class="phone-input-group">
+                    <span class="phone-prefix">+91</span>
+                    <input class="prof-input" type="tel" id="inputPhone"
+                           placeholder="XXXXXXXXXX" maxlength="10" autocomplete="tel">
+                </div>
                 <button class="btn-primary" id="btnSavePhone">Save</button>
             </div>
             <div class="feedback" id="fbPhone"></div>
@@ -71,7 +73,7 @@
                 <div class="pw-field">
                     <label>New Password</label>
                     <input class="prof-input" type="password" id="inputNewPw"
-                           placeholder="Minimum 8 characters" autocomplete="new-password">
+                           placeholder="Minimum 6 characters" autocomplete="new-password">
                     <div class="strength-wrap" id="strengthWrap">
                         <div class="strength-bar">
                             <div class="strength-fill" id="strengthFill"></div>
