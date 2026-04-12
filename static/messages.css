@@ -372,9 +372,52 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     box-shadow: 0 8px 24px rgba(6,78,59,0.15);
 }
 
+.message.system-msg {
+    align-self: center;
+    background: transparent;
+    box-shadow: none;
+    max-width: 90%;
+    padding: 0.5rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.system-info {
+    background: var(--green-50);
+    color: var(--green-800);
+    border: 1px solid var(--green-200);
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.1);
+}
+
+.counter-offer-box {
+    background: var(--gray-50);
+    border: 1px solid var(--amber);
+    color: var(--gray-800);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.counter-offer-box strong {
+    color: var(--amber-dark);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .message-time {
     display: block; font-size: 0.75rem; margin-top: 6px; opacity: 0.6;
 }
+
 
 /* ── INPUT AREA ───────────────────────────────────────────── */
 .message-input-area {

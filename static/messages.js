@@ -141,10 +141,11 @@ async function loadMessages(id) {
 
       messages.forEach(msg => {
         const div = document.createElement("div");
-        const isSystem = msg.content.startsWith("__SYSTEM__:");
+        const contentStr = msg.content || "";
+        const isSystem = contentStr.startsWith("__SYSTEM__:");
         
         div.className = `message ${isSystem ? 'system-msg' : (msg.sender_id === currentUserId ? 'sent' : 'received')}`;
-        div.innerHTML = formatMessageHelper(msg.content); 
+        div.innerHTML = formatMessageHelper(contentStr); 
         
         area.appendChild(div);
         lastMessageId = Math.max(lastMessageId, msg.id);
