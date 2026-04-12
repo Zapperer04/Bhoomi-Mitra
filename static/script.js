@@ -7,10 +7,9 @@ async function apiCall(url, options = {}) {
 }
 
 function normalizePhone(phone) {
-  // Strip all whitespace and normalize to +91XXXXXXXXXX
+  // Now simpler: input is exactly 10 digits due to maxlength. UI prefix is static +91.
   phone = phone.replace(/\s+/g, '');
   if (/^\d{10}$/.test(phone)) return '+91' + phone;
-  if (/^91\d{10}$/.test(phone)) return '+' + phone;
   return phone;
 }
 
@@ -74,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const pwError = validatePassword(password);
       
       if (!/^\+91\d{10}$/.test(normalizedPhone)) {
-        alert("Please enter a valid 10-digit Indian phone number.");
+        alert("Please enter a valid 10-digit phone number.");
         btn.disabled = false;
         return;
       }

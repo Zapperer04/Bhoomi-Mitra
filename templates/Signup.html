@@ -36,11 +36,12 @@
                 data-i18n="signup.name_placeholder"
                 data-i18n-attr="placeholder"
                 placeholder="Full Name" required>
-            <input type="tel" id="phone"
-                maxlength="13"
-                data-i18n="signup.phone_placeholder"
-                data-i18n-attr="placeholder"
-                placeholder="+91 XXXXXXXXXX" required>
+            <div class="phone-input-group">
+                <span class="phone-prefix">+91</span>
+                <input type="tel" id="phone"
+                    maxlength="10"
+                    placeholder="XXXXXXXXXX" required>
+            </div>
             <input type="password" id="password"
                 data-i18n="signup.password_placeholder"
                 data-i18n-attr="placeholder"

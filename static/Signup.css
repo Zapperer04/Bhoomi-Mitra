@@ -248,6 +248,45 @@ form input:focus {
     box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
 }
 
+/* ── Phone Prefix Group ── */
+.phone-input-group {
+    display: flex;
+    align-items: center;
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.phone-input-group:focus-within {
+    border-color: var(--accent);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+.phone-prefix {
+    padding: 0 1.2rem;
+    font-weight: 800;
+    color: var(--gray-500);
+    border-right: 2px solid var(--gray-200);
+    background: var(--gray-100);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    font-family: 'Sora', sans-serif;
+    user-select: none;
+}
+
+.phone-input-group input {
+    border: none !important;
+    margin-bottom: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    flex: 1;
+}
+
 form input::placeholder {
     color: var(--gray-400);
 }

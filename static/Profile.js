@@ -2,9 +2,9 @@
  */
 
 function normalizePhone(phone) {
+  // Input is strictly 10 digits in the new UI
   phone = phone.replace(/\s+/g, '');
   if (/^\d{10}$/.test(phone)) return '+91' + phone;
-  if (/^91\d{10}$/.test(phone)) return '+' + phone;
   return phone;
 }
 
@@ -96,7 +96,7 @@ function setupPhoneSave() {
     const phone = normalizePhone(rawPhone);
     
     if (!/^\+91\d{10}$/.test(phone)) {
-      showFeedback("fbPhone", "error", "Invalid Indian phone format. Use 10 digits or +91XXXXXXXXXX");
+      showFeedback("fbPhone", "error", "Please enter a valid 10-digit phone number.");
       return;
     }
 
