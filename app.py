@@ -297,13 +297,24 @@ def transition_interest(interest, action, actor_role, new_price=None, new_qty=No
         interest.accepted_by = None
         return "__SYSTEM__:rejected"
 
-    # ── WITHDRAW ───────────────────────────
+    # ── WITHDRAW (contractor cancels their interest entirely) ───────────────────
+    # Case A: withdraw a pending/negotiating interest → reject it outright
+    # Case B: withdraw a partial acceptance → roll back to negotiating
     if action == "withdraw":
-        if interest.accepted_by == actor_role:
-            interest.accepted_by = None
-            interest.status = "negotiating"
-            return f"__SYSTEM__:withdrew_acceptance:{actor_role}"
-        return None
+        if actor_role == "contractor":
+            # Full withdrawal — contractor pulls out entirely
+            if interest.status in ["pending", "negotiating"]:
+                interest.status = "rejected"
+                interest.accepted_by = None
+                return "__SYSTEM__:contractor_withdrew"
+            return None
+        else:
+            # Farmer withdrawing their own partial acceptance
+            if interest.accepted_by == actor_role:
+                interest.accepted_by = None
+                interest.status = "negotiating"
+                return f"__SYSTEM__:withdrew_acceptance:{actor_role}"
+            return None
 
     raise ValueError("Invalid action")
 
@@ -354,6 +365,8 @@ def _strip_system_prefix(content: str) -> str:
             "rejected":                      "❌ Deal rejected",
             "rejected_crop_sold_out":        "❌ Rejected — crop sold out",
             "auto_rejected_sold_out":        "❌ Crop sold out — interest closed",
+            "crop_listing_removed":          "❌ Crop listing removed by farmer",
+            "contractor_withdrew":           "↩️ Contractor withdrew their interest",
             "negotiating":                   "💬 Farmer opened negotiation",
             "withdrew_acceptance:farmer":    "↩️ Farmer withdrew acceptance",
             "withdrew_acceptance:contractor":"↩️ Contractor withdrew acceptance",
@@ -532,16 +545,33 @@ def delete_crop(crop_id):
     if crop.farmer_id != user_id:
         return api_response(success=False, error="Unauthorized", status=403)
 
-    live = Interest.query.filter(
+    if crop.status in ("sold", "removed"):
+        return api_response(success=False, error="Crop is already sold or removed", status=409)
+
+    # Auto-reject all open interests and notify via system message
+    open_interests = Interest.query.filter(
         Interest.crop_id == crop_id,
-        Interest.status.in_(["pending", "negotiating", "accepted"]),
+        Interest.status.in_(["pending", "negotiating"]),
+    ).all()
+    for i in open_interests:
+        i.status = "rejected"
+        i.accepted_by = None
+        db.session.add(Message(
+            interest_id=i.id,
+            content="__SYSTEM__:crop_listing_removed"
+        ))
+
+    # Block removal only if a deal is ALREADY finalized (accepted by both)
+    live_accepted = Interest.query.filter(
+        Interest.crop_id == crop_id,
+        Interest.status == "accepted",
     ).first()
-    if live:
-        return api_response(success=False, error="Cannot remove a crop with live or accepted deals.", status=409)
+    if live_accepted:
+        return api_response(success=False, error="Cannot remove a crop with a finalized deal.", status=409)
 
     crop.status = "removed"
     db.session.commit()
-    return api_response(data={"message": "Crop marked as removed"})
+    return api_response(data={"message": "Crop listing removed. All pending interests have been notified."})
 
 
 @app.route("/api/crops/<int:crop_id>/hard", methods=["DELETE"])
@@ -948,19 +978,55 @@ def send_message():
 @app.route("/api/messages/conversation/<int:interest_id>")
 @jwt_required()
 def get_conversation(interest_id):
+    user_id  = _current_user_id()
     interest = Interest.query.get_or_404(interest_id)
+
+    if interest.farmer_id != user_id and interest.contractor_id != user_id:
+        return api_response(success=False, error="Unauthorized", status=403)
+
     messages = Message.query.filter_by(
         interest_id=interest_id
     ).order_by(Message.id.asc()).all()
 
+    # Mark incoming messages as read
+    for msg in messages:
+        if msg.sender_id != user_id and not msg.is_read:
+            msg.is_read = True
+    db.session.commit()
+
+    # Reveal phone only after full deal close
+    farmer_phone     = None
+    contractor_phone = None
+    if interest.status == "accepted" and interest.accepted_by == "both":
+        if interest.crop and interest.crop.farmer:
+            farmer_phone = interest.crop.farmer.phone
+        if interest.contractor:
+            contractor_phone = interest.contractor.phone
+
+    viewer_is_farmer = (user_id == interest.farmer_id)
+
     return api_response(data={
         "messages": [m.to_dict() for m in messages],
         "interest": {
-            "id": interest.id,
-            "status": interest.status,
-            "accepted_by": interest.accepted_by,
-            "price_offered": interest.price_offered,
-            "quantity_requested": interest.quantity_requested
+            "id":                interest.id,
+            "status":            interest.status,
+            "accepted_by":       interest.accepted_by,
+            "price_offered":     interest.price_offered,
+            "quantity_requested":interest.quantity_requested,
+            "farmer_id":         interest.farmer_id,
+            "contractor_id":     interest.contractor_id,
+            # Crop context for chat header
+            "crop_name":         interest.crop.crop_name if interest.crop else "Unknown",
+            "original_price":    interest.crop.price if interest.crop else None,
+            "location":          interest.crop.location if interest.crop else None,
+            "availability_date": interest.crop.availability_date.isoformat() if interest.crop and interest.crop.availability_date else None,
+            # People
+            "farmer_name":       interest.crop.farmer.name if interest.crop and interest.crop.farmer else None,
+            "contractor_name":   interest.contractor.name if interest.contractor else None,
+            # Phone (only after full close)
+            "farmer_phone":      farmer_phone,
+            "contractor_phone":  contractor_phone,
+            "viewer_role":       "farmer" if viewer_is_farmer else "contractor",
         }
     })
 

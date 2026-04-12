@@ -20,8 +20,14 @@
     --accent:       #10b981;
     --amber:        #f59e0b;
     --amber-dark:   #b45309;
+    --amber-light:  #fef3c7;
     --red:          #ef4444;
     --red-light:    #fee2e2;
+    /* Red scale (used by reject button) */
+    --red-50:       #fef2f2;
+    --red-100:      #fee2e2;
+    --red-200:      #fecaca;
+    --red-700:      #b91c1c;
     --blue:         #3b82f6;
     --blue-dark:    #1d4ed8;
     --blue-light:   #dbeafe;
@@ -45,6 +51,7 @@
     --shadow-lg:    0 12px 24px rgba(6,78,59,.12);
     --shadow-xl:    0 20px 40px rgba(0,0,0,.15);
     --shadow-white: 0 0 20px rgba(255,255,255,.5);
+    --shadow-brand: 0 4px 14px rgba(5, 150, 105, 0.3);
 
     /* Radii */
     --radius-sm:    8px;
@@ -308,12 +315,20 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     z-index: 10;
+    flex-wrap: wrap;
 }
 
-.chat-header h3 { font-size: 1.25rem; font-weight: 800; color: var(--gray-900); }
-.chat-header p { font-size: 0.9rem; color: var(--green-600); font-weight: 600; margin-top: 2px; }
+.chat-header-info { flex: 1; min-width: 0; }
+.chat-header-info h3 {
+    font-size: 1.15rem; font-weight: 800; color: var(--gray-900);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-header-info p  { font-size: 0.85rem; color: var(--green-600); font-weight: 600; margin-top: 2px; }
+
+.chat-header-actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
 
 .btn-call {
     display: inline-flex; align-items: center; gap: 8px;
@@ -490,10 +505,16 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 }
 
 .status-item .value {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 800;
     color: var(--gray-800);
     font-family: 'Sora', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    line-height: 1.3;
 }
 
 .status-divider {
@@ -540,11 +561,23 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .btn-neg.accept { background: var(--green-600); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
 .btn-neg.accept:hover { background: var(--green-700); transform: translateY(-2px); }
 
+/* Correctly uses the full red scale defined in :root */
 .btn-neg.reject { background: var(--red-50); color: var(--red-700); border: 1px solid var(--red-200); }
 .btn-neg.reject:hover { background: var(--red-100); }
 
 .btn-neg.counter { background: var(--white); color: var(--gray-700); border: 1.5px solid var(--gray-200); }
 .btn-neg.counter:hover { border-color: var(--green-400); color: var(--green-600); }
+
+/* Withdraw: amber/warning tone, does not stretch to full width */
+.btn-neg.withdraw {
+    flex: 0 0 auto;
+    max-width: none;
+    background: transparent;
+    border: 2px solid var(--amber);
+    color: var(--amber-dark);
+    font-size: 0.85rem;
+}
+.btn-neg.withdraw:hover { background: var(--amber-light); }
 
 /* ── DISABLED & LOCKED STATES ── */
 .btn-neg:disabled {
@@ -615,6 +648,17 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ── PULSE ANIMATION ── */
+.btn-pulse {
+    animation: btnPulse 2s infinite;
+}
+
+@keyframes btnPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70%  { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
 
 /* ── LOADING ──────────────────────────────────────────────── */
 .loading-state {
@@ -694,12 +738,14 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 /* ── WAITING BANNER ───────────────────────────────────────── */
 .waiting-banner {
     padding: 0.6rem 2rem;
-    background: var(--amber);
+    background: linear-gradient(90deg, var(--amber), #fbbf24);
     color: white;
     font-size: 0.85rem;
     font-weight: 700;
     text-align: center;
     letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.2);
+    /* .hidden from utils handles display:none — this block handles the visible state */
 }
 
 /* ── SYSTEM BANNER (deal closed) ─────────────────────────── */

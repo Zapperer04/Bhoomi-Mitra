@@ -192,13 +192,23 @@ function renderDealUI(conv) {
   statusEl.className = `value badge status-${currentStatus}`;
 
   // ── Chat person header ───────────────────────────────────────────────────
-  document.getElementById("chatPersonName").textContent = conv.other_user_name;
-  document.getElementById("chatCropName").textContent   = `Deal: ${conv.crop_name}`;
+  const otherName = conv.viewer_role === "farmer" ? conv.contractor_name : conv.farmer_name;
+  document.getElementById("chatPersonName").textContent = otherName || conv.other_user_name || "";
+  document.getElementById("chatCropName").textContent   = conv.crop_name ? `${conv.crop_name} · ${conv.location || ""}` : "";
+
+  // ── Price bar: show negotiated vs original ────────────────────────────────
+  const priceEl = document.getElementById("statPrice");
+  if (conv.original_price && conv.price_offered && conv.original_price !== conv.price_offered) {
+    priceEl.innerHTML = `<s style="opacity:.5">₹${conv.original_price}/q</s> → <strong>₹${conv.price_offered}/q</strong>`;
+  } else {
+    priceEl.textContent = conv.price_offered != null ? `₹${conv.price_offered}/q` : "—";
+  }
 
   // ── Call button: only show phone if deal is fully accepted ───────────────
   const callBtn = document.getElementById("callButton");
-  if (conv.accepted_by === "both" && conv.other_user_phone) {
-    callBtn.href  = `tel:${conv.other_user_phone}`;
+  const phone = conv.viewer_role === "farmer" ? conv.contractor_phone : conv.farmer_phone;
+  if (conv.accepted_by === "both" && phone) {
+    callBtn.href  = `tel:${phone}`;
     callBtn.style.display = "";
   } else {
     callBtn.href  = "#";
@@ -242,23 +252,47 @@ function renderDealUI(conv) {
 
   const isFarmer  = (currentUserId === conv.farmer_id);
   const myRole    = isFarmer ? "farmer" : "contractor";
-  const acceptBtn = document.getElementById("acceptBtn");
-  const rejectBtn = document.getElementById("rejectBtn");
-  const counterBtn = document.getElementById("counterBtn");
-  const negText   = document.getElementById("negText");
+  const otherRole = isFarmer ? "contractor" : "farmer";
 
+  const acceptBtn   = document.getElementById("acceptBtn");
+  const rejectBtn   = document.getElementById("rejectBtn");
+  const counterBtn  = document.getElementById("counterBtn");
+  const withdrawBtn = document.getElementById("withdrawBtn");
+  const negText     = document.getElementById("negText");
+
+  // Reset all
   acceptBtn.disabled  = false;
   acceptBtn.textContent = "Accept Deal";
+  acceptBtn.classList.remove("btn-pulse");
+  counterBtn.classList.remove("hidden");
+  if (withdrawBtn) withdrawBtn.classList.add("hidden");
 
-  if (conv.accepted_by === myRole) {
-    acceptBtn.textContent = "✓ You Accepted";
+  if (conv.accepted_by === "both") {
+    panel.classList.add("hidden");
+  } else if (conv.accepted_by === myRole) {
+    // Current user already accepted — show withdraw option
+    acceptBtn.textContent = "✓ Accepted — Waiting"; 
     acceptBtn.disabled    = true;
-    negText.textContent   = `Waiting for ${myRole === "farmer" ? "contractor" : "farmer"} to confirm...`;
-  } else if (conv.accepted_by && conv.accepted_by !== myRole) {
-    // Other party already accepted — prompt to finalize
-    negText.textContent = "The other party accepted! Confirm to close the deal.";
+    negText.textContent   = `Waiting for ${otherRole} to confirm...`;
+    counterBtn.classList.add("hidden");
+    // Farmer can withdraw their partial acceptance
+    if (withdrawBtn && myRole === "farmer") {
+      withdrawBtn.textContent = "↩ Withdraw My Acceptance";
+      withdrawBtn.classList.remove("hidden");
+    }
+  } else if (conv.accepted_by === otherRole) {
+    // Other party accepted — prompt current user to confirm
+    acceptBtn.textContent = "✅ Confirm & Finalize Deal";
+    acceptBtn.classList.add("btn-pulse");
+    negText.textContent   = `${otherRole === "farmer" ? "Farmer" : "Contractor"} accepted! Confirm to close the deal.`;
   } else {
+    // No acceptance yet — show normal actions
     negText.textContent = "Take action on this deal:";
+    // Contractor can fully withdraw a pending OR negotiating deal
+    if (withdrawBtn && !isFarmer && (conv.status === "pending" || conv.status === "negotiating")) {
+      withdrawBtn.textContent = "↩ Withdraw Interest";
+      withdrawBtn.classList.remove("hidden");
+    }
   }
 
   // ✅ DISABLE CLOSED DEAL
@@ -272,21 +306,20 @@ function renderDealUI(conv) {
 function disableAllActions() {
     const panel = document.getElementById("negotiationPanel");
     if (panel) panel.classList.add("locked");
-    const btns = ["acceptBtn", "rejectBtn", "counterBtn"];
-    btns.forEach(id => {
+    ["acceptBtn", "rejectBtn", "counterBtn", "withdrawBtn"].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.disabled = true;
+        if (el) { el.disabled = true; el.classList.add("hidden"); }
     });
 }
 
 function enableAllActions() {
     const panel = document.getElementById("negotiationPanel");
     if (panel) panel.classList.remove("locked");
-    const btns = ["acceptBtn", "rejectBtn", "counterBtn"];
-    btns.forEach(id => {
+    ["acceptBtn", "rejectBtn", "counterBtn"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.disabled = false;
     });
+    // withdrawBtn visibility is managed exclusively by renderDealUI state logic
 }
 
 // ── MESSAGES ──
@@ -398,14 +431,24 @@ function setupEventListeners() {
 
   // ✅ BUTTON HOOKS
   // Accept
-  document.getElementById("acceptBtn").onclick = (e) => performAction("accept");
+  document.getElementById("acceptBtn").onclick = () => performAction("accept");
 
   // Reject
-  document.getElementById("rejectBtn").onclick = (e) => {
-    if (confirm("Are you sure you want to REJECT this deal?")) {
-        performAction("reject");
+  document.getElementById("rejectBtn").onclick = () => {
+    if (confirm("Are you sure you want to REJECT this deal? This cannot be undone.")) {
+      performAction("reject");
     }
   };
+
+  // Withdraw (Contractor withdrawing interest OR farmer withdrawing partial acceptance)
+  const withdrawBtn = document.getElementById("withdrawBtn");
+  if (withdrawBtn) {
+    withdrawBtn.onclick = () => {
+      if (confirm("Withdraw? This will cancel your involvement in this deal.")) {
+        performAction("withdraw");
+      }
+    };
+  }
 
   // ── Counter-offer modal ──────────────────────────────────────────────────
   const modal = document.getElementById("counterModal");
@@ -499,17 +542,19 @@ function formatMessageHelper(content) {
     const tag = content.slice("__SYSTEM__:".length);
     const labels = {
       "interest_submitted":             "📋 Interest submitted",
-      "negotiating":                    "💬 Farmer opened negotiation",
+      "negotiating":                    "💬 Negotiation opened",
       "farmer_accepted":                "✅ Farmer accepted · waiting for contractor",
       "contractor_accepted":            "✅ Contractor accepted · waiting for farmer",
-      "deal_fully_accepted":            "🎉 Deal closed ✓",
+      "deal_fully_accepted":            "🎉 Deal closed — both parties confirmed ✓",
       "rejected":                       "❌ Deal rejected",
       "rejected_crop_sold_out":         "❌ Rejected — crop sold out",
-      "auto_rejected_sold_out":         "❌ Crop sold out — interest closed",
+      "auto_rejected_sold_out":         "❌ Crop sold out — this interest was closed",
+      "crop_listing_removed":           "❌ Farmer removed this crop listing",
+      "contractor_withdrew":            "↩️ Contractor withdrew their interest",
       "withdrew_acceptance:farmer":     "↩️ Farmer withdrew their acceptance",
       "withdrew_acceptance:contractor": "↩️ Contractor withdrew their acceptance",
     };
-    const text  = labels[tag] || "📋 Status update";
+    const text   = labels[tag] || "📋 Status update";
     const isDeal = tag === "deal_fully_accepted";
     return isDeal
       ? `<div class="system-banner">${text}</div>`
@@ -517,23 +562,45 @@ function formatMessageHelper(content) {
   }
 
   // ── COUNTER-OFFER CARD ────────────────────────────────────────────────────
+  // Format: __COUNTER__:price:qty  (colon-separated, current format)
+  // Fallback 1: __COUNTER__:key1:val1|key2:val2 (old pipe format)
+  // Fallback 2: raw escaped text
   if (content.startsWith("__COUNTER__:")) {
-    const raw   = content.slice("__COUNTER__:".length);
-    const parts = raw.split("|");
-    let rows = "";
-    parts.forEach(p => {
-      const colonIdx = p.indexOf(":");
-      if (colonIdx === -1) return;
-      const k = p.slice(0, colonIdx).trim();
-      const v = p.slice(colonIdx + 1).trim();
-      rows += `<div class="counter-row"><span class="counter-key">${escapeHtml(k)}</span><span class="counter-val">${escapeHtml(v)}</span></div>`;
-    });
-    return `
-      <div class="counter-offer-box">
-        <strong>💬 Counter Offer</strong>
-        ${rows}
-      </div>`;
+    const raw = content.slice("__COUNTER__:".length);
+
+    // Detect format: if it contains '|' it's old pipe-delimited, otherwise new colon format
+    if (raw.includes("|")) {
+      // ── Old pipe-delimited format (legacy records) ──
+      let rows = "";
+      raw.split("|").forEach(p => {
+        const colonIdx = p.indexOf(":");
+        if (colonIdx === -1) return;
+        const k = p.slice(0, colonIdx).trim();
+        const v = p.slice(colonIdx + 1).trim();
+        rows += `<div class="counter-row"><span class="counter-key">${escapeHtml(k)}</span><span class="counter-val">${escapeHtml(v)}</span></div>`;
+      });
+      if (rows) return `<div class="counter-offer-box"><strong>💬 Counter Offer</strong>${rows}</div>`;
+    }
+
+    // ── New colon format: price:qty ──
+    const parts = raw.split(":");
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      const price = `₹${parts[0]}/q`;
+      const qty   = `${parts[1]} quintals`;
+      return `
+        <div class="counter-offer-box">
+          <strong>💬 Counter Offer Proposed</strong>
+          <div class="counter-row"><span class="counter-key">New Price</span><span class="counter-val">${escapeHtml(price)}</span></div>
+          <div class="counter-row"><span class="counter-key">Quantity</span><span class="counter-val">${escapeHtml(qty)}</span></div>
+        </div>`;
+    }
+
+    // ── Fallback: render raw content safely ──
+    return `<div class="system-info">💬 Counter offer: ${escapeHtml(raw)}</div>`;
   }
+
+  return escapeHtml(content);
+}
 
   return escapeHtml(content);
 }
