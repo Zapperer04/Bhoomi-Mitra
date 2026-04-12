@@ -104,6 +104,14 @@ with app.app_context():
     # This prevents 'already exists' errors from bloating logs and ensures
     # the schema remains in sync with the Interest and Message models.
     with db.engine.connect() as conn:
+        # ✅ RESET DB TRIGGER (Administrative Hook)
+        if os.environ.get("RESET_DB_ON_NEXT_START") == "true":
+            logger.warning("[ADMIN] RESET_DB_ON_NEXT_START is true! Dropping and recreating tables...")
+            db.drop_all()
+            db.create_all()
+            logger.info("[ADMIN] Database reset complete.")
+            return # Exit startup block after reset
+
         is_postgres = "postgresql" in str(db.engine.url)
         
         # 1. Add finalized_at to interests
