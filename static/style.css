@@ -186,7 +186,8 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .hero h1 {
     font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.4; /* Increased from 1.1 to prevent clipping of Indic matras */
+    padding: 0.1em 0; /* Ensures background-clip gradient box covers top strokes */
     margin-bottom: 1.5rem;
     background: linear-gradient(135deg, var(--green-900), var(--green-600));
     -webkit-background-clip: text;

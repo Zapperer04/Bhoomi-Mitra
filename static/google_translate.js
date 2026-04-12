@@ -58,7 +58,7 @@ function buildCustomUI() {
     
     // Create the Dropdown
     const dropdown = document.createElement('div');
-    dropdown.className = 'lang-dropdown hidden';
+    dropdown.className = 'lang-dropdown'; // Removed 'hidden' class to prevent CSS !important overrides
     dropdown.style.cssText = 'position: absolute; top: calc(100% + 8px); right: 0; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; min-width: 160px; z-index: 10000; overflow: hidden; border: 1px solid #e5e7eb; display: none; flex-direction: column;';
 
     const languages = [
