@@ -499,3 +499,276 @@ h1, h2, h3, h4 {
     
     .modal-content { padding: 2rem; margin: 1rem; }
 }
+
+/* ── NESTED INTERESTS & GROUPING (TC-26) ─────────────────── */
+.crop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.waitlist-badge {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.nested-interests {
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+    margin: 1rem 0;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+}
+
+.interest-item {
+    background: var(--white);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--gray-100);
+    transition: var(--transition);
+}
+
+.interest-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--green-200);
+}
+
+.interest-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.interest-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.con-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--gray-900);
+}
+
+.price-pill {
+    font-size: 0.8rem;
+    color: var(--green-700);
+    background: var(--green-50);
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.badge-mini {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.badge-mini.accepted { background: var(--green-100); color: var(--green-800); }
+.badge-mini.rejected { background: var(--gray-200); color: var(--gray-600); }
+.badge-mini.pending  { background: var(--amber-light); color: var(--amber-dark); }
+.badge-mini.action   { background: var(--blue-light); color: var(--blue-dark); animation: pulseMini 2s infinite; }
+
+@keyframes pulseMini {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.interest-actions {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.btn-action-sm {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-action-sm.accept { background: var(--green-600); color: white; }
+.btn-action-sm.reject { background: var(--gray-100); color: var(--gray-600); }
+.btn-action-sm.withdraw { background: var(--amber); color: white; }
+.btn-action-sm:hover { filter: brightness(1.1); }
+
+.btn-message-sm {
+    text-decoration: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+.btn-message-sm:hover { opacity: 1; transform: scale(1.2); }
+
+/* ── STOCK & EDIT STYLES (TC-33, TC-35) ───────────────────────── */
+.stock-container {
+    background: var(--gray-50);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+    border-left: 3px solid var(--green-600);
+}
+
+.active-deals-hint {
+    margin-top: 0.25rem;
+    animation: slideInLeft 0.3s ease-out;
+}
+
+.edit-btn {
+    flex: 1;
+    background: white;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-700);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.edit-btn:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ── NESTED INTERESTS & WAITLIST ───────────────────────── */
+.waitlist-badge {
+    background: var(--blue-50);
+    color: var(--blue-600);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--blue-200);
+    margin-left: 0.5rem;
+    display: inline-block;
+}
+
+.nested-interests {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.interest-item {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.interest-item:hover {
+    border-color: var(--green-300);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.interest-item.status-accepted {
+    background: var(--green-50);
+    border-color: var(--green-200);
+}
+
+.interest-item.status-rejected {
+    opacity: 0.6;
+    pointer-events: none;
+    background: #fdf2f8; /* very light pink/red */
+    border-color: #fce7f3;
+}
+
+.interest-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.interest-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.con-name {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 0.9rem;
+}
+
+.price-pill {
+    background: var(--green-100);
+    color: var(--green-800);
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-sm);
+}
+
+.badge-mini {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-full);
+}
+
+.badge-mini.accepted { background: var(--green-600); color: white; }
+.badge-mini.rejected { background: var(--red); color: white; }
+.badge-mini.pending { background: var(--amber); color: white; }
+.badge-mini.action { background: var(--blue-600); color: white; animation: pulse 2s infinite; }
+
+.interest-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-action-sm {
+    border: none;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-action-sm.accept { background: var(--green-600); color: white; }
+.btn-action-sm.accept:hover { background: var(--green-700); }
+
+.btn-action-sm.reject { background: var(--red); color: white; }
+.btn-action-sm.reject:hover { filter: brightness(0.9); }
+
+.btn-action-sm.withdraw { background: var(--gray-200); color: var(--gray-700); }
+.btn-action-sm.withdraw:hover { background: var(--gray-300); }

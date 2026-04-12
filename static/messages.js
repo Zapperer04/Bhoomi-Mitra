@@ -3,6 +3,10 @@
  * Implements spec Parts 3, 6 fully.
  */
 
+// ── TIMEOUT CONFIG (TC-30, TC-31) ───────────────────────────────────────────
+const OFFER_TIMEOUT_MINS = 2; // Matches app.py
+let timerInterval = null;
+
 // ── API HELPER ────────────────────────────────────────────────────────────────
 
 async function apiCall(url, options = {}) {
@@ -191,17 +195,23 @@ function renderDealUI(conv) {
   statusEl.textContent = currentStatus.toUpperCase();
   statusEl.className = `value badge status-${currentStatus}`;
 
+  // Start / Reset Timer (TC-31)
+  startDealTimer(conv);
+
   // ── Chat person header ───────────────────────────────────────────────────
   const otherName = conv.viewer_role === "farmer" ? conv.contractor_name : conv.farmer_name;
   document.getElementById("chatPersonName").textContent = otherName || conv.other_user_name || "";
   document.getElementById("chatCropName").textContent   = conv.crop_name ? `${conv.crop_name} · ${conv.location || ""}` : "";
 
-  // ── Price bar: show negotiated vs original ────────────────────────────────
+  // ── Price bar: show negotiated vs original (TC-17) ────────────────────────
   const priceEl = document.getElementById("statPrice");
-  if (conv.original_price && conv.price_offered && conv.original_price !== conv.price_offered) {
-    priceEl.innerHTML = `<s style="opacity:.5">₹${conv.original_price}/q</s> → <strong>₹${conv.price_offered}/q</strong>`;
+  const origPrice = conv.original_price;
+  const currPrice = conv.price_offered;
+
+  if (origPrice && currPrice && parseFloat(origPrice) !== parseFloat(currPrice)) {
+    priceEl.innerHTML = `<s style="opacity:.6; font-size:0.9em;">₹${origPrice}</s> <span style="color:#10b981">₹${currPrice}/q</span>`;
   } else {
-    priceEl.textContent = conv.price_offered != null ? `₹${conv.price_offered}/q` : "—";
+    priceEl.textContent = currPrice != null ? `₹${currPrice}/q` : "—";
   }
 
   // ── Call button: only show phone if deal is fully accepted ───────────────
@@ -248,9 +258,50 @@ function renderDealUI(conv) {
   const inputArea = document.querySelector(".message-input-area");
   if (inputArea) { inputArea.style.opacity = ""; inputArea.style.pointerEvents = ""; }
 
-  panel.classList.remove("hidden");
+  const compPanel = document.getElementById("completionPanel");
+  if (compPanel) compPanel.classList.add("hidden");
+
+  // Hide entirely for rejected, completed, disputed
+  if (["rejected", "completed", "disputed"].includes(conv.status)) {
+    panel.classList.add("hidden");
+    if (inputArea && conv.status === "rejected") {
+      inputArea.style.opacity = "0.4";
+      inputArea.style.pointerEvents = "none";
+      document.getElementById("messageInput").placeholder = "Chat closed — deal was rejected";
+    }
+    return;
+  }
 
   const isFarmer  = (currentUserId === conv.farmer_id);
+
+  // TC-38: If accepted, hide negotiation but show completion panel
+  if (conv.status === "accepted") {
+     panel.classList.add("hidden");
+     if (compPanel) compPanel.classList.remove("hidden");
+
+     const payBtn = document.getElementById("confirmPaymentBtn");
+     const goodsBtn = document.getElementById("confirmGoodsBtn");
+
+     if (isFarmer) {
+         if (payBtn) payBtn.style.display = "inline-block";
+         if (goodsBtn) goodsBtn.style.display = "none";
+         if (payBtn) {
+             payBtn.disabled = !!conv.payment_confirmed_at;
+             payBtn.textContent = conv.payment_confirmed_at ? "✓ Payment Confirmed" : "Mark Payment Received";
+         }
+     } else {
+         if (payBtn) payBtn.style.display = "none";
+         if (goodsBtn) goodsBtn.style.display = "inline-block";
+         if (goodsBtn) {
+             goodsBtn.disabled = !!conv.goods_confirmed_at;
+             goodsBtn.textContent = conv.goods_confirmed_at ? "✓ Goods Confirmed" : "Mark Goods Received";
+         }
+     }
+     return;
+  }
+
+  panel.classList.remove("hidden");
+
   const myRole    = isFarmer ? "farmer" : "contractor";
   const otherRole = isFarmer ? "contractor" : "farmer";
 
@@ -267,27 +318,30 @@ function renderDealUI(conv) {
   counterBtn.classList.remove("hidden");
   if (withdrawBtn) withdrawBtn.classList.add("hidden");
 
+  // TC-10: Negotiation is ALLOWED even on pending deals (Reverting TC-06 hard block)
+  // We only hide it if the deal is finalized or we are waiting for a response.
+  
   if (conv.accepted_by === "both") {
     panel.classList.add("hidden");
   } else if (conv.accepted_by === myRole) {
-    // Current user already accepted — show withdraw option
-    acceptBtn.textContent = "✓ Accepted — Waiting"; 
+    // Current user already accepted/countered — show withdraw option
+    acceptBtn.textContent = "✓ Sent — Awaiting Response"; 
     acceptBtn.disabled    = true;
-    negText.textContent   = `Waiting for ${otherRole} to confirm...`;
+    negText.innerHTML     = `<span style="color:#6b7280">⏳ Waiting for ${otherRole} to respond...</span>`;
     counterBtn.classList.add("hidden");
-    // Farmer can withdraw their partial acceptance
-    if (withdrawBtn && myRole === "farmer") {
-      withdrawBtn.textContent = "↩ Withdraw My Acceptance";
+    // Show withdraw for both roles now if they want to cancel their turn
+    if (withdrawBtn) {
+      withdrawBtn.textContent = (myRole === "farmer") ? "↩ Withdraw Acceptance" : "↩ Withdraw Interest";
       withdrawBtn.classList.remove("hidden");
     }
   } else if (conv.accepted_by === otherRole) {
-    // Other party accepted — prompt current user to confirm
-    acceptBtn.textContent = "✅ Confirm & Finalize Deal";
+    // Other party accepted/countered — prompt current user to confirm
+    acceptBtn.textContent = "✅ Action Required: Accept Deal";
     acceptBtn.classList.add("btn-pulse");
-    negText.textContent   = `${otherRole === "farmer" ? "Farmer" : "Contractor"} accepted! Confirm to close the deal.`;
+    negText.innerHTML     = `<strong style="color:#10b981">⭐ ${otherRole === "farmer" ? "Farmer" : "Contractor"} accepted!</strong> Confirm or Negotiate.`;
   } else {
     // No acceptance yet — show normal actions
-    negText.textContent = "Take action on this deal:";
+    negText.textContent = "Action Required: Take a turn in this deal";
     // Contractor can fully withdraw a pending OR negotiating deal
     if (withdrawBtn && !isFarmer && (conv.status === "pending" || conv.status === "negotiating")) {
       withdrawBtn.textContent = "↩ Withdraw Interest";
@@ -430,15 +484,46 @@ function setupEventListeners() {
   });
 
   // ✅ BUTTON HOOKS
-  // Accept
-  document.getElementById("acceptBtn").onclick = () => performAction("accept");
 
-  // Reject
-  document.getElementById("rejectBtn").onclick = () => {
-    if (confirm("Are you sure you want to REJECT this deal? This cannot be undone.")) {
+  // ── Accept Modal (TC-07, TC-08) ───────────────────────────────────────────
+  const acceptModal = document.getElementById("acceptModal");
+  if (acceptModal) {
+    document.getElementById("acceptBtn").onclick = () => {
+      document.getElementById("acceptSummaryCrop").textContent = currentConv?.crop_name || "--";
+      document.getElementById("acceptSummaryQty").textContent  = (currentConv?.quantity_requested || 0) + " q";
+      document.getElementById("acceptSummaryPrice").textContent = "₹" + (currentConv?.price_offered || 0) + "/q";
+      document.getElementById("acceptSummaryTotal").textContent = "₹" + ((currentConv?.quantity_requested || 0) * (currentConv?.price_offered || 0));
+      acceptModal.classList.remove("hidden");
+    };
+    document.getElementById("closeAcceptModal").onclick = () => acceptModal.classList.add("hidden");
+    document.getElementById("cancelAccept").onclick = () => acceptModal.classList.add("hidden");
+    acceptModal.onclick = (e) => { if (e.target === acceptModal) acceptModal.classList.add("hidden"); };
+    document.getElementById("submitAccept").onclick = () => {
+      performAction("accept");
+      acceptModal.classList.add("hidden");
+    };
+  } else {
+    document.getElementById("acceptBtn").onclick = () => performAction("accept");
+  }
+
+  // ── Reject Modal (TC-09) ──────────────────────────────────────────────────
+  const rejectModal = document.getElementById("rejectModal");
+  if (rejectModal) {
+    document.getElementById("rejectBtn").onclick = () => rejectModal.classList.remove("hidden");
+    document.getElementById("closeRejectModal").onclick = () => rejectModal.classList.add("hidden");
+    document.getElementById("cancelReject").onclick = () => rejectModal.classList.add("hidden");
+    rejectModal.onclick = (e) => { if (e.target === rejectModal) rejectModal.classList.add("hidden"); };
+    document.getElementById("submitReject").onclick = () => {
       performAction("reject");
-    }
-  };
+      rejectModal.classList.add("hidden");
+    };
+  } else {
+    document.getElementById("rejectBtn").onclick = () => {
+      if (confirm("Are you sure you want to REJECT this deal? This cannot be undone.")) {
+        performAction("reject");
+      }
+    };
+  }
 
   // Withdraw (Contractor withdrawing interest OR farmer withdrawing partial acceptance)
   const withdrawBtn = document.getElementById("withdrawBtn");
@@ -483,6 +568,43 @@ function setupEventListeners() {
     document.getElementById("counterQty").value   = "";
     document.getElementById("counterNote").value  = "";
   };
+
+  // ── TC-38 / TC-40: Completion Confirmations ───────────────────────────────
+  const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
+  if (confirmPaymentBtn) {
+      confirmPaymentBtn.onclick = () => {
+          Toast.confirm("Are you sure you have received full payment?", { danger: false }).then(async ok => {
+              if (ok) {
+                  try {
+                      await apiCall(`/api/interests/${currentInterestId}/confirm`, {
+                          method: "POST",
+                          body: JSON.stringify({ type: "payment" })
+                      });
+                      await loadMessages(currentInterestId);
+                      Toast.success("Payment confirmed!");
+                  } catch (e) { Toast.error(e.message); }
+              }
+          });
+      };
+  }
+
+  const confirmGoodsBtn = document.getElementById("confirmGoodsBtn");
+  if (confirmGoodsBtn) {
+      confirmGoodsBtn.onclick = () => {
+          Toast.confirm("Are you sure you have received the goods in full?", { danger: false }).then(async ok => {
+              if (ok) {
+                  try {
+                      await apiCall(`/api/interests/${currentInterestId}/confirm`, {
+                          method: "POST",
+                          body: JSON.stringify({ type: "goods" })
+                      });
+                      await loadMessages(currentInterestId);
+                      Toast.success("Goods confirmed!");
+                  } catch (e) { Toast.error(e.message); }
+              }
+          });
+      };
+  }
 }
 
 // ── POLLING ───────────────────────────────────────────────────────────────────
@@ -562,45 +684,167 @@ function formatMessageHelper(content) {
   }
 
   // ── COUNTER-OFFER CARD ────────────────────────────────────────────────────
-  // Format: __COUNTER__:price:qty  (colon-separated, current format)
-  // Fallback 1: __COUNTER__:key1:val1|key2:val2 (old pipe format)
-  // Fallback 2: raw escaped text
+  // ── COUNTER-OFFER CARD (TC-13, TC-16, TC-17) ─────────────────────────────
+  // Format: __COUNTER__:price:qty:delivery:payment:note
   if (content.startsWith("__COUNTER__:")) {
     const raw = content.slice("__COUNTER__:".length);
-
-    // Detect format: if it contains '|' it's old pipe-delimited, otherwise new colon format
-    if (raw.includes("|")) {
-      // ── Old pipe-delimited format (legacy records) ──
-      let rows = "";
-      raw.split("|").forEach(p => {
-        const colonIdx = p.indexOf(":");
-        if (colonIdx === -1) return;
-        const k = p.slice(0, colonIdx).trim();
-        const v = p.slice(colonIdx + 1).trim();
-        rows += `<div class="counter-row"><span class="counter-key">${escapeHtml(k)}</span><span class="counter-val">${escapeHtml(v)}</span></div>`;
-      });
-      if (rows) return `<div class="counter-offer-box"><strong>💬 Counter Offer</strong>${rows}</div>`;
-    }
-
-    // ── New colon format: price:qty ──
     const parts = raw.split(":");
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      const price = `₹${parts[0]}/q`;
-      const qty   = `${parts[1]} quintals`;
+
+    if (parts.length >= 2) {
+      const price = parts[0];
+      const qty   = parts[1];
+      const del   = parts[2] || "Not specified";
+      const pay   = parts[3] || "Not specified";
+      const note  = parts[4] || "";
+
       return `
         <div class="counter-offer-box">
-          <strong>💬 Counter Offer Proposed</strong>
-          <div class="counter-row"><span class="counter-key">New Price</span><span class="counter-val">${escapeHtml(price)}</span></div>
-          <div class="counter-row"><span class="counter-key">Quantity</span><span class="counter-val">${escapeHtml(qty)}</span></div>
+          <div class="counter-header">💬 Counter Offer Received</div>
+          <div class="counter-grid">
+            <div class="counter-item"><span class="label">Price</span><span class="val">₹${price}/q</span></div>
+            <div class="counter-item"><span class="label">Qty</span><span class="val">${qty} quintals</span></div>
+            <div class="counter-item"><span class="label">Delivery</span><span class="val">${escapeHtml(del)}</span></div>
+            <div class="counter-item"><span class="label">Payment</span><span class="val">${escapeHtml(pay)}</span></div>
+          </div>
+          ${note ? `<div class="counter-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ""}
         </div>`;
     }
 
-    // ── Fallback: render raw content safely ──
     return `<div class="system-info">💬 Counter offer: ${escapeHtml(raw)}</div>`;
+  }
+
+  // ── WAITLIST & AUTO-REJECTION (TC-27, TC-28, TC-29) ───────────────────────
+  if (content === "__SYSTEM__:other_contractor_accepted") {
+    return `
+      <div class="system-info warning">
+        <p>⚠️ Another contractor's offer was accepted for this listing.</p>
+        <button class="btn-waitlist-join" onclick="joinWaitlist(${currentConv?.crop_id})">Join Waitlist</button>
+      </div>`;
+  }
+
+  if (content === "__SYSTEM__:offer_timed_out") {
+    return `
+      <div class="system-info warning">
+        <p>⏰ This offer has expired due to inactivity.</p>
+        <a href="/" class="btn-waitlist-join" style="text-decoration:none; text-align:center;">Back to Marketplace</a>
+      </div>`;
+  }
+
+  if (content === "__SYSTEM__:listing_expired") {
+    return `<div class="system-info">🚫 The listing has expired and is no longer available.</div>`;
+  }
+
+  if (content === "__SYSTEM__:contractor_withdrew_finalized") {
+    if (myRole === "farmer") {
+      return `
+        <div class="system-info warning">
+          <p>⚠️ The contractor has withdrawn from the finalized deal. Your listing stock has been restored and it is now <b>ACTIVE</b> again.</p>
+          <button class="btn-waitlist-join" style="background:#059669; color:white; border:none;" onclick="location.reload()">Refresh My Dashboard</button>
+        </div>`;
+    }
+    return `<div class="system-info">🔄 The finalized deal was withdrawn. The listing is now <b>ACTIVE</b> again.</div>`;
+  }
+
+  if (content === "__SYSTEM__:listing_reactivated") {
+    return `<div class="system-info success">⚡ Good news! This listing is back on the market.</div>`;
+  }
+
+  // ── COMPLETION & DISPUTES (TC-40, TC-41) ──────────────────────────────────
+  if (content === "__SYSTEM__:payment_confirmed") {
+    return `<div class="system-info success">💰 Payment receipt has been confirmed by the farmer.</div>`;
+  }
+  if (content === "__SYSTEM__:goods_confirmed") {
+    return `<div class="system-info success">📦 Goods receipt has been confirmed by the contractor.</div>`;
+  }
+  if (content === "__SYSTEM__:deal_completed") {
+    return `<div class="system-info success" style="font-weight:700;">🎉 Transaction fully completed! Both parties have confirmed.</div>`;
+  }
+  if (content === "__SYSTEM__:deal_disputed") {
+    return `<div class="system-info warning" style="color:var(--red); border-color:var(--red);">⚠️ <b>Transaction Disputed</b>. The confirmation window expired before both sides confirmed receipt. Support will review.</div>`;
+  }
+
+  // ── EDIT ALERTS (TC-36, TC-37) ─────────────────────────────────────────────
+  if (content === "__SYSTEM__:listing_price_changed_voided") {
+    return `
+      <div class="system-info warning">
+        <p>⚠️ The farmer changed the price of this listing. Your previous offer has been voided. Please submit a new proposal if you are still interested.</p>
+      </div>`;
+  }
+
+  if (content === "__SYSTEM__:qty_correction_required") {
+    return `
+      <div class="system-info warning">
+        <p>⚠️ The farmer reduced the total available quantity of this listing below your requested amount. Please revise your quantity and submit a new offer.</p>
+      </div>`;
   }
 
   return escapeHtml(content);
 }
 
-  return escapeHtml(content);
+// Global helper for the button injected in HTML
+window.joinWaitlist = async (cropId) => {
+  if (!cropId) return;
+  try {
+    await apiCall("/api/waitlist/join", {
+      method: "POST",
+      body: JSON.stringify({ crop_id: cropId })
+    });
+    Toast.success("You've joined the waitlist! We'll notify you if it re-opens.");
+    // Force refresh the UI to show waitlist status if needed
+  } catch (err) {
+    Toast.error(err.message);
+  }
+};
+
+function startDealTimer(interest) {
+  if (timerInterval) clearInterval(timerInterval);
+  
+  const timerItem    = document.getElementById("timerItem");
+  const timerDivider = document.querySelector(".timer-divider");
+  const timerVal     = document.getElementById("statTimer");
+
+  if (!timerItem || !timerVal) return;
+
+  const st = interest.status;
+  // Finalized or rejected deals don't time out
+  if (st !== "pending" && st !== "negotiating") {
+    timerItem.style.display = "none";
+    if (timerDivider) timerDivider.style.display = "none";
+    return;
+  }
+
+  const lastActivity = new Date(interest.last_activity_at);
+  const expiryDate   = new Date(lastActivity.getTime() + OFFER_TIMEOUT_MINS * 60000);
+
+  const update = () => {
+    const now  = new Date();
+    const diff = expiryDate - now;
+
+    if (diff <= 0) {
+      if (timerVal) {
+        timerVal.textContent = "EXPIRED";
+        timerVal.style.color = "#9ca3af";
+      }
+      clearInterval(timerInterval);
+      return;
+    }
+
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    timerVal.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    
+    // Proactive Warning (TC-31)
+    // Warning at 30s for the 2m test case, or at 6h for longer durations
+    const warnThreshold = Math.min(30, OFFER_TIMEOUT_MINS * 60 * 0.1); // 10% or 30s
+    if (diff > 0 && diff <= warnThreshold * 1000 && !window._expiryWarned) {
+        Toast.warning(`Warning: This deal will expire in less than ${Math.ceil(diff/1000)} seconds!`);
+        window._expiryWarned = true;
+    }
+  };
+
+  timerItem.style.display    = "flex";
+  if (timerDivider) timerDivider.style.display = "block";
+  window._expiryWarned = false;
+  update();
+  timerInterval = setInterval(update, 1000);
 }

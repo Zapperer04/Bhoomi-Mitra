@@ -120,6 +120,8 @@ function renderCrops(crops) {
     const qty = crop.quantity_remaining ?? crop.quantity;
 
     let btnHTML = "";
+    const waitlistBadge = crop.waitlisted ? `<span class="badge badge-waitlist" style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:12px; font-size:0.8em; font-weight:700;">🕒 On Waitlist</span>` : "";
+
     if (hasActive) {
       btnHTML = `<button class="btn btn-disabled" disabled>\u2713 ${DT.t("interest_shown")}</button>`;
     } else {
@@ -130,14 +132,23 @@ function renderCrops(crops) {
 
     const card = document.createElement("div");
     card.className = "crop-card";
+    
+    // Format availability date for display (or show N/A if missing)
+    const availDate = crop.availability_date ? new Date(crop.availability_date).toLocaleDateString() : 'N/A';
+
     card.innerHTML = `
-      <h4>${crop.crop_name}</h4>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+        <h4 style="margin:0;">${crop.crop_name}</h4>
+        ${waitlistBadge}
+      </div>
       <p><b>${DT.t("quantity_lbl")}:</b> ${qty} ${DT.t("quintals")}</p>
       <p><b>${DT.t("price_lbl")}:</b> &#8377;${crop.price}/${DT.t("quintal_short")}</p>
+      <p><b>Available From:</b> ${availDate}</p>
       <p><b>${DT.t("location_lbl")}:</b> ${crop.location}</p>
       ${crop.farmer_name ? `<p><b>Farmer:</b> ${crop.farmer_name}</p>` : ""}
-      ${btnHTML}
+      <div class="actions" style="margin-top:0.75rem;">${btnHTML}</div>
     `;
+
 
     card.querySelector(".js-open-interest")?.addEventListener("click", () => {
       openInterestModal(crop.id, crop.crop_name, qty, crop.price);
@@ -218,8 +229,10 @@ async function loadMyInterests() {
       div.querySelector(".btn-accept")?.addEventListener("click", (e) => {
         runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
       });
-      div.querySelector(".btn-withdraw")?.addEventListener("click", (e) => {
-        runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
+      div.querySelector(".btn-withdraw")?.addEventListener("click", async (e) => {
+        if (await Toast.confirm("Are you sure you want to withdraw your interest? This cannot be undone.", { danger: true })) {
+          runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
+        }
       });
       div.querySelector(".btn-counter")?.addEventListener("click", (e) => {
         openCounterModal(i.id, i.price_offered, i.quantity_requested);

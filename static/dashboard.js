@@ -28,7 +28,11 @@ const STATUS_MAP = {
   partially_sold: "status.partially_sold",
   negotiating: "status.negotiating",
   sold: "status.sold",
-  pending: "status.pending"
+  pending: "status.pending",
+  expired: "status.expired",
+  removed: "status.removed",
+  completed: "status.completed",
+  disputed: "status.disputed"
 };
 
 function tStatus(status) {
@@ -56,8 +60,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!localStorage.getItem("access_token")) { location.href = "/login"; return; }
   await DT.ready;
 
-  initHeader();
-  loadDashboardData();
+  await initHeader();
+  await loadDashboardData();
 
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
@@ -82,23 +86,23 @@ async function loadDashboardData() {
   const historyContainer  = document.getElementById("historyCropContainer");
   const interestContainer = document.getElementById("interestContainer");
 
-    try {
-      const cropsPromise = apiCall("/api/crops").catch(err => {
-        console.error("Crops load failed:", err);
-        return []; // Fallback 
-      });
-      const interestsPromise = apiCall("/api/interests/farmer").catch(err => {
-        console.error("Interests load failed:", err);
-        return []; // Fallback
-      });
+  try {
+    const cropsPromise = apiCall("/api/crops").catch(err => {
+      console.error("Crops load failed:", err);
+      return []; // Fallback 
+    });
+    const interestsPromise = apiCall("/api/interests/farmer").catch(err => {
+      console.error("Interests load failed:", err);
+      return []; // Fallback
+    });
 
-      const [crops, interests] = await Promise.all([cropsPromise, interestsPromise]);
+    const [crops, interests] = await Promise.all([cropsPromise, interestsPromise]);
 
-      renderCrops(crops, interests, activeContainer, historyContainer);
-      renderInterests(interests, interestContainer);
-      loadUnreadCount();
+    renderCrops(crops, interests, activeContainer, historyContainer);
+    renderInterests(interests, interestContainer);
+    loadUnreadCount();
 
-    } catch (err) {
+  } catch (err) {
     console.error("Dashboard data load failed:", err);
     if (activeContainer) activeContainer.innerHTML = `<div class="loading-state">Error: ${err.message}</div>`;
   }
@@ -118,18 +122,57 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
       active.forEach(crop => {
         const card = document.createElement("div");
         card.className = "crop-card";
+        const availDate = crop.availability_date ? new Date(crop.availability_date).toLocaleDateString() : 'N/A';
+        
+        // TC-25: Check if this crop has any FULLY ACCEPTED interests
+        const finalizedInterest = (interests || []).find(i => i.crop_id === crop.id && i.status === "accepted" && i.accepted_by === "both");
+        const activeInterestCount = (interests || []).filter(i => i.crop_id === crop.id && ["pending", "negotiating"].includes(i.status)).length;
+        
+        const deleteBtnAttr = finalizedInterest ? 'disabled title="Cannot remove a crop with a finalized deal." style="opacity:0.5; cursor:not-allowed;"' : '';
+
+        const waitlistCount = crop.waitlist_count || 0;
+        const waitlistBadge = waitlistCount > 0 ? `<span class="waitlist-badge">👥 Waitlist: ${waitlistCount}</span>` : '';
+
+        // TC-33: Show available vs active deals qty
+        const activeDealQty = crop.active_deal_qty || 0;
+        const stockInfo = `<b>${DT.t("label.qty")}:</b> ${crop.quantity_remaining} / ${crop.quantity} ${DT.t("farmer.quantity_quintals")}`;
+        const activeInfo = activeDealQty > 0 ? `<div class="active-deals-hint" style="font-size:0.75em; color:var(--amber-dark); font-weight:700;">• ${activeDealQty} ${DT.t("quintals")} in active deals</div>` : '';
+
         card.innerHTML = `
-          <h4>${crop.crop_name}</h4>
-          <p><b>${DT.t("label.qty")}:</b> ${crop.quantity_remaining} / ${crop.quantity} ${DT.t("farmer.quantity_quintals")}</p>
+          <div class="crop-header">
+            <h4>${crop.crop_name}</h4>
+            ${waitlistBadge}
+          </div>
+          <div class="stock-container">
+            <p>${stockInfo}</p>
+            ${activeInfo}
+          </div>
+          <p><b>Available From:</b> ${availDate}</p>
           <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
-          <button class="delete-btn" data-id="${crop.id}">${DT.t("remove_listing")}</button>
+          
+          <!-- Nested Interests Container (TC-26) -->
+          <div class="nested-interests" id="interests-for-crop-${crop.id}">
+            <div class="loading-state" style="font-size:0.8em; opacity:0.6;">Searching for interests...</div>
+          </div>
+
+          <div class="crop-actions" style="margin-top:1rem; border-top:1px solid #eee; padding-top:0.75rem; display:flex; gap:0.5rem;">
+            <button class="edit-btn secondary-btn" data-id="${crop.id}">Edit</button>
+            <button class="delete-btn danger-btn" data-id="${crop.id}" ${deleteBtnAttr}>${DT.t("remove_listing")}</button>
+          </div>
         `;
-        card.querySelector(".delete-btn").onclick = async (e) => {
-          if (await Toast.confirm(DT.t("confirm_remove_listing"), { danger: true })) {
-            runAction(e.target, () => apiCall(`/api/crops/${crop.id}`, { method: "DELETE" }));
-          }
-        };
-        activeContainer.appendChild(card);
+          card.querySelector(".edit-btn").onclick = () => openEditModal(crop);
+          card.querySelector(".delete-btn").onclick = (e) => {
+            const btn = e.target;
+            const msg = activeInterestCount > 0 
+                ? `⚠️ ${activeInterestCount} contractor(s) have active interest in this listing. \n\n` + DT.t("confirm_remove_listing")
+                : DT.t("confirm_remove_listing");
+            
+            Toast.confirm(msg, { danger: true }).then(ok => {
+                if (ok) runAction(btn, () => apiCall(`/api/crops/${crop.id}`, { method: "DELETE" }));
+            });
+          };
+
+          activeContainer.appendChild(card);
       });
     }
   }
@@ -157,80 +200,84 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
 }
 
 function renderInterests(interests, container) {
-  if (!container) return;
-  container.innerHTML = "";
-  if (interests.length === 0) {
-    container.innerHTML = `<div class="loading-state">${DT.t("no_interests")}</div>`;
-    return;
-  }
-
+  // TC-26: Group interests by crop_id
+  const groups = {};
   interests.forEach(i => {
-    const card = document.createElement("div");
-    card.className = `interest-card status-${i.status}`;
+    if (!groups[i.crop_id]) groups[i.crop_id] = [];
+    groups[i.crop_id].push(i);
+  });
 
-    // ── Chat link always present ──────────────────────────────────────────
-    const chatLink = `<a class="btn-message" href="/messages?deal=${i.id}">${DT.t("open_chat")}</a>`;
-    let actions = chatLink;
-    let badge   = "";
-
-    // ── State machine per spec Part 5 (Farmer view) ───────────────────────
-    const ab = i.accepted_by;  // null | "farmer" | "contractor" | "both"
-    const st = i.status;       // pending | negotiating | accepted | rejected
-
-    if (st === "accepted" && ab === "both") {
-      // Deal fully closed
-      badge = `<span class="status-badge badge-accepted">${DT.t("deal_closed") || "Deal closed ✓"}</span>`;
-      if (i.contractor_phone) {
-        badge += ` <a class="btn-call" href="tel:${i.contractor_phone}">📞 ${i.contractor_phone}</a>`;
-      }
-      actions = chatLink;
-    } else if (st === "rejected") {
-      badge   = `<span class="status-badge badge-rejected">${DT.t("status.rejected") || "Rejected"}</span>`;
-      actions = chatLink;
-    } else if (ab === "farmer") {
-      // Farmer already accepted, waiting for contractor
-      badge   = `<span class="status-badge badge-pending">${DT.t("waiting_contractor") || "You accepted — awaiting contractor"}</span>`;
-      actions = `<button class="btn-withdraw" data-id="${i.id}">${DT.t("withdraw_btn") || "Withdraw"}</button>`
-              + `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`
-              + chatLink;
-    } else if (ab === "contractor") {
-      // Contractor already accepted — farmer should finalize
-      actions = `<button class="btn-accept btn-final" data-id="${i.id}">${DT.t("final_accept_btn")}</button>`
-              + `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`
-              + chatLink;
-    } else {
-      // No acceptance yet (pending or negotiating)
-      actions = `<button class="btn-accept" data-id="${i.id}">${DT.t("accept_btn")}</button>`;
-      if (st === "pending") {
-        actions += `<button class="btn-negotiate" data-id="${i.id}">${DT.t("negotiate_btn") || "Negotiate"}</button>`;
-      }
-      actions += `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`
-               + chatLink;
+  // Find all nested containers in the crop cards
+  document.querySelectorAll(".nested-interests").forEach(div => {
+    const cropId = parseInt(div.id.replace("interests-for-crop-", ""));
+    const cropInterests = groups[cropId] || [];
+    
+    div.innerHTML = "";
+    if (cropInterests.length === 0) {
+      div.innerHTML = `<div class="no-interests-hint" style="font-size:0.85em; color:#9ba3af; padding:4px 0;">No active interests yet.</div>`;
+      return;
     }
 
-    card.innerHTML = `
-      <h4>${i.crop_name}</h4>
-      <p>${DT.t("label.contractor")}: <b>${i.contractor_name}</b></p>
-      <p>${DT.t("label.offered")}: ₹<b>${i.price_offered}</b></p>
-      ${badge}
-      <div class="actions">${actions}</div>
-    `;
+    cropInterests.forEach(i => {
+      const item = document.createElement("div");
+      item.className = `interest-item status-${i.status}`;
+      
+      const chatLink = `<a class="btn-message-sm" href="/messages?deal=${i.id}" title="Open Chat">💬</a>`;
+      let badge = "";
+      let actions = "";
 
-    card.querySelector(".btn-accept")?.addEventListener("click", (e) => {
-      runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
-    });
-    card.querySelector(".btn-negotiate")?.addEventListener("click", (e) => {
-      runAction(e.target, () => apiCall(`/api/interests/${i.id}/negotiate`, { method: "POST" }));
-    });
-    card.querySelector(".btn-reject")?.addEventListener("click", (e) => {
-      runAction(e.target, () => apiCall(`/api/interests/${i.id}/reject`, { method: "POST" }));
-    });
-    card.querySelector(".btn-withdraw")?.addEventListener("click", (e) => {
-      runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
-    });
+      const ab = i.accepted_by;
+      const st = i.status;
 
-    container.appendChild(card);
+      if (st === "accepted" && ab === "both") {
+        badge = `<span class="badge-mini accepted">✓ Closed</span>`;
+      } else if (st === "rejected") {
+        badge = `<span class="badge-mini rejected">Rejected</span>`;
+      } else if (ab === "farmer") {
+        badge = `<span class="badge-mini pending">Waiting...</span>`;
+        actions = `<button class="btn-action-sm withdraw" data-id="${i.id}" title="Withdraw">↩</button>`;
+      } else if (ab === "contractor") {
+        badge = `<span class="badge-mini action">Confirm!</span>`;
+        actions = `<button class="btn-action-sm accept" data-id="${i.id}">Accept</button>`;
+      } else {
+        actions = `<button class="btn-action-sm accept" data-id="${i.id}">Accept</button>`
+                + `<button class="btn-action-sm reject" data-id="${i.id}">×</button>`;
+      }
+
+      item.innerHTML = `
+        <div class="interest-row">
+          <div class="interest-info">
+            <span class="con-name">${i.contractor_name}</span>
+            <span class="price-pill">₹${i.price_offered}</span>
+            ${badge}
+          </div>
+          <div class="interest-actions">
+            ${actions}
+            ${chatLink}
+          </div>
+        </div>
+      `;
+
+      item.querySelector(".btn-action-sm.accept")?.addEventListener("click", (e) => {
+        runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
+      });
+      item.querySelector(".btn-action-sm.reject")?.addEventListener("click", (e) => {
+        runAction(e.target, () => apiCall(`/api/interests/${i.id}/reject`, { method: "POST" }));
+      });
+      item.querySelector(".btn-action-sm.withdraw")?.addEventListener("click", (e) => {
+        runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
+      });
+
+      div.appendChild(item);
+    });
   });
+
+  // Also handle independent interests container (legacy or fallback)
+  if (container) {
+    container.innerHTML = `<div class="info-card" style="margin-top:2rem;">
+      <p style="font-size:0.9em; color:#6b7280;">Interests are now grouped inside each crop listing card above.</p>
+    </div>`;
+  }
 }
 
 async function loadUnreadCount() {
@@ -246,4 +293,77 @@ async function loadUnreadCount() {
       }
     }
   } catch (err) { console.error("Unread count load failed", err); }
+}
+
+/** TC-35, TC-36, TC-37: Edit Listing Flow */
+function openEditModal(crop) {
+    const modal = document.createElement("div");
+    modal.className = "custom-modal-overlay";
+    modal.innerHTML = `
+      <div class="custom-modal animate-in">
+        <div class="modal-header">
+            <h3 style="margin:0;">Edit Listing: ${crop.crop_name}</h3>
+            <button class="modal-close" style="background:none; border:none; font-size:1.5rem; cursor:pointer;" onclick="this.closest('.custom-modal-overlay').remove()">×</button>
+        </div>
+        <div class="modal-body" style="padding:1rem 0;">
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label style="display:block; margin-bottom:0.4rem; font-weight:600;">Price (₹/q)</label>
+                <input type="number" id="editPrice" value="${crop.price}" min="0" step="0.5" style="width:100%; padding:0.6rem; border:1px solid #ddd; border-radius:4px;">
+            </div>
+            <div id="priceWarn" class="edit-warning-box danger" style="display:none; padding:0.8rem; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; border-radius:4px; font-size:0.85rem; margin-bottom:1rem;">
+                <p style="margin:0;">⚠️ <b>Price Change Detection</b></p>
+                <p style="margin:0.4rem 0 0 0;">Changing the price will automatically void all <b>${crop.active_deal_qty || 0}</b> active interests. Contractors will be notified.</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label style="display:block; margin-bottom:0.4rem; font-weight:600;">Total Quantity (q)</label>
+                <input type="number" id="editQty" value="${crop.quantity}" min="1" style="width:100%; padding:0.6rem; border:1px solid #ddd; border-radius:4px;">
+            </div>
+            <div id="qtyWarn" class="edit-warning-box warning" style="display:none; padding:0.8rem; background:#fffbeb; border:1px solid #fde68a; color:#92400e; border-radius:4px; font-size:0.85rem; margin-bottom:1rem;">
+                <p style="margin:0;">⚠️ <b>Quantity Reduction Alert</b></p>
+                <p style="margin:0.4rem 0 0 0;">Reducing quantity below active proposals will flag them for correction. Contractors will need to revise their bids.</p>
+            </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:0.5rem; padding-top:1rem; border-top:1px solid #eee;">
+            <button id="cancelEdit" class="secondary-btn" style="padding:0.6rem 1.2rem; border-radius:4px; cursor:pointer;">Cancel</button>
+            <button id="saveEdit" class="btn-primary" style="padding:0.6rem 1.2rem; background:#059669; color:white; border:none; border-radius:4px; cursor:pointer;">Confirm & Save</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const priceInput = modal.querySelector("#editPrice");
+    const qtyInput   = modal.querySelector("#editQty");
+    const priceWarn  = modal.querySelector("#priceWarn");
+    const qtyWarn    = modal.querySelector("#qtyWarn");
+
+    const checkWarnings = () => {
+        if (crop.active_deal_qty > 0) {
+            priceWarn.style.display = (Math.abs(parseFloat(priceInput.value) - crop.price) > 0.01) ? "block" : "none";
+            qtyWarn.style.display   = (parseInt(qtyInput.value) < crop.quantity) ? "block" : "none";
+        }
+    };
+
+    priceInput.oninput = checkWarnings;
+    qtyInput.oninput   = checkWarnings;
+
+    modal.querySelector("#cancelEdit").onclick = () => modal.remove();
+    modal.querySelector("#saveEdit").onclick = async (e) => {
+        const payload = {
+            price: parseFloat(priceInput.value),
+            quantity: parseInt(qtyInput.value),
+            force: true
+        };
+        
+        try {
+            await runAction(e.target, () => apiCall(`/api/crops/${crop.id}`, {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            }));
+            modal.remove();
+        } catch (err) {
+            Toast.error(err.message);
+        }
+    };
 }

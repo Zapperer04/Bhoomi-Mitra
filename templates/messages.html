@@ -79,6 +79,12 @@
                     <span class="label" data-i18n="messages.status_label">Status</span>
                     <span id="statStatus" class="value badge">--</span>
                 </div>
+                <!-- TC-31: Expiry Timer -->
+                <div class="status-divider timer-divider" style="display:none;"></div>
+                <div class="status-item timer-item" id="timerItem" style="display:none;">
+                    <span class="label" style="color:#ef4444;">Expires</span>
+                    <span id="statTimer" class="value" style="color:#ef4444; font-weight:800;">--:--</span>
+                </div>
             </div>
 
             <!-- Waiting banner: shown when one party has accepted but not both -->
@@ -97,6 +103,17 @@
                     <button id="rejectBtn" class="btn-neg reject" data-i18n="messages.reject_btn">Reject</button>
                     <button id="counterBtn" class="btn-neg counter" data-i18n="messages.counter_btn">Counter Offer</button>
                     <button id="acceptBtn" class="btn-neg accept" data-i18n="messages.accept_btn">Accept Deal</button>
+                </div>
+            </div>
+
+            <!-- TC-38: Completion Panel -->
+            <div id="completionPanel" class="negotiation-panel hidden" style="background:#f0fdf4; border-color:#86efac; box-shadow:0 -4px 10px rgba(0,0,0,0.05);">
+                <div class="neg-header">
+                    <span style="color:#15803d; font-weight:700;">Finalize Transaction</span>
+                </div>
+                <div class="neg-actions">
+                    <button id="confirmPaymentBtn" class="btn-neg accept hidden" style="background:#15803d;">Mark Payment Received</button>
+                    <button id="confirmGoodsBtn" class="btn-neg accept hidden" style="background:#15803d;">Mark Goods Received</button>
                 </div>
             </div>
 
@@ -132,6 +149,14 @@
                     <input type="number" id="counterQty" placeholder="E.g. 50">
                 </div>
                 <div class="input-group">
+                    <label>Delivery Terms</label>
+                    <input type="text" id="counterDelivery" placeholder="E.g. Ex-farm, doorstep delivery">
+                </div>
+                <div class="input-group">
+                    <label>Payment Terms</label>
+                    <input type="text" id="counterPayment" placeholder="E.g. Cash on delivery, 50% upfront">
+                </div>
+                <div class="input-group">
                     <label data-i18n="messages.negotiation_note">Add a Note (Optional)</label>
                     <textarea id="counterNote" placeholder="Explain your proposal..." rows="2"></textarea>
                 </div>
@@ -139,6 +164,72 @@
             <div class="modal-footer">
                 <button id="cancelCounter" class="btn-secondary" data-i18n="btn.cancel">Cancel</button>
                 <button id="submitCounter" class="btn-primary" data-i18n="messages.submit_counter">Send Offer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accept Deal Modal -->
+    <div id="acceptModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Accept Deal</h3>
+                <button id="closeAcceptModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to <strong>accept</strong> this deal?</p>
+                <div class="deal-summary" style="background:#f3f4f6; padding:12px; border-radius:6px; margin:16px 0;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Crop:</span> <strong id="acceptSummaryCrop"></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Quantity:</span> <strong id="acceptSummaryQty"></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Price:</span> <strong id="acceptSummaryPrice"></strong></div>
+                    <hr style="border:top:1px solid #d1d5db; margin:8px 0;">
+                    <div style="display:flex; justify-content:space-between; color:#10b981; font-size:1.1em;"><span>Total Value:</span> <strong id="acceptSummaryTotal"></strong></div>
+                </div>
+                <p style="font-size:0.9em; color:#6b7280; margin-bottom:0;">Once accepted, the other party will be notified.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelAccept" class="btn-secondary">Cancel</button>
+                <button id="submitAccept" class="btn-primary" style="background:#10b981; border:none; color:white;">Confirm Acceptance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Deal Modal -->
+    <div id="rejectModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Reject Deal</h3>
+                <button id="closeRejectModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to <strong>reject</strong> this deal?</p>
+                <p style="font-size:0.9em; color:#ef4444; margin-bottom:0;">This action cannot be undone. The deal will be permanently closed.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelReject" class="btn-secondary">Cancel</button>
+                <button id="submitReject" class="btn-primary" style="background:#ef4444; border:none; color:white;">Yes, Reject</button>
+            </div>
+        </div>
+    <!-- Counter Confirmation Modal (TC-12) -->
+    <div id="counterConfirmModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Confirm Counter Offer</h3>
+                <button id="closeCounterConfirmModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Please review your counter-offer terms before sending:</p>
+                <div class="deal-summary" style="background:#f3f4f6; padding:12px; border-radius:6px; margin:16px 0;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>New Price:</span> <strong id="confPrice"></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>New Quantity:</span> <strong id="confQty"></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Delivery:</span> <strong id="confDelivery"></strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Payment:</span> <strong id="confPayment"></strong></div>
+                    <hr style="border-top:1px solid #d1d5db; margin:8px 0;">
+                    <div style="font-size:0.9em; color:#6b7280;">Note: <i id="confNote"></i></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="backToCounter" class="btn-secondary">Go Back</button>
+                <button id="finalSubmitCounter" class="btn-primary">Send Offer Successfully</button>
             </div>
         </div>
     </div>

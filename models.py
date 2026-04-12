@@ -28,6 +28,9 @@ class User(db.Model):
         "Interest", backref="farmer_user", lazy=True,
         foreign_keys="Interest.farmer_id"
     )
+    waitlist_subscriptions = db.relationship(
+        "Waitlist", backref="user", lazy=True, cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
@@ -56,9 +59,13 @@ class Crop(db.Model):
     # "negotiating" is INTENTIONALLY excluded — negotiation lives on Interest, not Crop.
     status            = db.Column(db.String(20), nullable=False, default="active", index=True)
     created_at        = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expires_at        = db.Column(db.DateTime, nullable=True) # TC-32: Auto-expiry support
 
     interests = db.relationship(
         "Interest", backref="crop", lazy=True, cascade="all, delete-orphan"
+    )
+    waitlist = db.relationship(
+        "Waitlist", backref="crop", lazy=True, cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -76,17 +83,28 @@ class Crop(db.Model):
         return self.quantity_remaining if self.quantity_remaining is not None else self.quantity
 
     def to_dict(self):
+        # TC-33: Calculate active deal quantity
+        # "Active" means anything not accepted by BOTH (which reduces remaining) and not rejected.
+        active_interests = Interest.query.filter(
+            Interest.crop_id == self.id,
+            Interest.status.in_(["pending", "negotiating"]),
+            Interest.accepted_by.in_([None, "farmer", "contractor"])
+        ).all()
+        active_deal_qty = sum(i.quantity_requested for i in active_interests)
+
         return {
             "id":                self.id,
             "farmer_id":         self.farmer_id,
             "crop_name":         self.crop_name,
             "quantity":          self.quantity,
             "quantity_remaining": self.effective_quantity(),
+            "active_deal_qty":   active_deal_qty,
             "price":             self.price,
             "availability_date": self.availability_date.isoformat() if self.availability_date else None,
             "location":          self.location,
             "status":            self.status,
             "created_at":        self.created_at.isoformat() + "Z" if self.created_at else None,
+            "expires_at":        self.expires_at.isoformat() + "Z" if self.expires_at else None,
         }
 
 
@@ -107,7 +125,12 @@ class Interest(db.Model):
     # Invariant: accepted_by == "both" iff status == "accepted"
     accepted_by        = db.Column(db.String(20), nullable=True)
     created_at         = db.Column(db.DateTime, default=datetime.utcnow)
+    last_activity_at  = db.Column(db.DateTime, default=datetime.utcnow) # TC-30, TC-31: Offer timeouts
     finalized_at       = db.Column(db.DateTime, nullable=True)
+    
+    # TC-38 to TC-41: Post-acceptance confirmation records
+    payment_confirmed_at = db.Column(db.DateTime, nullable=True)
+    goods_confirmed_at   = db.Column(db.DateTime, nullable=True)
 
     messages = db.relationship(
         "Message", backref="interest", lazy=True, cascade="all, delete-orphan"
@@ -123,7 +146,7 @@ class Interest(db.Model):
             name="ck_interest_accepted_by_valid"
         ),
         CheckConstraint(
-            "status IN ('pending', 'negotiating', 'accepted', 'rejected')",
+            "status IN ('pending', 'negotiating', 'accepted', 'rejected', 'completed', 'disputed')",
             name="ck_interest_status_valid"
         ),
     )
@@ -140,7 +163,10 @@ class Interest(db.Model):
             "status":             self.status,
             "accepted_by":        self.accepted_by,
             "created_at":         self.created_at.isoformat() + "Z" if self.created_at else None,
+            "last_activity_at":   self.last_activity_at.isoformat() + "Z" if self.last_activity_at else None,
             "finalized_at":       self.finalized_at.isoformat() + "Z" if self.finalized_at else None,
+            "payment_confirmed_at": self.payment_confirmed_at.isoformat() + "Z" if self.payment_confirmed_at else None,
+            "goods_confirmed_at":   self.goods_confirmed_at.isoformat() + "Z" if self.goods_confirmed_at else None,
         }
 
 
@@ -169,3 +195,25 @@ class Message(db.Model):
             "is_read":     self.is_read,
             "nonce":       self.nonce,
         }
+
+
+# ================= WAITLIST =================
+class Waitlist(db.Model):
+    __tablename__ = "waitlist"
+
+    id         = db.Column(db.Integer, primary_key=True)
+    crop_id    = db.Column(db.Integer, db.ForeignKey("crops.id"), nullable=False, index=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("crop_id", "user_id", name="uq_waitlist_per_crop"),
+    )
+
+    def to_dict(self):
+        return {
+            "id":         self.id,
+            "crop_id":    self.crop_id,
+            "user_id":    self.user_id,
+            "created_at": self.created_at.isoformat() + "Z" if self.created_at else None
+        }

@@ -72,6 +72,11 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor.close()
 
 
+# TC-30/31/32: Expiry durations
+OFFER_TIMEOUT_MINS = 2 # 2 mins for testing (TC-30), default 1440 (24h)
+LISTING_TIMEOUT_DAYS = 7
+CONFIRMATION_TIMEOUT_MINS = 1 # TC-41: 1 min for testing, default 4320 (3 days)
+
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
@@ -261,21 +266,33 @@ def _recompute_crop_status(crop):
         crop.status = "active"
 
 
-def transition_interest(interest, action, actor_role, new_price=None, new_qty=None):
+def transition_interest(interest, action, actor_role, new_price=None, new_qty=None, delivery=None, payment=None, note=None):
     if interest.status in ["accepted", "rejected"]:
         raise ValueError("Deal closed")
+
+    interest.last_activity_at = datetime.utcnow() # Refresh expiry timer on ANY action
 
     # ── COUNTER ─────────────────────────────
     if action == "counter":
         if not new_price or not new_qty or float(new_price) <= 0 or int(new_qty) <= 0:
             raise ValueError("Invalid counter values")
 
+        # TC-20: Backend check for quantity above matching crop limit
+        if int(new_qty) > interest.crop.quantity:
+             raise ValueError(f"Quantity requested ({new_qty}) cannot exceed the original listing amount ({interest.crop.quantity})")
+
         interest.price_offered = float(new_price)
         interest.quantity_requested = int(new_qty)
         interest.status = "negotiating"
         interest.accepted_by = None
 
-        return f"__COUNTER__:{new_price}:{new_qty}"
+        # Build richer counter-offer string
+        # Format: __COUNTER__:price:qty:delivery:payment:note
+        d_terms = (delivery or "Not specified").replace(":", "-").replace("|", "-")
+        p_terms = (payment or "Not specified").replace(":", "-").replace("|", "-")
+        n_text  = (note or "").replace(":", "-").replace("|", "-")
+        
+        return f"__COUNTER__:{new_price}:{new_qty}:{d_terms}:{p_terms}:{n_text}"
 
     # ── ACCEPT ─────────────────────────────
     if action == "accept":
@@ -302,6 +319,30 @@ def transition_interest(interest, action, actor_role, new_price=None, new_qty=No
     # Case B: withdraw a partial acceptance → roll back to negotiating
     if action == "withdraw":
         if actor_role == "contractor":
+            # TC-29: Recovery Logic - If a finalized deal is withdrawn, restore stock and re-activate listing
+            if interest.status == "accepted":
+                crop = interest.crop
+                crop.quantity_remaining += interest.quantity_requested
+                if crop.status in ["sold", "partially_sold"]:
+                    crop.status = "active"
+                
+                # Notify waitlist members (TC-29)
+                # For each waitlist entry, find the corresponding (rejected) interest and send a message.
+                waitlist_entries = Waitlist.query.filter_by(crop_id=crop.id).all()
+                for entry in waitlist_entries:
+                    # Find the interest for this user on this crop
+                    sub_i = Interest.query.filter_by(crop_id=crop.id, contractor_id=entry.user_id).first()
+                    if sub_i:
+                        db.session.add(Message(
+                            interest_id=sub_i.id,
+                            sender_id=interest.farmer_id, # From the farmer's perspective
+                            content="__SYSTEM__:listing_reactivated"
+                        ))
+
+                interest.status = "rejected"
+                interest.accepted_by = None
+                return "__SYSTEM__:contractor_withdrew_finalized"
+
             # Full withdrawal — contractor pulls out entirely
             if interest.status in ["pending", "negotiating"]:
                 interest.status = "rejected"
@@ -336,7 +377,61 @@ def finalize_transaction_safe(interest):
     interest.finalized_at = datetime.utcnow()
 
 
-def auto_reject_safe(crop_id):
+def check_expirations():
+    """Lazy cleanup for expired crops and interests. Called on key GET/POLL routes."""
+    now = datetime.utcnow()
+
+    # 1. Expire Crops (TC-32)
+    expired_crops = Crop.query.filter(
+        Crop.status.in_(["active", "partially_sold"]),
+        Crop.expires_at < now
+    ).all()
+    for c in expired_crops:
+        c.status = "expired"
+        # Auto-reject all interests on this expired crop
+        auto_reject_safe(c.id, reason="listing_expired")
+
+    # 2. Time-out Interests (TC-30, TC-31)
+    # Only time out PENDING or NEGOTIATING deals. Finalized deals don't time out.
+    timeout_limit = now - timedelta(minutes=OFFER_TIMEOUT_MINS)
+    stale_interests = Interest.query.filter(
+        Interest.status.in_(["pending", "negotiating"]),
+        Interest.last_activity_at < timeout_limit
+    ).all()
+    
+    for i in stale_interests:
+        # If it was blocking stock (accepted by one party but not both), restore it!
+        if i.accepted_by in ["farmer", "contractor"]:
+             i.crop.quantity_remaining += i.quantity_requested
+             if i.crop.status in ["sold", "partially_sold"]:
+                 i.crop.status = "active"
+
+        i.status = "rejected"
+        i.accepted_by = None
+        db.session.add(Message(
+            interest_id=i.id,
+            content="__SYSTEM__:offer_timed_out"
+        ))
+    
+    # 3. Time-out Accepted Deals to Disputed (TC-41)
+    dispute_limit = now - timedelta(minutes=CONFIRMATION_TIMEOUT_MINS)
+    stale_accepted = Interest.query.filter(
+        Interest.status == "accepted",
+        Interest.finalized_at < dispute_limit,
+        db.or_(Interest.payment_confirmed_at.is_(None), Interest.goods_confirmed_at.is_(None))
+    ).all()
+
+    for i in stale_accepted:
+        i.status = "disputed"
+        db.session.add(Message(
+            interest_id=i.id,
+            content="__SYSTEM__:deal_disputed"
+        ))
+
+    if expired_crops or stale_interests or stale_accepted:
+        db.session.commit()
+
+def auto_reject_safe(crop_id, reason="auto_rejected_sold_out"):
     others = Interest.query.filter(
         Interest.crop_id == crop_id,
         Interest.status.in_(["pending", "negotiating"])
@@ -347,7 +442,7 @@ def auto_reject_safe(crop_id):
             i.accepted_by = None
             db.session.add(Message(
                 interest_id=i.id,
-                content="__SYSTEM__:auto_rejected_sold_out"
+                content=f"__SYSTEM__:{reason}"
             ))
 
 
@@ -448,6 +543,25 @@ def whoami():
     return api_response(data={"identity_received": get_jwt_identity()})
 
 
+@app.route("/api/waitlist/join", methods=["POST"])
+@jwt_required()
+def join_waitlist():
+    user_id = _current_user_id()
+    data = request.get_json()
+    crop_id = data.get("crop_id")
+    
+    if not crop_id:
+        return api_response(False, error="Missing crop_id", status=400)
+    
+    existing = Waitlist.query.filter_by(crop_id=crop_id, user_id=user_id).first()
+    if existing:
+        return api_response(True, message="Already on waitlist")
+    
+    db.session.add(Waitlist(crop_id=crop_id, user_id=user_id))
+    db.session.commit()
+    return api_response(True, message="Joined waitlist")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # UI TEXT / TRANSLATION
 # ─────────────────────────────────────────────────────────────────────────────
@@ -485,10 +599,10 @@ def create_crop():
         # Harden input parsing: default to 0 and strip strings to handle empty inputs
         qty_raw = str(data.get("quantity", "0")).strip()
         prc_raw = str(data.get("price", "0")).strip()
-        
+
         qty = int(qty_raw) if qty_raw else 0
         prc = float(prc_raw) if prc_raw else 0.0
-        
+
         if qty <= 0:
             return api_response(success=False, error="Quantity must be greater than zero", status=400)
         if prc < 0:
@@ -504,19 +618,49 @@ def create_crop():
             except ValueError:
                 return api_response(success=False, error="Invalid date format. Use YYYY-MM-DD.", status=400)
 
+        crop_name = data.get("cropName", "Unknown Crop").strip()[:100]
+        location  = data.get("location", "Not specified").strip()[:200]
+        user_id   = _current_user_id()
+
+        # ── EXACT DUPLICATE CHECK ──────────────────────────────────────────────
+        # All 5 fields identical → hard block. Different date = different harvest → allow.
+        # TC-02: If 'force' flag is provided, bypass block and post anyway.
+        exact_duplicate = Crop.query.filter(
+            Crop.farmer_id         == user_id,
+            Crop.status.in_(["active", "partially_sold"]),
+            db.func.lower(Crop.crop_name) == crop_name.lower(),
+            Crop.quantity          == qty,
+            Crop.price             == prc,
+            db.func.lower(Crop.location) == location.lower(),
+            Crop.availability_date == avail_date,
+        ).first()
+
+        force_post = data.get("force", False)
+
+        if exact_duplicate and not force_post:
+            return api_response(
+                success=False,
+                error="You already have an active listing for this crop with identical details. "
+                      "Change the availability date to post a different harvest batch.",
+                status=409,
+                data={"code": "duplicate_listing", "existing_id": exact_duplicate.id}
+            )
+        # ── END DUPLICATE CHECK ────────────────────────────────────────────────
+
         crop = Crop(
-            farmer_id          = _current_user_id(),
-            crop_name          = data.get("cropName", "Unknown Crop").strip()[:100],
+            farmer_id          = user_id,
+            crop_name          = crop_name,
             quantity           = qty,
             quantity_remaining = qty,
             price              = prc,
             availability_date  = avail_date,
-            location           = data.get("location", "Not specified").strip()[:200],
+            location           = location,
             status             = "active",
+            expires_at         = datetime.utcnow() + timedelta(days=LISTING_TIMEOUT_DAYS)
         )
         db.session.add(crop)
         db.session.commit()
-        logger.info(f"[CROP_POSTED] Farmer {_current_user_id()} posted {crop.crop_name}")
+        logger.info(f"[CROP_POSTED] Farmer {user_id} posted {crop.crop_name}")
         return api_response(data={"message": "Crop posted", "crop_id": crop.id}, status=201)
 
     except (ValueError, KeyError, TypeError) as e:
@@ -530,9 +674,15 @@ def create_crop():
 @app.route("/api/crops", methods=["GET"])
 @jwt_required()
 def list_crops():
+    check_expirations()
     user_id = _current_user_id()
     crops   = Crop.query.filter_by(farmer_id=user_id).all()
-    return api_response(data=[c.to_dict() for c in crops])
+    results = []
+    for c in crops:
+        d = c.to_dict()
+        d["waitlist_count"] = Waitlist.query.filter_by(crop_id=c.id).count()
+        results.append(d)
+    return api_response(data=results)
 
 
 @app.route("/api/crops/<int:crop_id>", methods=["DELETE"])
@@ -560,6 +710,9 @@ def delete_crop(crop_id):
             interest_id=i.id,
             content="__SYSTEM__:crop_listing_removed"
         ))
+    
+    crop.status = "removed"
+    db.session.commit()
 
     # Block removal only if a deal is ALREADY finalized (accepted by both)
     live_accepted = Interest.query.filter(
@@ -596,9 +749,71 @@ def hard_delete_crop(crop_id):
     return api_response(data={"message": "Crop permanently deleted"})
 
 
+@app.route("/api/crops/<int:crop_id>", methods=["PUT"])
+@jwt_required()
+@with_db_retry()
+def update_crop(crop_id):
+    user_id = _current_user_id()
+    crop    = Crop.query.get_or_404(crop_id)
+    if crop.farmer_id != user_id:
+        return api_response(success=False, error="Unauthorized", status=403)
+    
+    data = request.get_json()
+    new_price = float(data.get("price", crop.price))
+    new_qty   = int(data.get("quantity", crop.quantity))
+    
+    # Validation
+    if new_qty <= 0 or new_price < 0:
+        return api_response(success=False, error="Invalid quantity or price", status=400)
+
+    active_interests = Interest.query.filter(
+        Interest.crop_id == crop_id,
+        Interest.status.in_(["pending", "negotiating"])
+    ).all()
+
+    force_edit = data.get("force", False)
+    if active_interests and not force_edit:
+        return api_response(
+            success=False,
+            error=f"{len(active_interests)} contractors have active interests. Editing will void them.",
+            status=409,
+            data={"active_count": len(active_interests)}
+        )
+
+    # TC-36: If price changed and there are interests, void them
+    price_changed = abs(new_price - crop.price) > 0.01
+    if active_interests and price_changed:
+        for i in active_interests:
+            i.status = "rejected"
+            i.accepted_by = None
+            db.session.add(Message(
+                interest_id=i.id,
+                content="__SYSTEM__:listing_price_changed_voided"
+            ))
+    
+    # TC-37: If qty reduced below what's requested in active deals, flag them
+    # Update logic for quantity_remaining
+    old_sold = crop.quantity - crop.quantity_remaining
+    crop.quantity = new_qty
+    crop.quantity_remaining = max(0, new_qty - old_sold)
+    crop.price = new_price
+    
+    if active_interests:
+        for i in active_interests:
+            if i.status != "rejected" and i.quantity_requested > crop.quantity_remaining:
+                 db.session.add(Message(
+                     interest_id=i.id,
+                     content="__SYSTEM__:qty_correction_required"
+                 ))
+
+    db.session.commit()
+    return api_response(data={"message": "Listing updated", "crop": crop.to_dict()})
+
+
 @app.route("/api/marketplace/crops", methods=["GET"])
 @jwt_required()
 def list_marketplace_crops():
+    check_expirations()
     """Crops available for contractors to browse (active/partially_sold only, not their own)."""
     user_id = _current_user_id()
     crops = Crop.query.filter(
@@ -612,6 +827,9 @@ def list_marketplace_crops():
             continue
         d = c.to_dict()
         d["farmer_name"] = c.farmer.name if c.farmer else None
+        
+        # TC-28: Waitlist status for the current user
+        d["waitlisted"] = Waitlist.query.filter_by(crop_id=c.id, user_id=user_id).first() is not None
         result.append(d)
     return api_response(data=result)
 
@@ -667,11 +885,17 @@ def create_interest():
         db.session.commit()
         return api_response(data={"message": "Interest re-submitted", "interest_id": existing.id})
 
-    qty_req = int(data.get("quantity", available_qty))
+    qty_req = int(data.get("quantity", 0))
     if qty_req <= 0:
-        return api_response(success=False, error="Requested quantity must be greater than zero", status=400)
-    if qty_req > available_qty:
-        return api_response(success=False, error=f"Requested quantity exceeds available ({available_qty}q)", status=400)
+        return api_response(success=False, error="Quantity must be greater than zero", status=400)
+    
+    # TC-34: Proposed quantity cannot exceed remaining stock
+    if qty_req > crop.effective_quantity():
+        return api_response(
+            success=False, 
+            error=f"Cannot request {qty_req} units. Only {crop.effective_quantity()} units are remaining.",
+            status=400
+        )
 
     interest = Interest(
         crop_id            = crop.id,
@@ -795,6 +1019,9 @@ def interest_action():
         action      = data.get("action")
         price       = data.get("price")
         qty         = data.get("quantity")
+        delivery    = data.get("delivery")
+        payment     = data.get("payment")
+        note        = data.get("note")
 
         interest = Interest.query.get_or_404(interest_id)
 
@@ -809,7 +1036,10 @@ def interest_action():
             action,
             user_role,
             new_price=price,
-            new_qty=qty
+            new_qty=qty,
+            delivery=delivery,
+            payment=payment,
+            note=note
         )
 
         # 🔥 DUPLICATE MESSAGE PROTECTION
@@ -842,6 +1072,7 @@ def interest_action():
 @app.route("/api/messages/conversations", methods=["GET"])
 @jwt_required()
 def get_conversations():
+    check_expirations()
     user_id = _current_user_id()
 
     interests = Interest.query.filter(
@@ -882,6 +1113,8 @@ def get_conversations():
             "contractor_id":      interest.contractor_id,
             "price_offered":      interest.price_offered,
             "quantity_requested": interest.quantity_requested,
+            "original_price":     interest.crop.price,
+            "original_quantity":  interest.crop.quantity,
         })
 
     conversations.sort(key=lambda c: c["last_message_time"] or "", reverse=True)
@@ -1222,6 +1455,45 @@ def chat():
 
     session["state"] = "START"
     return jsonify(menu_start(lang))
+
+
+@app.route("/api/interests/<int:interest_id>/confirm", methods=["POST"])
+@jwt_required()
+@with_db_retry()
+def confirm_deal_status(interest_id):
+    """TC-38, 39, 40: Mark payment or goods as received."""
+    user_id = _current_user_id()
+    interest = Interest.query.get_or_404(interest_id)
+    
+    if interest.status != "accepted":
+        return api_response(success=False, error="Deal must be accepted first", status=400)
+    
+    data = request.get_json() or {}
+    confirm_type = data.get("type")
+    
+    if confirm_type == "payment":
+        if interest.farmer_id != user_id:
+            return api_response(success=False, error="Only farmer can confirm payment", status=403)
+        interest.payment_confirmed_at = datetime.utcnow()
+        db.session.add(Message(interest_id=interest.id, content="__SYSTEM__:payment_confirmed"))
+
+    elif confirm_type == "goods":
+        if interest.contractor_id != user_id:
+            return api_response(success=False, error="Only contractor can confirm goods", status=403)
+        interest.goods_confirmed_at = datetime.utcnow()
+        db.session.add(Message(interest_id=interest.id, content="__SYSTEM__:goods_confirmed"))
+    else:
+        return api_response(success=False, error="Invalid confirmation type", status=400)
+        
+    interest.last_activity_at = datetime.utcnow()
+
+    # Move to completed if both are confirmed
+    if interest.payment_confirmed_at and interest.goods_confirmed_at:
+        interest.status = "completed"
+        db.session.add(Message(interest_id=interest.id, content="__SYSTEM__:deal_completed"))
+
+    db.session.commit()
+    return api_response(data={"message": f"{confirm_type} confirmed", "interest": interest.to_dict()})
 
 
 if __name__ == "__main__":

@@ -219,3 +219,87 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     .form-wrapper { padding: 2rem; }
     .form-header h1 { font-size: 1.75rem; }
 }
+
+/* ── DUPLICATE LISTING DIALOG ──────────────────────────────── */
+.dup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.dup-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+    border-top: 5px solid #f59e0b;
+    text-align: center;
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dup-icon {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+
+.dup-card h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #b45309;
+    margin-bottom: 0.75rem;
+}
+
+.dup-card p {
+    font-size: 0.95rem;
+    color: #374151;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+}
+
+.dup-hint {
+    background: #f0fdf4;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem !important;
+    color: #065f46 !important;
+    text-align: left;
+    margin-top: 0.5rem !important;
+}
+
+.dup-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.dup-btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    transition: background 0.2s;
+}
+.dup-btn-secondary:hover { background: #e5e7eb; }
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { transform: scale(0.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ── UTILS ─────────────────────────────────────────────────── */
+.hidden { display: none !important; }
