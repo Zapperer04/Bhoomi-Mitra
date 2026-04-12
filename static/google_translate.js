@@ -43,9 +43,10 @@ function buildCustomUI() {
     const googleDiv = document.getElementById('google_translate_element');
     if (!googleDiv) return;
 
-    // Create wrapper
+    // Create wrapper and prevent Google from translating it
     const customWrapper = document.createElement('div');
-    customWrapper.className = 'lang-selector'; 
+    customWrapper.className = 'lang-selector notranslate'; 
+    customWrapper.setAttribute('translate', 'no');
     customWrapper.style.position = 'relative';
     customWrapper.style.zIndex = '9999';
 
