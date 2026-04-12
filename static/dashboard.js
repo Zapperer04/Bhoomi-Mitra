@@ -82,17 +82,23 @@ async function loadDashboardData() {
   const historyContainer  = document.getElementById("historyCropContainer");
   const interestContainer = document.getElementById("interestContainer");
 
-  try {
-    const [crops, interests] = await Promise.all([
-      apiCall("/api/crops"),
-      apiCall("/api/interests/farmer"),
-    ]);
+    try {
+      const cropsPromise = apiCall("/api/crops").catch(err => {
+        console.error("Crops load failed:", err);
+        return []; // Fallback 
+      });
+      const interestsPromise = apiCall("/api/interests/farmer").catch(err => {
+        console.error("Interests load failed:", err);
+        return []; // Fallback
+      });
 
-    renderCrops(crops, interests, activeContainer, historyContainer);
-    renderInterests(interests, interestContainer);
-    loadUnreadCount();
+      const [crops, interests] = await Promise.all([cropsPromise, interestsPromise]);
 
-  } catch (err) {
+      renderCrops(crops, interests, activeContainer, historyContainer);
+      renderInterests(interests, interestContainer);
+      loadUnreadCount();
+
+    } catch (err) {
     console.error("Dashboard data load failed:", err);
     if (activeContainer) activeContainer.innerHTML = `<div class="loading-state">Error: ${err.message}</div>`;
   }

@@ -86,7 +86,10 @@ async function initHeader() {
 }
 
 async function loadData() {
-  await Promise.all([loadMyInterests(), loadAvailableCrops(), loadUnreadCount()]);
+  const p1 = loadMyInterests().catch(e => console.error("Interests failed", e));
+  const p2 = loadAvailableCrops().catch(e => console.error("Crops failed", e));
+  const p3 = loadUnreadCount().catch(e => console.error("Unread failed", e));
+  await Promise.all([p1, p2, p3]);
 }
 
 async function loadAvailableCrops() {

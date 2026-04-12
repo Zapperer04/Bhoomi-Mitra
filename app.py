@@ -282,12 +282,12 @@ def signup():          return render_template("Signup.html")
 @app.route("/api/me")
 @jwt_required()
 def api_me():
-    user = User.query.get_or_404(int(get_jwt_identity()))
-    return jsonify({"success": True, "data": {
-        "id": user.id,
+    user = User.query.get_or_404(_current_user_id())
+    return api_response(data={
+        "id":   user.id,
         "name": user.name,
         "role": user.role
-    }})
+    })
 
 @app.route("/farmer/dashboard")
 def farmer_dashboard(): return render_template("farmer_dashboard.html")
@@ -315,11 +315,7 @@ def profile_page():    return render_template("Profile.html")
 # AUTH IDENTITY
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.route("/api/me", methods=["GET"])
-@jwt_required()
-def get_me():
-    user = User.query.get_or_404(_current_user_id())
-    return api_response(data={"id": user.id, "name": user.name, "role": user.role})
+# Deduplicated from above
 
 
 @app.route("/debug/whoami", methods=["GET"])
@@ -362,31 +358,49 @@ def create_crop():
 
     data = request.get_json()
     try:
-        qty = int(data.get("quantity", 0))
-        prc = float(data.get("price", 0))
+        # Harden input parsing: default to 0 and strip strings to handle empty inputs
+        qty_raw = str(data.get("quantity", "0")).strip()
+        prc_raw = str(data.get("price", "0")).strip()
+        
+        qty = int(qty_raw) if qty_raw else 0
+        prc = float(prc_raw) if prc_raw else 0.0
         
         if qty <= 0:
             return api_response(success=False, error="Quantity must be greater than zero", status=400)
         if prc < 0:
             return api_response(success=False, error="Price cannot be negative", status=400)
 
+        # Availability date parsing hardening
+        avail_str = data.get("availabilityDate")
+        if not avail_str:
+            avail_date = date.today()
+        else:
+            try:
+                avail_date = date.fromisoformat(avail_str)
+            except ValueError:
+                return api_response(success=False, error="Invalid date format. Use YYYY-MM-DD.", status=400)
+
         crop = Crop(
             farmer_id          = _current_user_id(),
-            crop_name          = data.get("cropName", "Unknown Crop"),
+            crop_name          = data.get("cropName", "Unknown Crop").strip()[:100],
             quantity           = qty,
             quantity_remaining = qty,
             price              = prc,
-            availability_date  = date.fromisoformat(data.get("availabilityDate", date.today().isoformat())),
-            location           = data.get("location", "Not specified"),
+            availability_date  = avail_date,
+            location           = data.get("location", "Not specified").strip()[:200],
             status             = "active",
         )
         db.session.add(crop)
         db.session.commit()
-        return api_response(data={"message": "Crop posted"}, status=201)
-    except (ValueError, KeyError) as e:
-        return api_response(success=False, error=f"Invalid data: {str(e)}", status=400)
+        logger.info(f"[CROP_POSTED] Farmer {_current_user_id()} posted {crop.crop_name}")
+        return api_response(data={"message": "Crop posted", "crop_id": crop.id}, status=201)
+
+    except (ValueError, KeyError, TypeError) as e:
+        logger.warning(f"[CROP_POST_VALIDATION] {str(e)}")
+        return api_response(success=False, error=f"Invalid data format: {str(e)}", status=400)
     except Exception as e:
-        return api_response(success=False, error="Internal server error", status=500)
+        logger.error(f"[CROP_POST_ERROR] {str(e)}", exc_info=True)
+        return api_response(success=False, error="Internal server error while saving crop", status=500)
 
 
 @app.route("/api/crops", methods=["GET"])
@@ -427,7 +441,7 @@ def hard_delete_crop(crop_id):
     crop    = Crop.query.get_or_404(crop_id)
 
     if crop.farmer_id != user_id:
-        return jsonify({"error": "Unauthorized"}), 403
+        return api_response(success=False, error="Unauthorized", status=403)
 
     live = Interest.query.filter(
         Interest.crop_id == crop_id,
@@ -451,21 +465,6 @@ def list_marketplace_crops():
         Crop.farmer_id != user_id,
     ).order_by(Crop.created_at.desc()).all()
     return api_response(data=[c.to_dict() for c in crops])
-
-
-@app.route("/api/interests/contractor", methods=["GET"])
-@jwt_required()
-def list_contractor_interests():
-    """All interests submitted by the currently logged-in contractor."""
-    user_id   = _current_user_id()
-    interests = Interest.query.filter_by(contractor_id=user_id).order_by(Interest.created_at.desc()).all()
-    result = []
-    for i in interests:
-        d = i.to_dict()
-        d["crop_name"]       = i.crop.crop_name if i.crop else "Unknown"
-        d["farmer_name"]     = i.farmer_user.name if i.farmer_user else "Unknown"
-        result.append(d)
-    return api_response(data=result)
 
 
 @app.route("/api/interests", methods=["POST"])
@@ -585,7 +584,7 @@ def farmer_interests():
             "contractor_phone": i.contractor.phone if i.contractor else None,
             "accepted_by":      i.accepted_by,
         })
-    return jsonify(result)
+    return api_response(data=result)
 
 
 @app.route("/api/interests/contractor", methods=["GET"])
@@ -610,7 +609,7 @@ def contractor_interests():
             "farmer_phone":     farmer_phone,
             "accepted_by":      i.accepted_by,
         })
-    return jsonify(result)
+    return api_response(data=result)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -743,7 +742,7 @@ def withdraw_accept(interest_id):
             db.session.add(Message(
                 interest_id = i.id,
                 sender_id   = user_id,
-                content     = "__SYSTEM__:withdraw_accept",
+                content     = f"__SYSTEM__:withdrew_acceptance:{viewer_role}",
             ))
             logger.info(f"[INTEREST_WITHDRAW] {interest_id} by {user_id}")
 

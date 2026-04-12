@@ -60,8 +60,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const payload = {
                 cropName:         form.querySelector('input[name="crop"]').value.trim(),
-                quantity:         form.querySelector('input[name="quantity"]').value.trim(),
-                price:            form.querySelector('input[name="price"]').value.trim(),
+                quantity:         parseInt(form.querySelector('input[name="quantity"]').value) || 0,
+                price:            parseFloat(form.querySelector('input[name="price"]').value) || 0,
                 location:         form.querySelector('input[name="location"]').value.trim(),
                 availabilityDate: form.querySelector('input[name="availability"]').value
             };
