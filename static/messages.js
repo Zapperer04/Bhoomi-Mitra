@@ -141,8 +141,11 @@ async function loadMessages(id) {
 
       messages.forEach(msg => {
         const div = document.createElement("div");
-        div.className = `message ${msg.sender_id === currentUserId ? 'sent' : ''}`;
-        div.textContent = msg.content; // Use textContent for safety
+        const isSystem = msg.content.startsWith("__SYSTEM__:");
+        
+        div.className = `message ${isSystem ? 'system-msg' : (msg.sender_id === currentUserId ? 'sent' : 'received')}`;
+        div.innerHTML = formatMessageHelper(msg.content); 
+        
         area.appendChild(div);
         lastMessageId = Math.max(lastMessageId, msg.id);
       });
@@ -202,8 +205,37 @@ function formatTimeAgo(ts) {
   return new Date(ts).toLocaleDateString();
 }
 
-function escapeHtml(text) {
+function formatMessageHelper(content) {
+  if (!content) return "";
+  
+  if (content.startsWith("__SYSTEM__:")) {
+    const tag = content.replace("__SYSTEM__:", "");
+    const labels = {
+      "farmer_accepted":              "✅ Farmer accepted the deal",
+      "contractor_accepted":          "✅ Contractor accepted the deal",
+      "deal_fully_accepted":          "🎉 Deal confirmed by both parties",
+      "rejected":                     "❌ Deal rejected",
+      "rejected_crop_sold_out":       "❌ Rejected — crop sold out",
+      "negotiating":                  "💬 Negotiation started",
+      "withdrew_acceptance:farmer":   "↩️ Farmer withdrew acceptance",
+      "withdrew_acceptance:contractor": "↩️ Contractor withdrew acceptance"
+    };
+    return `<div class="system-info">${labels[tag] || "📋 Status update"}</div>`;
+  }
+
+  if (content.startsWith("__COUNTER__:")) {
+    const parts = content.replace("__COUNTER__:", "").split("|");
+    let html = `<div class="counter-offer-box"><strong>💬 Counter Offer</strong><br>`;
+    parts.forEach(p => {
+      const [k, v] = p.split(":");
+      html += `<span><b>${k}:</b> ${v}</span><br>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  // Regular message: escape HTML for safety
   const div = document.createElement("div");
-  div.textContent = text;
+  div.textContent = content;
   return div.innerHTML;
 }

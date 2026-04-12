@@ -88,14 +88,13 @@ def login():
     return api_response(data={"access_token": access_token, "role": user.role})
 
 
-# ================= PROTECTED TEST =================
 @auth_bp.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
-    return jsonify({
+    return api_response(data={
         "user_id": get_jwt_identity(),
         "role": get_jwt().get("role")
-    }), 200
+    })
 
 
 # ================= GET PROFILE =================

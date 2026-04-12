@@ -21,7 +21,7 @@
         </div>
       </div>
       <div id="google_translate_element" style="margin-right: 15px; margin-top: -15px;"></div>
-      <button class="close-btn" onclick="window.location.href='/farmer/dashboard'">✖</button>
+      <button class="close-btn" onclick="const role=localStorage.getItem('user_role'); window.location.href=(role==='contractor'?'/contractor/dashboard':'/farmer/dashboard')">✖</button>
     </div>
 
     <div class="chat-body" id="chatBox"></div>

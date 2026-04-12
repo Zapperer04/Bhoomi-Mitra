@@ -191,7 +191,20 @@ function openInterestModal(id, name, qty, price) {
 }
 
 function setupModal() {
-  document.getElementById("cancelModal").onclick = () => document.getElementById("interestModal").classList.add("hidden");
+  const modal = document.getElementById("interestModal");
+  if (!modal) return;
+
+  const closeBtn = document.getElementById("cancelModal");
+  const crossBtn = document.getElementById("cancelModalCross");
+
+  const hide = () => modal.classList.add("hidden");
+
+  if (closeBtn) closeBtn.onclick = hide;
+  if (crossBtn) crossBtn.onclick = hide;
+
+  window.onclick = (e) => { 
+    if (e.target === modal) hide(); 
+  };
   document.getElementById("submitInterest").onclick = async (e) => {
     const qty = parseInt(document.getElementById("interestQuantity").value);
     const prc = parseFloat(document.getElementById("interestPrice").value);

@@ -888,21 +888,19 @@ def withdraw_interest(interest_id):
     """
     user_id = _current_user_id()
     i       = Interest.query.get_or_404(interest_id)
-
     if i.contractor_id != user_id:
-        return jsonify({"error": "Only the contractor who submitted can withdraw"}), 403
+        return api_response(success=False, error="Only the contractor who submitted can withdraw", status=403)
 
     if i.status != "pending":
-        return jsonify({
-            "error": f"Can only withdraw a pending interest (current status: {i.status}). "
-                     "Use withdraw_accept if you have already accepted."
-        }), 400
+        return api_response(success=False, 
+                            error=f"Can only withdraw a pending interest (current status: {i.status}). Use withdraw_accept if you have already accepted.", 
+                            status=400)
 
     i.status      = "rejected"
     i.accepted_by = None
     _recompute_crop_status(i.crop)
     db.session.commit()
-    return jsonify({"message": "Interest withdrawn"})
+    return api_response(data={"message": "Interest withdrawn"})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
