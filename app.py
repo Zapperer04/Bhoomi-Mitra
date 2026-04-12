@@ -99,24 +99,54 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 with app.app_context():
     db.create_all()
 
-    # ── Safe Migration: add columns introduced after initial deploy ──────────
-    # These ALTER TABLE statements are idempotent — they fail silently if the
-    # column already exists, so it is safe to run on every startup.
-    migrations = [
-        "ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)",
-        "ALTER TABLE interests ADD COLUMN finalized_at DATETIME",
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)",
-    ]
+    # ── Safe Migration Engine: PostgreSQL & SQLite Compatible ────────────────
+    # We explicitly check for column existence before attempting ALTER TABLE.
+    # This prevents 'already exists' errors from bloating logs and ensures
+    # the schema remains in sync with the Interest and Message models.
     with db.engine.connect() as conn:
-        for sql in migrations:
-            try:
-                conn.execute(text(sql))
-                conn.commit()
-                logger.info(f"[MIGRATION] Applied: {sql[:60]}...")
-            except Exception as e:
-                conn.rollback()
-                logger.warning(f"[MIGRATION] Skipped (already exists or error): {str(e)[:100]}")
-                pass  # Column/index already exists — safe to ignore
+        is_postgres = "postgresql" in str(db.engine.url)
+        
+        # 1. Add finalized_at to interests
+        if is_postgres:
+            check_finalized = text("SELECT column_name FROM information_schema.columns WHERE table_name='interests' AND column_name='finalized_at'")
+        else:
+            check_finalized = text("PRAGMA table_info(interests)")
+        
+        res = conn.execute(check_finalized)
+        if is_postgres:
+            finalized_exists = res.fetchone() is not None
+        else:
+            finalized_exists = any(row[1] == "finalized_at" for row in res.fetchall())
+            
+        if not finalized_exists:
+            col_type = "TIMESTAMP" if is_postgres else "DATETIME"
+            conn.execute(text(f"ALTER TABLE interests ADD COLUMN finalized_at {col_type}"))
+            conn.commit()
+            logger.info("[MIGRATION] Added finalized_at to interests")
+
+        # 2. Add nonce to messages
+        if is_postgres:
+            check_nonce = text("SELECT column_name FROM information_schema.columns WHERE table_name='messages' AND column_name='nonce'")
+        else:
+            check_nonce = text("PRAGMA table_info(messages)")
+            
+        res = conn.execute(check_nonce)
+        if is_postgres:
+            nonce_exists = res.fetchone() is not None
+        else:
+            nonce_exists = any(row[1] == "nonce" for row in res.fetchall())
+            
+        if not nonce_exists:
+            conn.execute(text("ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)"))
+            conn.commit()
+            logger.info("[MIGRATION] Added nonce to messages")
+
+        # 3. Create nonce index
+        try:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}})
 
