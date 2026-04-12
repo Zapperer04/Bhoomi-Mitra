@@ -110,51 +110,50 @@ with app.app_context():
             db.drop_all()
             db.create_all()
             logger.info("[ADMIN] Database reset complete.")
-            return # Exit startup block after reset
-
-        is_postgres = "postgresql" in str(db.engine.url)
-        
-        # 1. Add finalized_at to interests
-        if is_postgres:
-            check_finalized = text("SELECT column_name FROM information_schema.columns WHERE table_name='interests' AND column_name='finalized_at'")
         else:
-            check_finalized = text("PRAGMA table_info(interests)")
-        
-        res = conn.execute(check_finalized)
-        if is_postgres:
-            finalized_exists = res.fetchone() is not None
-        else:
-            finalized_exists = any(row[1] == "finalized_at" for row in res.fetchall())
+            is_postgres = "postgresql" in str(db.engine.url)
             
-        if not finalized_exists:
-            col_type = "TIMESTAMP" if is_postgres else "DATETIME"
-            conn.execute(text(f"ALTER TABLE interests ADD COLUMN finalized_at {col_type}"))
-            conn.commit()
-            logger.info("[MIGRATION] Added finalized_at to interests")
-
-        # 2. Add nonce to messages
-        if is_postgres:
-            check_nonce = text("SELECT column_name FROM information_schema.columns WHERE table_name='messages' AND column_name='nonce'")
-        else:
-            check_nonce = text("PRAGMA table_info(messages)")
+            # 1. Add finalized_at to interests
+            if is_postgres:
+                check_finalized = text("SELECT column_name FROM information_schema.columns WHERE table_name='interests' AND column_name='finalized_at'")
+            else:
+                check_finalized = text("PRAGMA table_info(interests)")
             
-        res = conn.execute(check_nonce)
-        if is_postgres:
-            nonce_exists = res.fetchone() is not None
-        else:
-            nonce_exists = any(row[1] == "nonce" for row in res.fetchall())
-            
-        if not nonce_exists:
-            conn.execute(text("ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)"))
-            conn.commit()
-            logger.info("[MIGRATION] Added nonce to messages")
+            res = conn.execute(check_finalized)
+            if is_postgres:
+                finalized_exists = res.fetchone() is not None
+            else:
+                finalized_exists = any(row[1] == "finalized_at" for row in res.fetchall())
+                
+            if not finalized_exists:
+                col_type = "TIMESTAMP" if is_postgres else "DATETIME"
+                conn.execute(text(f"ALTER TABLE interests ADD COLUMN finalized_at {col_type}"))
+                conn.commit()
+                logger.info("[MIGRATION] Added finalized_at to interests")
 
-        # 3. Create nonce index
-        try:
-            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)"))
-            conn.commit()
-        except Exception:
-            conn.rollback()
+            # 2. Add nonce to messages
+            if is_postgres:
+                check_nonce = text("SELECT column_name FROM information_schema.columns WHERE table_name='messages' AND column_name='nonce'")
+            else:
+                check_nonce = text("PRAGMA table_info(messages)")
+                
+            res = conn.execute(check_nonce)
+            if is_postgres:
+                nonce_exists = res.fetchone() is not None
+            else:
+                nonce_exists = any(row[1] == "nonce" for row in res.fetchall())
+                
+            if not nonce_exists:
+                conn.execute(text("ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)"))
+                conn.commit()
+                logger.info("[MIGRATION] Added nonce to messages")
+
+            # 3. Create nonce index
+            try:
+                conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)"))
+                conn.commit()
+            except Exception:
+                conn.rollback()
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}})
 
