@@ -48,7 +48,6 @@ let lastMessageId = 0; // Track last fetched message ID for optimized polling
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!localStorage.getItem("access_token")) { window.location.href = "/login"; return; }
-  await DT.ready;
 
   await initUser();
   await loadConversations();
@@ -73,7 +72,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function initUser() {
   try {
     const data = await apiCall("/debug/whoami");
-    currentUserId = data.identity_received;
+    // Ensure ID is an integer for correct comparison with message.sender_id
+    currentUserId = parseInt(data.identity_received);
   } catch (err) { console.error("User init failed", err); }
 }
 
@@ -144,7 +144,9 @@ async function loadMessages(id) {
         const contentStr = msg.content || "";
         const isSystem = contentStr.startsWith("__SYSTEM__:");
         
-        div.className = `message ${isSystem ? 'system-msg' : (msg.sender_id === currentUserId ? 'sent' : 'received')}`;
+        // Direct comparison after fixing currentUserId to be a Number
+        const isSent = msg.sender_id === currentUserId;
+        div.className = `message ${isSystem ? 'system-msg' : (isSent ? 'sent' : 'received')}`;
         div.innerHTML = formatMessageHelper(contentStr); 
         
         area.appendChild(div);
@@ -169,7 +171,8 @@ function setupEventListeners() {
     if (!val || !currentInterestId) return;
     
     // Generate a unique nonce for idempotency
-    const nonce = typeof crypto.randomUUID === 'function' 
+    // Safe check: some browsers/contexts lack the crypto object
+    const nonce = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
       ? crypto.randomUUID() 
       : Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 
