@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadData();
   setupFilters();
   setupModal();
+  setupCounterModal();
 
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
@@ -134,6 +135,7 @@ function renderCrops(crops) {
       <p><b>${DT.t("quantity_lbl")}:</b> ${qty} ${DT.t("quintals")}</p>
       <p><b>${DT.t("price_lbl")}:</b> &#8377;${crop.price}/${DT.t("quintal_short")}</p>
       <p><b>${DT.t("location_lbl")}:</b> ${crop.location}</p>
+      ${crop.farmer_name ? `<p><b>Farmer:</b> ${crop.farmer_name}</p>` : ""}
       ${btnHTML}
     `;
 
@@ -159,20 +161,73 @@ async function loadMyInterests() {
     myInterests.forEach(i => {
       const div = document.createElement("div");
       div.className = `interest-card status-${i.status}`;
-      
-      let actions = `<a class="btn btn-chat" href="/messages?deal=${i.id}">${DT.t("open_chat")}</a>`;
-      if (i.accepted_by === "farmer" && i.status !== "accepted") {
-        actions = `<button class="btn btn-primary btn-accept" data-id="${i.id}">${DT.t("final_accept_btn")}</button>` + actions;
+
+      const chatLink = `<a class="btn btn-chat" href="/messages?deal=${i.id}">${DT.t("open_chat")}</a>`;
+      let actions = chatLink;
+      let badge   = "";
+
+      // ── State machine per spec Part 5 (Contractor view) ───────────────────
+      const ab = i.accepted_by;
+      const st = i.status;
+
+      if (st === "accepted" && ab === "both") {
+        badge = `<span class="status-badge badge-accepted">${DT.t("deal_closed") || "Deal closed ✓"}</span>`;
+        if (i.farmer_phone) {
+          badge += ` <a class="btn-call" href="tel:${i.farmer_phone}">📞 ${i.farmer_phone}</a>`;
+        }
+        actions = chatLink;
+
+      } else if (st === "rejected") {
+        badge = `<span class="status-badge badge-rejected">${DT.t("status.rejected") || "Rejected"}</span>`;
+        actions = `<button class="btn btn-warning js-open-interest" data-id="${i.crop_id}"
+                    data-qty="${i.quantity_requested}" data-price="${i.price_offered}">
+                    ${DT.t("resubmit_btn") || "Resubmit"}</button>` + chatLink;
+
+      } else if (ab === "contractor") {
+        // Contractor already accepted — waiting for farmer
+        badge = `<span class="status-badge badge-pending">${DT.t("waiting_farmer") || "You accepted — awaiting farmer"}</span>`;
+        actions = `<button class="btn btn-secondary btn-withdraw" data-id="${i.id}">${DT.t("withdraw_btn") || "Withdraw"}</button>`
+                + chatLink;
+
+      } else if (ab === "farmer") {
+        // Farmer accepted — contractor should finalize
+        actions = `<button class="btn btn-primary btn-accept" data-id="${i.id}">${DT.t("final_accept_btn")}</button>`
+                + chatLink;
+
+      } else if (st === "negotiating") {
+        // Active negotiation, no partial accept yet
+        badge = `<span class="status-badge badge-negotiating">${DT.t("status.negotiating") || "Negotiating"}</span>`;
+        actions = `<button class="btn btn-primary btn-accept" data-id="${i.id}">${DT.t("accept_btn") || "Accept"}</button>`
+                + `<button class="btn btn-secondary btn-counter" data-id="${i.id}" data-price="${i.price_offered}" data-qty="${i.quantity_requested}">${DT.t("counter_btn") || "Counter Offer"}</button>`
+                + chatLink;
+
+      } else {
+        // pending, no action yet
+        badge = `<span class="status-badge badge-pending">${DT.t("status.pending") || "Pending review"}</span>`;
+        actions = chatLink;
       }
 
       div.innerHTML = `
         <h4>${i.crop_name}</h4>
         <p>${DT.t("label.status")}: <b>${tStatus(i.status)}</b></p>
+        <p>${DT.t("label.offered") || "Offered"}: ₹<b>${i.price_offered}</b> &bull; ${i.quantity_requested}q</p>
+        ${badge}
         <div class="actions">${actions}</div>
       `;
 
       div.querySelector(".btn-accept")?.addEventListener("click", (e) => {
         runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
+      });
+      div.querySelector(".btn-withdraw")?.addEventListener("click", (e) => {
+        runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
+      });
+      div.querySelector(".btn-counter")?.addEventListener("click", (e) => {
+        openCounterModal(i.id, i.price_offered, i.quantity_requested);
+      });
+      div.querySelector(".js-open-interest")?.addEventListener("click", (ev) => {
+        const btn = ev.currentTarget;
+        openInterestModal(btn.dataset.id, i.crop_name,
+          parseInt(btn.dataset.qty), parseFloat(btn.dataset.price));
       });
 
       container.appendChild(div);
@@ -249,7 +304,7 @@ async function loadUnreadCount() {
   } catch {}
 }
 
-// ── UTILS ─────────────────────────────────────────────────────────────────────
+// ── UTILS ───────────────────────────────────────────────────────────────────────────────
 
 function escapeAttr(str) {
   return String(str)
@@ -258,4 +313,42 @@ function escapeAttr(str) {
     .replace(/"/g,  "&quot;")
     .replace(/</g,  "&lt;")
     .replace(/>/g,  "&gt;");
+}
+
+// ── COUNTER OFFER MODAL (Contractor) ────────────────────────────────────────────
+
+let _counterInterestId = null;
+
+function openCounterModal(interestId, currentPrice, currentQty) {
+  _counterInterestId = interestId;
+  document.getElementById("counterModalPrice").value = currentPrice || "";
+  document.getElementById("counterModalQty").value   = currentQty   || "";
+  document.getElementById("counterModalNote").value  = "";
+  const modal = document.getElementById("counterOfferModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function setupCounterModal() {
+  const modal     = document.getElementById("counterOfferModal");
+  if (!modal) return;
+
+  const hideModal = () => modal.classList.add("hidden");
+  document.getElementById("cancelCounterModal")?.addEventListener("click", hideModal);
+  document.getElementById("closeCounterOfferModal")?.addEventListener("click", hideModal);
+  window.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
+
+  document.getElementById("submitCounterOffer")?.addEventListener("click", async (e) => {
+    const price = document.getElementById("counterModalPrice").value;
+    const qty   = document.getElementById("counterModalQty").value;
+    const note  = document.getElementById("counterModalNote").value;
+    if (!price && !qty) { Toast.error("Enter a new price or quantity"); return; }
+    runAction(e.target, async () => {
+      await apiCall(`/api/interests/${_counterInterestId}/counter_offer`, {
+        method: "POST",
+        body: JSON.stringify({ price: price || undefined, quantity: qty || undefined, note })
+      });
+      Toast.success("Counter offer sent!");
+      hideModal();
+    });
+  });
 }

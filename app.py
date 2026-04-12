@@ -249,16 +249,16 @@ def _strip_system_prefix(content: str) -> str:
     if content.startswith("__SYSTEM__:"):
         tag = content[len("__SYSTEM__:"):]
         labels = {
-            "farmer_accepted":              "✅ Farmer accepted the deal",
-            "contractor_accepted":          "✅ Contractor accepted the deal",
-            "deal_fully_accepted":          "🎉 Deal confirmed by both parties",
-            "rejected":                     "❌ Deal rejected",
-            "rejected_crop_sold_out":       "❌ Rejected — crop sold out",
-            "negotiating":                  "💬 Negotiation started",
-            "withdrew_acceptance:farmer":   "↩️ Farmer withdrew acceptance",
-            "withdrew_acceptance:contractor": "↩️ Contractor withdrew acceptance",
-            "farmer_acceptance_nullified_by_counter_offer":
-                                            "↩️ Counter-offer nullified farmer's acceptance",
+            "interest_submitted":            "📋 Interest submitted",
+            "farmer_accepted":               "✅ Farmer accepted the deal",
+            "contractor_accepted":           "✅ Contractor accepted the deal",
+            "deal_fully_accepted":           "🎉 Deal confirmed by both parties",
+            "rejected":                      "❌ Deal rejected",
+            "rejected_crop_sold_out":        "❌ Rejected — crop sold out",
+            "auto_rejected_sold_out":        "❌ Crop sold out — interest closed",
+            "negotiating":                   "💬 Farmer opened negotiation",
+            "withdrew_acceptance:farmer":    "↩️ Farmer withdrew acceptance",
+            "withdrew_acceptance:contractor":"↩️ Contractor withdrew acceptance",
         }
         return labels.get(tag, "📋 Status update")
     if content.startswith("__COUNTER__:"):
@@ -477,7 +477,15 @@ def list_marketplace_crops():
         Crop.status.in_(["active", "partially_sold"]),
         Crop.farmer_id != user_id,
     ).order_by(Crop.created_at.desc()).all()
-    return api_response(data=[c.to_dict() for c in crops])
+    # Filter out zero-quantity rows defensively; expose farmer_name but NOT farmer_phone
+    result = []
+    for c in crops:
+        if c.effective_quantity() <= 0:
+            continue
+        d = c.to_dict()
+        d["farmer_name"] = c.farmer.name if c.farmer else None
+        result.append(d)
+    return api_response(data=result)
 
 
 @app.route("/api/interests", methods=["POST"])
@@ -522,6 +530,12 @@ def create_interest():
         existing.status             = "pending"
         existing.accepted_by        = None
         existing.created_at         = datetime.utcnow()
+        db.session.add(Message(
+            interest_id = existing.id,
+            sender_id   = user_id,
+            content     = "__SYSTEM__:interest_submitted",
+            is_read     = False,
+        ))
         db.session.commit()
         return api_response(data={"message": "Interest re-submitted", "interest_id": existing.id})
 
@@ -541,6 +555,13 @@ def create_interest():
         status             = "pending",
     )
     db.session.add(interest)
+    db.session.flush()  # get interest.id before adding message
+    db.session.add(Message(
+        interest_id = interest.id,
+        sender_id   = user_id,
+        content     = "__SYSTEM__:interest_submitted",
+        is_read     = False,
+    ))
     db.session.commit()
     return api_response(data={"message": "Interest sent", "interest_id": interest.id}, status=201)
 @app.route("/api/interests/details/<int:interest_id>", methods=["GET"])
@@ -552,7 +573,10 @@ def get_interest_details(interest_id):
     if i.farmer_id != user_id and i.contractor_id != user_id:
         return api_response(success=False, error="Unauthorized", status=403)
 
-    farmer_phone = i.crop.farmer.phone if i.status == "accepted" else None
+    # Phone only revealed when deal is fully closed by BOTH parties
+    farmer_phone = None
+    if i.status == "accepted" and i.accepted_by == "both" and i.crop and i.crop.farmer:
+        farmer_phone = i.crop.farmer.phone
 
     return api_response(data={
         "id":               i.id,
@@ -583,6 +607,10 @@ def farmer_interests():
     interests = Interest.query.join(Crop).filter(Crop.farmer_id == user_id).all()
     result    = []
     for i in interests:
+        # Contractor phone only after full deal close
+        contractor_phone = None
+        if i.status == "accepted" and i.accepted_by == "both" and i.contractor:
+            contractor_phone = i.contractor.phone
         result.append({
             "id":               i.id,
             "crop_id":          i.crop_id,
@@ -594,7 +622,7 @@ def farmer_interests():
             "status":           i.status,
             "message":          i.message,
             "contractor_name":  i.contractor.name if i.contractor else None,
-            "contractor_phone": i.contractor.phone if i.contractor else None,
+            "contractor_phone": contractor_phone,
             "accepted_by":      i.accepted_by,
         })
     return api_response(data=result)
@@ -607,9 +635,9 @@ def contractor_interests():
     interests = Interest.query.filter_by(contractor_id=user_id).all()
     result    = []
     for i in interests:
-        # FIX (BUG-07): Phone only after full acceptance
+        # Phone only revealed when deal is fully closed by BOTH parties
         farmer_phone = None
-        if i.status == "accepted" and i.crop and i.crop.farmer:
+        if i.status == "accepted" and i.accepted_by == "both" and i.crop and i.crop.farmer:
             farmer_phone = i.crop.farmer.phone
         result.append({
             "id":               i.id,
@@ -659,17 +687,19 @@ def accept_interest(interest_id):
             actor = "farmer" if user_id == i.farmer_id else "contractor"
             other = "contractor" if actor == "farmer" else "farmer"
 
+            # Idempotent: already accepted by this actor
             if i.accepted_by == actor:
-                return api_response(success=False, error="You have already accepted this deal", status=400)
+                return api_response(data={"message": "Already accepted by you", "interest_id": i.id})
 
-            # 3. First Party Acceptance
+            # 3. First Party Acceptance — no state transition validation here,
+            #    accepted_by is independent of status (status stays pending/negotiating)
             if i.accepted_by is None:
-                _validate_status_transition(i, "negotiating") # Implicitly moves to negotiating state
                 i.accepted_by = actor
                 db.session.add(Message(
                     interest_id = i.id,
                     sender_id   = user_id,
                     content     = f"__SYSTEM__:{actor}_accepted",
+                    is_read     = False,
                 ))
                 logger.info(f"[INTEREST_ACCEPT] {interest_id} partially accepted by {actor} ({user_id})")
                 return api_response(data={"message": "Accepted by you", "interest_id": i.id})
@@ -744,7 +774,7 @@ def withdraw_accept(interest_id):
             if i.farmer_id != user_id and i.contractor_id != user_id:
                 return api_response(success=False, error="Unauthorized", status=403)
 
-            if i.status == "accepted":
+            if i.accepted_by == "both":
                 return api_response(success=False, error="Deal fully confirmed - cannot withdraw", status=400)
 
             viewer_role = "farmer" if i.farmer_id == user_id else "contractor"
@@ -752,10 +782,12 @@ def withdraw_accept(interest_id):
                 return api_response(success=False, error="You haven't accepted this deal", status=400)
 
             i.accepted_by = None
+            i.status      = "negotiating"  # Revert to negotiating after withdrawal
             db.session.add(Message(
                 interest_id = i.id,
                 sender_id   = user_id,
                 content     = f"__SYSTEM__:withdrew_acceptance:{viewer_role}",
+                is_read     = False,
             ))
             logger.info(f"[INTEREST_WITHDRAW] {interest_id} by {user_id}")
 
@@ -778,18 +810,24 @@ def reject_interest(interest_id):
             if i.farmer_id != user_id and i.contractor_id != user_id:
                 return api_response(success=False, error="Unauthorized", status=403)
 
-            # Strict State Transition
-            _validate_status_transition(i, "rejected")
+            # Guard: cannot reject an already-accepted deal
+            if i.status == "accepted" and i.accepted_by == "both":
+                return api_response(success=False, error="Cannot reject a fully confirmed deal", status=400)
 
             i.status      = "rejected"
             i.accepted_by = None
             _recompute_crop_status(i.crop)
 
-            db.session.add(Message(
-                interest_id = i.id,
-                sender_id   = user_id,
-                content     = "__SYSTEM__:rejected",
-            ))
+            # Only insert a system message if at least one message already exists
+            # (so that silent rejections of contactless interests don't pollute the feed)
+            existing_msg = Message.query.filter_by(interest_id=i.id).first()
+            if existing_msg:
+                db.session.add(Message(
+                    interest_id = i.id,
+                    sender_id   = user_id,
+                    content     = "__SYSTEM__:rejected",
+                    is_read     = False,
+                ))
             logger.info(f"[INTEREST_REJECT] {interest_id} by {user_id}")
 
         return api_response(data={"message": "Rejected"})
@@ -845,8 +883,9 @@ def counter_offer(interest_id):
             if i.farmer_id != user_id and i.contractor_id != user_id:
                 return api_response(success=False, error="Unauthorized", status=403)
 
-            # Strict State Transition
-            _validate_status_transition(i, "negotiating")
+            # Guard: counter-offer allowed in pending OR negotiating states
+            if i.status not in ("pending", "negotiating"):
+                return api_response(success=False, error=f"Cannot counter-offer a {i.status} deal", status=400)
 
             data      = request.get_json()
             new_price = data.get("price")
@@ -1042,6 +1081,10 @@ def send_message():
     interest = Interest.query.get_or_404(int(interest_id))
     if interest.farmer_id != user_id and interest.contractor_id != user_id:
         return api_response(success=False, error="Unauthorized", status=403)
+
+    # Spec Part 3: messaging blocked on rejected interests
+    if interest.status == "rejected":
+        return api_response(success=False, error="Cannot send messages on a rejected deal", status=400)
 
     # 2. Simple Save Pattern (Ultra-compatible)
     msg = Message(

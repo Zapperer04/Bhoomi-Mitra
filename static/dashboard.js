@@ -105,8 +105,10 @@ async function loadDashboardData() {
 }
 
 function renderCrops(crops, interests, activeContainer, historyContainer) {
-  const active = crops.filter(c => ["active", "partially_sold", "negotiating"].includes(c.status));
-  const history = crops.filter(c => !["active", "partially_sold", "negotiating"].includes(c.status));
+  // Crop status is: active | partially_sold | sold | removed
+  // "negotiating" never appears on Crop — only on Interest
+  const active = crops.filter(c => ["active", "partially_sold"].includes(c.status));
+  const history = crops.filter(c => !["active", "partially_sold"].includes(c.status));
 
   if (activeContainer) {
     activeContainer.innerHTML = "";
@@ -165,30 +167,66 @@ function renderInterests(interests, container) {
   interests.forEach(i => {
     const card = document.createElement("div");
     card.className = `interest-card status-${i.status}`;
-    let actions = `<a class="btn-message" href="/messages?deal=${i.id}">${DT.t("open_chat")}</a>`;
 
-    if (i.status === "pending" || i.status === "negotiating") {
-      if (i.accepted_by === "contractor") {
-        actions = `<button class="btn-accept" data-id="${i.id}">${DT.t("final_accept_btn")}</button>` + actions;
-      } else if (!i.accepted_by) {
-        actions = `<button class="btn-accept" data-id="${i.id}">${DT.t("accept_btn")}</button>` + actions;
+    // ── Chat link always present ──────────────────────────────────────────
+    const chatLink = `<a class="btn-message" href="/messages?deal=${i.id}">${DT.t("open_chat")}</a>`;
+    let actions = chatLink;
+    let badge   = "";
+
+    // ── State machine per spec Part 5 (Farmer view) ───────────────────────
+    const ab = i.accepted_by;  // null | "farmer" | "contractor" | "both"
+    const st = i.status;       // pending | negotiating | accepted | rejected
+
+    if (st === "accepted" && ab === "both") {
+      // Deal fully closed
+      badge = `<span class="status-badge badge-accepted">${DT.t("deal_closed") || "Deal closed ✓"}</span>`;
+      if (i.contractor_phone) {
+        badge += ` <a class="btn-call" href="tel:${i.contractor_phone}">📞 ${i.contractor_phone}</a>`;
       }
-      actions += `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`;
+      actions = chatLink;
+    } else if (st === "rejected") {
+      badge   = `<span class="status-badge badge-rejected">${DT.t("status.rejected") || "Rejected"}</span>`;
+      actions = chatLink;
+    } else if (ab === "farmer") {
+      // Farmer already accepted, waiting for contractor
+      badge   = `<span class="status-badge badge-pending">${DT.t("waiting_contractor") || "You accepted — awaiting contractor"}</span>`;
+      actions = `<button class="btn-withdraw" data-id="${i.id}">${DT.t("withdraw_btn") || "Withdraw"}</button>`
+              + `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`
+              + chatLink;
+    } else if (ab === "contractor") {
+      // Contractor already accepted — farmer should finalize
+      actions = `<button class="btn-accept btn-final" data-id="${i.id}">${DT.t("final_accept_btn")}</button>`
+              + `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`
+              + chatLink;
+    } else {
+      // No acceptance yet (pending or negotiating)
+      actions = `<button class="btn-accept" data-id="${i.id}">${DT.t("accept_btn")}</button>`;
+      if (st === "pending") {
+        actions += `<button class="btn-negotiate" data-id="${i.id}">${DT.t("negotiate_btn") || "Negotiate"}</button>`;
+      }
+      actions += `<button class="btn-reject" data-id="${i.id}">${DT.t("reject_btn")}</button>`
+               + chatLink;
     }
 
     card.innerHTML = `
       <h4>${i.crop_name}</h4>
       <p>${DT.t("label.contractor")}: <b>${i.contractor_name}</b></p>
       <p>${DT.t("label.offered")}: ₹<b>${i.price_offered}</b></p>
+      ${badge}
       <div class="actions">${actions}</div>
     `;
 
     card.querySelector(".btn-accept")?.addEventListener("click", (e) => {
       runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
     });
-
+    card.querySelector(".btn-negotiate")?.addEventListener("click", (e) => {
+      runAction(e.target, () => apiCall(`/api/interests/${i.id}/negotiate`, { method: "POST" }));
+    });
     card.querySelector(".btn-reject")?.addEventListener("click", (e) => {
       runAction(e.target, () => apiCall(`/api/interests/${i.id}/reject`, { method: "POST" }));
+    });
+    card.querySelector(".btn-withdraw")?.addEventListener("click", (e) => {
+      runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
     });
 
     container.appendChild(card);

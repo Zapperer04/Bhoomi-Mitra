@@ -619,3 +619,105 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     }
     .conversations-sidebar.hidden { display: none; }
 }
+
+/* ── WAITING BANNER ───────────────────────────────────────── */
+.waiting-banner {
+    padding: 0.6rem 2rem;
+    background: var(--amber);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+/* ── SYSTEM BANNER (deal closed) ─────────────────────────── */
+.system-banner {
+    background: var(--green-600);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 0.5rem auto;
+    max-width: 80%;
+    box-shadow: 0 4px 16px rgba(5,150,105,0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+/* ── STATUS DOTS (sidebar) ────────────────────────────────── */
+.status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+.status-dot-pending     { background: var(--amber); }
+.status-dot-negotiating { background: var(--blue); }
+.status-dot-accepted    { background: var(--green-500); }
+.status-dot-rejected    { background: var(--red); }
+
+/* ── MESSAGE SENDER NAME ──────────────────────────────────── */
+.msg-sender {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    margin-bottom: 3px;
+    padding-left: 2px;
+}
+.msg-bubble {
+    display: inline-block;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--gray-100);
+    max-width: 100%;
+    word-break: break-word;
+}
+.message.sent .msg-bubble {
+    background: var(--green-600);
+    color: white;
+}
+
+/* ── COUNTER-OFFER ROW LAYOUT ─────────────────────────────── */
+.counter-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+}
+.counter-key { color: var(--gray-500); font-weight: 600; }
+.counter-val { color: var(--gray-800); font-weight: 700; }
+
+/* ── STATUS BADGE VARIANTS ────────────────────────────────── */
+.status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.badge-accepted       { background: var(--green-100); color: var(--green-800); }
+.badge-rejected       { background: var(--red-light); color: #991b1b; }
+.badge-pending        { background: #fef3c7; color: #92400e; }
+.badge-negotiating    { background: var(--blue-light); color: var(--blue-dark); }
+
+/* ── CALL BUTTON ──────────────────────────────────────────── */
+.btn-call {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    background: var(--green-600);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background var(--transition);
+}
+.btn-call:hover { background: var(--green-700); }

@@ -81,6 +81,9 @@
                 </div>
             </div>
 
+            <!-- Waiting banner: shown when one party has accepted but not both -->
+            <div id="waitingBanner" class="waiting-banner hidden"></div>
+
             <div id="messagesArea" class="messages-area">
                 <div class="loading-state">Loading messages...</div>
             </div>
@@ -143,6 +146,6 @@
 
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script src="{{ url_for('static', filename='toast.js') }}"></script>
-<script src="{{ url_for('static', filename='messages.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='messages.js') }}?v=8"></script>
 </body>
 </html>

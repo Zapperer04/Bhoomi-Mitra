@@ -122,8 +122,41 @@
     </div>
 </div>
 
+<!-- Counter Offer Modal (Contractor) -->
+<div id="counterOfferModal" class="modal hidden">
+    <div class="modal-content">
+        <button id="closeCounterOfferModal" class="modal-close">&times;</button>
+        <header class="modal-header">
+            <h3>Propose Counter Offer</h3>
+        </header>
+        <div class="modal-body">
+            <div class="field-group">
+                <label>New Price (₹/quintal)</label>
+                <div class="input-wrapper">
+                    <span class="currency-prefix">₹</span>
+                    <input type="number" id="counterModalPrice" placeholder="E.g. 2100" min="1">
+                </div>
+            </div>
+            <div class="field-group">
+                <label>New Quantity (quintals)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="counterModalQty" placeholder="E.g. 50" min="1">
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Optional Note</label>
+                <textarea id="counterModalNote" placeholder="Reason for counter-offer..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelCounterModal" class="btn btn-neutral">Cancel</button>
+            <button id="submitCounterOffer" class="btn btn-primary">Send Counter Offer</button>
+        </div>
+    </div>
+</div>
+
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script src="{{ url_for('static', filename='toast.js') }}"></script>
-<script src="{{ url_for('static', filename='contractor_dashboard.js') }}?v=6"></script>
+<script src="{{ url_for('static', filename='contractor_dashboard.js') }}?v=7"></script>
 </body>
 </html>
