@@ -37,13 +37,17 @@
                 data-i18n-attr="placeholder"
                 placeholder="Full Name" required>
             <input type="tel" id="phone"
+                maxlength="13"
                 data-i18n="signup.phone_placeholder"
                 data-i18n-attr="placeholder"
-                placeholder="Phone Number" required>
+                placeholder="+91 XXXXXXXXXX" required>
             <input type="password" id="password"
                 data-i18n="signup.password_placeholder"
                 data-i18n-attr="placeholder"
-                placeholder="Password" required>
+                placeholder="Password (Min 6 chars, with number)" required>
+            <p class="pw-hint" style="font-size: 11px; color: var(--gray-500); margin-top: -10px; margin-bottom: 1rem; text-align: left; padding-left: 5px;">
+                Must have at least 6 characters, one letter and one number.
+            </p>
 
             <div class="role-field farmer-field">
                 <input type="text" id="village"

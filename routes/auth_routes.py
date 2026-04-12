@@ -3,9 +3,45 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from models import db, User
 
 auth_bp = Blueprint("auth_bp", __name__)
+import re
 
 def api_response(success=True, data=None, error=None, status=200):
     return jsonify({"success": success, "data": data, "error": error}), status
+
+def normalize_phone(phone):
+    """
+    Normalizes a phone number to Indian format (+91XXXXXXXXXX).
+    Returns None if the format is invalid for Indian numbers.
+    """
+    phone = re.sub(r"\s+", "", str(phone)) # strip whitespace
+    
+    # CASE 1: 10 digits (9876543210)
+    if re.match(r"^\d{10}$", phone):
+        return "+91" + phone
+    
+    # CASE 2: +91 followed by 10 digits (+919876543210)
+    if re.match(r"^\+91\d{10}$", phone):
+        return phone
+        
+    # CASE 3: 91 followed by 10 digits (919876543210)
+    if re.match(r"^91\d{10}$", phone):
+        return "+" + phone
+
+    return None
+
+def validate_password_strength(password):
+    """
+    Checks if password is 'strong enough' for farmers:
+    - Minimum 6 characters
+    - At least one letter and one number
+    """
+    if len(password) < 6:
+        return False, "Password must be at least 6 characters long."
+    if not re.search(r"[A-Za-z]", password):
+        return False, "Password must contain at least one letter."
+    if not re.search(r"\d", password):
+        return False, "Password must contain at least one number."
+    return True, ""
 
 
 # ================= REGISTER =================
@@ -16,6 +52,15 @@ def register():
 
     if not all([name, phone, password, role]):
         return api_response(success=False, error="All fields required", status=400)
+    
+    phone = normalize_phone(phone)
+    if not phone:
+        return api_response(success=False, error="Invalid Indian phone format. Use 10 digits or +91XXXXXXXXXX", status=400)
+
+    is_strong, pw_err = validate_password_strength(password)
+    if not is_strong:
+        return api_response(success=False, error=pw_err, status=400)
+
     if role not in ("farmer", "contractor"):
         return api_response(success=False, error="Invalid role", status=400)
     if User.query.filter_by(phone=phone).first():
@@ -34,6 +79,7 @@ def login():
     data = request.get_json() or {}
     phone, password = data.get("phone"), data.get("password")
 
+    phone = normalize_phone(phone) or phone # try normalize, else keep raw for error check
     user = User.query.filter_by(phone=phone).first()
     if not user or not user.check_password(password):
         return api_response(success=False, error="Invalid credentials", status=401)
@@ -83,8 +129,9 @@ def update_phone():
     user = User.query.get_or_404(int(get_jwt_identity()))
     new_phone = (request.get_json() or {}).get("phone", "").strip()
 
-    if not new_phone or not re.match(r"^\+?\d{7,15}$", new_phone):
-        return api_response(success=False, error="Invalid phone format", status=400)
+    new_phone = normalize_phone(new_phone)
+    if not new_phone:
+        return api_response(success=False, error="Invalid Indian phone format. Use 10 digits or +91XXXXXXXXXX", status=400)
 
     existing = User.query.filter_by(phone=new_phone).first()
     if existing and existing.id != user.id:
@@ -104,7 +151,10 @@ def change_password():
     current_pw, new_pw, confirm_pw = data.get("current_password", ""), data.get("new_password", ""), data.get("confirm_password", "")
 
     if not user.check_password(current_pw): return api_response(success=False, error="Current password incorrect", status=401)
-    if len(new_pw) < 8: return api_response(success=False, error="Password too short", status=400)
+    
+    is_strong, pw_err = validate_password_strength(new_pw)
+    if not is_strong: return api_response(success=False, error=pw_err, status=400)
+    
     if new_pw != confirm_pw: return api_response(success=False, error="Passwords do not match", status=400)
 
     user.set_password(new_pw)

@@ -6,16 +6,31 @@ async function apiCall(url, options = {}) {
   return json.data;
 }
 
+function normalizePhone(phone) {
+  // Strip all whitespace and normalize to +91XXXXXXXXXX
+  phone = phone.replace(/\s+/g, '');
+  if (/^\d{10}$/.test(phone)) return '+91' + phone;
+  if (/^91\d{10}$/.test(phone)) return '+' + phone;
+  return phone;
+}
+
+function validatePassword(pw) {
+  if (pw.length < 6) return "Password must be at least 6 characters.";
+  if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return "Password must contain a letter and a number.";
+  return null;
+}
+
 // ================= LOGIN =================
 async function loginUser(phone, password) {
   const btn = document.querySelector("#loginForm button");
   if (btn) btn.disabled = true;
 
   try {
+    const normalizedPhone = normalizePhone(phone);
     const data = await apiCall("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, password }),
+      body: JSON.stringify({ phone: normalizedPhone, password }),
     });
 
     if (data.access_token) {
@@ -52,10 +67,28 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.disabled = true;
 
       const role = window.getSelectedSignupRole?.() || "farmer";
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("password").value.trim();
+      
+      const normalizedPhone = normalizePhone(phone);
+      const pwError = validatePassword(password);
+      
+      if (!/^\+91\d{10}$/.test(normalizedPhone)) {
+        alert("Please enter a valid 10-digit Indian phone number.");
+        btn.disabled = false;
+        return;
+      }
+      
+      if (pwError) {
+        alert(pwError);
+        btn.disabled = false;
+        return;
+      }
+
       const payload = {
         name: document.getElementById("name").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        password: document.getElementById("password").value.trim(),
+        phone: normalizedPhone,
+        password: password,
         role: role,
       };
 

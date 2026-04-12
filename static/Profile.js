@@ -1,6 +1,12 @@
-/**
  * profile.js
  */
+
+function normalizePhone(phone) {
+  phone = phone.replace(/\s+/g, '');
+  if (/^\d{10}$/.test(phone)) return '+91' + phone;
+  if (/^91\d{10}$/.test(phone)) return '+' + phone;
+  return phone;
+}
 
 async function apiCall(url, options = {}) {
   const token = localStorage.getItem("access_token");
@@ -86,7 +92,14 @@ function setupNameSave() {
 
 function setupPhoneSave() {
   document.getElementById("btnSavePhone").onclick = async () => {
-    const phone = document.getElementById("inputPhone").value.trim();
+    const rawPhone = document.getElementById("inputPhone").value.trim();
+    const phone = normalizePhone(rawPhone);
+    
+    if (!/^\+91\d{10}$/.test(phone)) {
+      showFeedback("fbPhone", "error", "Invalid Indian phone format. Use 10 digits or +91XXXXXXXXXX");
+      return;
+    }
+
     setLoading("btnSavePhone", true);
     try {
       const data = await apiCall("/auth/profile/phone", { method: "PATCH", body: JSON.stringify({ phone }) });
@@ -152,10 +165,11 @@ function setupStrengthMeter() {
 
 function calcStrength(pw) {
   let s = 0;
-  if (pw.length >= 8) s++;
-  if (/[A-Z]/.test(pw)) s++;
-  if (/\d/.test(pw)) s++;
-  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  if (pw.length < 6) return 0;
+  s++; // Goal 1: Length >= 6
+  if (pw.length >= 10) s++; // Goal 2: Length >= 10 (Bonus)
+  if (/[A-Za-z]/.test(pw) && /\d/.test(pw)) s++; // Goal 3: Mixed Letter+Number (Required)
+  if (/[^A-Za-z0-9]/.test(pw)) s++; // Goal 4: Symbol (Bonus)
   return Math.min(s, 4);
 }
 
