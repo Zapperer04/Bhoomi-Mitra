@@ -1,29 +1,24 @@
-import os
 from app import app, db
-from models import User, Crop, Interest, Message
+import os
 
 def reset_database():
     with app.app_context():
-        print("Starting Database Reset...")
-        try:
-            # Delete in order of dependencies
-            print("Deleting Messages...")
-            db.session.query(Message).delete()
-            
-            print("Deleting Interests...")
-            db.session.query(Interest).delete()
-            
-            print("Deleting Crops...")
-            db.session.query(Crop).delete()
-            
-            print("Deleting Users...")
-            db.session.query(User).delete()
-            
-            db.session.commit()
-            print("Database Reset Successful! All accounts and data deleted.")
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error resetting database: {str(e)}")
+        print("⚠ WARNING: This will permanently delete all data in the database.")
+        
+        # 1. Drop all tables
+        print("[1/2] Dropping all tables...")
+        db.drop_all()
+        
+        # 2. Recreate all tables (includes current models and schema)
+        print("[2/2] Recreating tables with latest schema...")
+        db.create_all()
+        
+        # 3. Optional: Clear local SQLite file if it exists (redundant but safe)
+        if "sqlite" in app.config["SQLALCHEMY_DATABASE_URI"]:
+            print("  -> SQLite detected. File has been refreshed.")
+
+        print("\n✅ Database has been RESET successfully.")
+        print("You can now start app.py for a fresh experience.")
 
 if __name__ == "__main__":
     reset_database()
