@@ -104,6 +104,7 @@ with app.app_context():
     # column already exists, so it is safe to run on every startup.
     migrations = [
         "ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)",
+        "ALTER TABLE interests ADD COLUMN finalized_at DATETIME",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)",
     ]
     with db.engine.connect() as conn:
@@ -223,23 +224,83 @@ def _recompute_crop_status(crop):
         crop.status = "active"
 
 
-def _validate_status_transition(interest, target_status):
-    """
-    STRICT STATE MACHINE ENFORCEMENT
-    pending → negotiating → accepted | rejected
-    accepted → (final)
-    rejected → (final)
-    """
-    # Define valid target statuses for each current status
-    valid_map = {
-        "pending":     ["negotiating", "accepted", "rejected"],
-        "negotiating": ["accepted", "rejected", "negotiating"],
-        "accepted":    [],  # Terminal
-        "rejected":    [],  # Terminal
-    }
-    current = interest.status or "pending"
-    if target_status not in valid_map.get(current, []):
-        raise ValueError(f"Invalid state transition from {current} to {target_status}")
+def transition_interest(interest, action, actor_role, new_price=None, new_qty=None):
+    if interest.status in ["accepted", "rejected"]:
+        raise ValueError("Deal closed")
+
+    # ── COUNTER ─────────────────────────────
+    if action == "counter":
+        if not new_price or not new_qty or float(new_price) <= 0 or int(new_qty) <= 0:
+            raise ValueError("Invalid counter values")
+
+        interest.price_offered = float(new_price)
+        interest.quantity_requested = int(new_qty)
+        interest.status = "negotiating"
+        interest.accepted_by = None
+
+        return f"__COUNTER__:{new_price}:{new_qty}"
+
+    # ── ACCEPT ─────────────────────────────
+    if action == "accept":
+        if interest.accepted_by is None:
+            interest.accepted_by = actor_role
+            interest.status = "negotiating"
+            return f"__SYSTEM__:{actor_role}_accepted"
+
+        if interest.accepted_by != actor_role:
+            interest.accepted_by = "both"
+            interest.status = "accepted"
+            finalize_transaction_safe(interest)
+            return "__SYSTEM__:deal_fully_accepted"
+        return None  # ignore duplicate
+
+    # ── REJECT ─────────────────────────────
+    if action == "reject":
+        interest.status = "rejected"
+        interest.accepted_by = None
+        return "__SYSTEM__:rejected"
+
+    # ── WITHDRAW ───────────────────────────
+    if action == "withdraw":
+        if interest.accepted_by == actor_role:
+            interest.accepted_by = None
+            interest.status = "negotiating"
+            return f"__SYSTEM__:withdrew_acceptance:{actor_role}"
+        return None
+
+    raise ValueError("Invalid action")
+
+
+def finalize_transaction_safe(interest):
+    crop = Crop.query.with_for_update().get(interest.crop_id)
+    if interest.accepted_by != "both":
+        raise ValueError("Invalid finalize state")
+
+    if crop.quantity_remaining < interest.quantity_requested:
+        raise ValueError("Insufficient stock")
+
+    crop.quantity_remaining -= interest.quantity_requested
+    if crop.quantity_remaining == 0:
+        crop.status = "sold"
+        auto_reject_safe(crop.id)
+    else:
+        crop.status = "partially_sold"
+    interest.finalized_at = datetime.utcnow()
+
+
+def auto_reject_safe(crop_id):
+    others = Interest.query.filter(
+        Interest.crop_id == crop_id,
+        Interest.status.in_(["pending", "negotiating"])
+    ).all()
+    for i in others:
+        if i.status != "rejected":
+            i.status = "rejected"
+            i.accepted_by = None
+            db.session.add(Message(
+                interest_id=i.id,
+                content="__SYSTEM__:auto_rejected_sold_out"
+            ))
 
 
 def _strip_system_prefix(content: str) -> str:
@@ -657,308 +718,54 @@ def contractor_interests():
 # STATUS UPDATES
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.route("/api/interests/<int:interest_id>/accept", methods=["POST"])
+@app.route("/api/interests/action", methods=["POST"])
 @jwt_required()
 @with_db_retry()
-def accept_interest(interest_id):
-    user_id = _current_user_id()
-    
+def interest_action():
     try:
-        # Use top-level atomic transaction (commits on exit, rolls back on error)
-        with db.session.begin():
-            # 1. Lock Interest and Crop records
-            i = Interest.query.filter_by(id=interest_id).with_for_update().first()
-            if not i:
-                return api_response(success=False, error="Interest not found", status=404)
-            
-            crop = Crop.query.filter_by(id=i.crop_id).with_for_update().first()
-            if not crop:
-                return api_response(success=False, error="Crop missing", status=500)
+        data = request.get_json()
+        interest_id = data.get("interest_id")
+        action      = data.get("action")
+        price       = data.get("price")
+        qty         = data.get("quantity")
 
-            if user_id not in (i.farmer_id, i.contractor_id):
-                return api_response(success=False, error="Unauthorized", status=403)
+        interest = Interest.query.get_or_404(interest_id)
 
-            # 2. Strict State Machine & Idempotency Check
-            if i.status == "accepted":
-                return api_response(success=False, error="Interest already accepted", status=400)
-            if i.status == "rejected":
-                return api_response(success=False, error="Cannot accept a rejected interest", status=400)
+        user_id   = _current_user_id()
+        user_role = _current_user_role()
 
-            actor = "farmer" if user_id == i.farmer_id else "contractor"
-            other = "contractor" if actor == "farmer" else "farmer"
+        if user_id not in [interest.farmer_id, interest.contractor_id]:
+            return api_response(False, error="Unauthorized", status=403)
 
-            # Idempotent: already accepted by this actor
-            if i.accepted_by == actor:
-                return api_response(data={"message": "Already accepted by you", "interest_id": i.id})
+        msg_content = transition_interest(
+            interest,
+            action,
+            user_role,
+            new_price=price,
+            new_qty=qty
+        )
 
-            # 3. First Party Acceptance — no state transition validation here,
-            #    accepted_by is independent of status (status stays pending/negotiating)
-            if i.accepted_by is None:
-                i.accepted_by = actor
+        # 🔥 DUPLICATE MESSAGE PROTECTION
+        if msg_content:
+            last_msg = Message.query.filter_by(
+                interest_id=interest.id
+            ).order_by(Message.id.desc()).first()
+
+            if not last_msg or last_msg.content != msg_content:
                 db.session.add(Message(
-                    interest_id = i.id,
-                    sender_id   = user_id,
-                    content     = f"__SYSTEM__:{actor}_accepted",
-                    is_read     = False,
+                    interest_id=interest.id,
+                    sender_id=user_id,
+                    content=msg_content
                 ))
-                logger.info(f"[INTEREST_ACCEPT] {interest_id} partially accepted by {actor} ({user_id})")
-                return api_response(data={"message": "Accepted by you", "interest_id": i.id})
 
-            # 4. Dual Acceptance (Handshake)
-            if i.accepted_by == other:
-                available = crop.effective_quantity()
-                qty_sold  = i.quantity_requested or 0
-
-                # 4a. Overselling Prevention
-                if qty_sold > available:
-                    logger.error(f"Stock conflict on Interest {interest_id}: Requested {qty_sold}, Available {available}")
-                    return api_response(success=False, error=f"Stock insufficient: {available}q remaining", status=409)
-
-                # 4b. State Transition Validation
-                _validate_status_transition(i, "accepted")
-
-                # 4c. Finalize Deal
-                i.accepted_by = "both"
-                i.status      = "accepted"
-                crop.quantity_remaining = available - qty_sold
-                _recompute_crop_status(crop)
-
-                # 4d. Auto-reject competing interests if sold out
-                if crop.quantity_remaining == 0:
-                    competing = Interest.query.filter(
-                        Interest.crop_id == crop.id,
-                        Interest.id      != i.id,
-                        Interest.status.in_(["pending", "negotiating"]),
-                    ).all()
-                    for other_i in competing:
-                        other_i.status      = "rejected"
-                        other_i.accepted_by = None
-                        db.session.add(Message(
-                            interest_id = other_i.id,
-                            sender_id   = user_id,
-                            content     = "__SYSTEM__:rejected_crop_sold_out",
-                        ))
-                    logger.info(f"Crop {crop.id} sold out. Auto-rejected {len(competing)} interests.")
-
-                db.session.add(Message(
-                    interest_id = i.id,
-                    sender_id   = user_id,
-                    content     = "__SYSTEM__:deal_fully_accepted",
-                ))
-                
-                logger.info(f"[INTEREST_FINAL] {interest_id} fully accepted")
-
-        return api_response(data={"message": "Deal Finalized!", "interest_id": i.id})
-
-    except ValueError as ve:
-        return api_response(success=False, error=str(ve), status=400)
-    except IntegrityError:
-        logger.error(f"[INTEGRITY_ERROR] Interest {interest_id}")
-        return api_response(success=False, error="Database conflict. Please retry.", status=409)
+        db.session.commit()
+        return api_response(True, data={"status": interest.status})
     except Exception as e:
-        logger.error(f"[SYSTEM_ERROR] Interest {interest_id}: {str(e)}")
-        return api_response(success=False, error="System error during acceptance.", status=500)
+        db.session.rollback()
+        return api_response(False, error=str(e), status=400)
 
 
-@app.route("/api/interests/<int:interest_id>/withdraw_accept", methods=["POST"])
-@jwt_required()
-@with_db_retry()
-def withdraw_accept(interest_id):
-    user_id = _current_user_id()
-    try:
-        with db.session.begin():
-            i = Interest.query.filter_by(id=interest_id).with_for_update().first()
-            if not i:
-                return api_response(success=False, error="Interest not found", status=404)
 
-            if i.farmer_id != user_id and i.contractor_id != user_id:
-                return api_response(success=False, error="Unauthorized", status=403)
-
-            if i.accepted_by == "both":
-                return api_response(success=False, error="Deal fully confirmed - cannot withdraw", status=400)
-
-            viewer_role = "farmer" if i.farmer_id == user_id else "contractor"
-            if i.accepted_by != viewer_role:
-                return api_response(success=False, error="You haven't accepted this deal", status=400)
-
-            i.accepted_by = None
-            i.status      = "negotiating"  # Revert to negotiating after withdrawal
-            db.session.add(Message(
-                interest_id = i.id,
-                sender_id   = user_id,
-                content     = f"__SYSTEM__:withdrew_acceptance:{viewer_role}",
-                is_read     = False,
-            ))
-            logger.info(f"[INTEREST_WITHDRAW] {interest_id} by {user_id}")
-
-        return api_response(data={"message": "Withdrawal successful"})
-    except Exception as e:
-        return api_response(success=False, error=str(e), status=500)
-
-
-@app.route("/api/interests/<int:interest_id>/reject", methods=["POST"])
-@jwt_required()
-@with_db_retry()
-def reject_interest(interest_id):
-    user_id = _current_user_id()
-    try:
-        with db.session.begin():
-            i = Interest.query.filter_by(id=interest_id).with_for_update().first()
-            if not i:
-                return api_response(success=False, error="Interest not found", status=404)
-
-            if i.farmer_id != user_id and i.contractor_id != user_id:
-                return api_response(success=False, error="Unauthorized", status=403)
-
-            # Guard: cannot reject an already-accepted deal
-            if i.status == "accepted" and i.accepted_by == "both":
-                return api_response(success=False, error="Cannot reject a fully confirmed deal", status=400)
-
-            i.status      = "rejected"
-            i.accepted_by = None
-            _recompute_crop_status(i.crop)
-
-            # Only insert a system message if at least one message already exists
-            # (so that silent rejections of contactless interests don't pollute the feed)
-            existing_msg = Message.query.filter_by(interest_id=i.id).first()
-            if existing_msg:
-                db.session.add(Message(
-                    interest_id = i.id,
-                    sender_id   = user_id,
-                    content     = "__SYSTEM__:rejected",
-                    is_read     = False,
-                ))
-            logger.info(f"[INTEREST_REJECT] {interest_id} by {user_id}")
-
-        return api_response(data={"message": "Rejected"})
-    except ValueError as ve:
-        return api_response(success=False, error=str(ve), status=400)
-    except Exception as e:
-        return api_response(success=False, error=str(e), status=500)
-
-
-@app.route("/api/interests/<int:interest_id>/negotiate", methods=["POST"])
-@jwt_required()
-@with_db_retry()
-def negotiate_interest(interest_id):
-    user_id = _current_user_id()
-    try:
-        with db.session.begin():
-            i = Interest.query.filter_by(id=interest_id).with_for_update().first()
-            if not i:
-                return api_response(success=False, error="Interest not found", status=404)
-
-            if i.farmer_id != user_id:
-                return api_response(success=False, error="Only the farmer can initiate negotiation", status=403)
-
-            _validate_status_transition(i, "negotiating")
-
-            i.status = "negotiating"
-            db.session.add(Message(
-                interest_id = i.id,
-                sender_id   = user_id,
-                content     = "__SYSTEM__:negotiating",
-                is_read     = False,
-            ))
-            logger.info(f"[INTEREST_NEGOTIATE] {interest_id} by {user_id}")
-
-        return api_response(data={"message": "Negotiation started"})
-    except ValueError as ve:
-        return api_response(success=False, error=str(ve), status=400)
-    except Exception as e:
-        return api_response(success=False, error=str(e), status=500)
-
-
-@app.route("/api/interests/<int:interest_id>/counter_offer", methods=["POST"])
-@jwt_required()
-@with_db_retry()
-def counter_offer(interest_id):
-    user_id = _current_user_id()
-    try:
-        with db.session.begin():
-            i = Interest.query.filter_by(id=interest_id).with_for_update().first()
-            if not i:
-                return api_response(success=False, error="Interest not found", status=404)
-
-            if i.farmer_id != user_id and i.contractor_id != user_id:
-                return api_response(success=False, error="Unauthorized", status=403)
-
-            # Guard: counter-offer allowed in pending OR negotiating states
-            if i.status not in ("pending", "negotiating"):
-                return api_response(success=False, error=f"Cannot counter-offer a {i.status} deal", status=400)
-
-            data      = request.get_json()
-            new_price = data.get("price")
-            new_qty   = data.get("quantity")
-            note      = data.get("note", "")
-
-            if not new_price and not new_qty:
-                return api_response(success=False, error="No price or quantity provided", status=400)
-
-            if new_qty:
-                new_qty_int = int(new_qty)
-                if new_qty_int <= 0:
-                    return api_response(success=False, error="Quantity must be positive", status=400)
-                
-                available = i.crop.effective_quantity()
-                if new_qty_int > available:
-                    return api_response(success=False, error=f"Qty exceeds stock ({available}q)", status=400)
-                i.quantity_requested = new_qty_int
-
-            if new_price:
-                new_price_val = float(new_price)
-                if new_price_val <= 0:
-                    return api_response(success=False, error="Price must be positive", status=400)
-                i.price_offered = new_price_val
-
-            # Reset acceptance on counter-offer
-            i.accepted_by = None
-            i.status      = "negotiating"
-
-            parts = []
-            if new_price: parts.append(f"price:₹{new_price}/q")
-            if new_qty:   parts.append(f"qty:{new_qty}q")
-            if note:      parts.append(f"note:{note}")
-
-            db.session.add(Message(
-                interest_id = i.id,
-                sender_id   = user_id,
-                content     = "__COUNTER__:" + "|".join(parts),
-            ))
-            logger.info(f"[INTEREST_COUNTER] {interest_id} by {user_id}")
-
-        return api_response(data={"message": "Counter offer sent"})
-    except ValueError as ve:
-        return api_response(success=False, error=str(ve), status=400)
-    except Exception as e:
-        return api_response(success=False, error=str(e), status=500)
-
-
-@app.route("/api/interests/<int:interest_id>/withdraw", methods=["POST"])
-@jwt_required()
-@with_db_retry()
-def withdraw_interest(interest_id):
-    """
-    NEW ENDPOINT (MISSING RULE 5): Allows a contractor to withdraw a pending
-    interest they submitted. Prevents the contractor from being stuck forever
-    in "already shown interest" limbo if the farmer never responds.
-    Only allowed when status == "pending" (before any negotiation begins).
-    """
-    user_id = _current_user_id()
-    i       = Interest.query.get_or_404(interest_id)
-    if i.contractor_id != user_id:
-        return api_response(success=False, error="Only the contractor who submitted can withdraw", status=403)
-
-    if i.status != "pending":
-        return api_response(success=False, 
-                            error=f"Can only withdraw a pending interest (current status: {i.status}). Use withdraw_accept if you have already accepted.", 
-                            status=400)
-
-    i.status      = "rejected"
-    i.accepted_by = None
-    _recompute_crop_status(i.crop)
-    db.session.commit()
-    return api_response(data={"message": "Interest withdrawn"})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1084,7 +891,7 @@ def send_message():
 
     # Spec Part 3: messaging blocked on rejected interests
     if interest.status == "rejected":
-        return api_response(success=False, error="Cannot send messages on a rejected deal", status=400)
+        return api_response(False, error="Chat closed", status=400)
 
     # 2. Simple Save Pattern (Ultra-compatible)
     msg = Message(
@@ -1099,6 +906,26 @@ def send_message():
     
     logger.info(f"[MSG_CREATED] User {user_id} -> Interest {interest_id}")
     return api_response(data=msg.to_dict(), status=201)
+
+
+@app.route("/api/messages/conversation/<int:interest_id>")
+@jwt_required()
+def get_conversation(interest_id):
+    interest = Interest.query.get_or_404(interest_id)
+    messages = Message.query.filter_by(
+        interest_id=interest_id
+    ).order_by(Message.id.asc()).all()
+
+    return api_response(data={
+        "messages": [m.to_dict() for m in messages],
+        "interest": {
+            "id": interest.id,
+            "status": interest.status,
+            "accepted_by": interest.accepted_by,
+            "price_offered": interest.price_offered,
+            "quantity_requested": interest.quantity_requested
+        }
+    })
 
 
 # ─────────────────────────────────────────────────────────────────────────────

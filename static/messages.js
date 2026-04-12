@@ -81,8 +81,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const dealId    = urlParams.get("deal");
   if (dealId) {
-    const conv = conversations.find(c => c.interest_id == dealId);
-    if (conv) openConversation(conv);
+    // Rely on list load to populate currentInterestId later or just set it
+    currentInterestId = parseInt(dealId);
+    openConversationById(currentInterestId);
     window.history.replaceState({}, "", "/messages");
   }
 
@@ -139,15 +140,17 @@ async function loadConversations() {
       list.appendChild(item);
     });
 
-    // If a chat is open, refresh its deal UI silently
-    if (currentInterestId) {
-      const updated = conversations.find(c => c.interest_id === currentInterestId);
-      if (updated) {
-        currentConv = updated;
-        renderDealUI(updated);
-      }
-    }
+    // If a chat is open, let polling handle its refresh
   } catch (err) { console.error("Load conversations failed", err); }
+}
+
+async function openConversationById(id) {
+    currentInterestId = id;
+    document.getElementById("emptyState").style.display = "none";
+    document.getElementById("chatContainer").classList.remove("hidden");
+    lastMessageId = 0;
+    document.getElementById("messagesArea").innerHTML = '<div class="loading-state">Loading chat...</div>';
+    // Polling will pick it up and render everything
 }
 
 // ── OPEN CONVERSATION ─────────────────────────────────────────────────────────
@@ -165,8 +168,9 @@ function openConversation(conv, element = null) {
   lastMessageId = 0;
   document.getElementById("messagesArea").innerHTML = '<div class="loading-state">Loading chat...</div>';
 
+  // We don't call loadMessages manually anymore; polling does it.
+  // But we can render the summary immediately from the sidebar data.
   renderDealUI(conv);
-  loadMessages(conv.interest_id);
 }
 
 // ── DEAL SUMMARY CARD ─────────────────────────────────────────────────────────
@@ -256,37 +260,57 @@ function renderDealUI(conv) {
   } else {
     negText.textContent = "Take action on this deal:";
   }
+
+  // ✅ DISABLE CLOSED DEAL
+  if (conv.status === "accepted" || conv.status === "rejected") {
+    disableAllActions();
+  } else {
+    enableAllActions();
+  }
 }
 
-// ── MESSAGES ─────────────────────────────────────────────────────────────────
+function disableAllActions() {
+    const panel = document.getElementById("negotiationPanel");
+    if (panel) panel.classList.add("locked");
+    const btns = ["acceptBtn", "rejectBtn", "counterBtn"];
+    btns.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+}
 
-async function loadMessages(id) {
-  if (!id) return;
-  try {
-    const messages = await apiCall(`/api/messages/interest/${id}?since_id=${lastMessageId}`);
+function enableAllActions() {
+    const panel = document.getElementById("negotiationPanel");
+    if (panel) panel.classList.remove("locked");
+    const btns = ["acceptBtn", "rejectBtn", "counterBtn"];
+    btns.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = false;
+    });
+}
+
+// ── MESSAGES ──
+
+function renderMessages(messages) {
+    if (!messages || messages.length === 0) return;
     const area = document.getElementById("messagesArea");
 
-    if (lastMessageId === 0) area.innerHTML = ""; // Fresh load clears loading spinner
+    // Only scroll if we added something
+    let added = false;
 
-    if (messages.length > 0) {
-      const loadingEl = area.querySelector(".loading-state");
-      if (loadingEl) loadingEl.remove();
+    messages.forEach(msg => {
+        // Idempotency: don't render same message twice
+        if (msg.id <= lastMessageId) return;
 
-      messages.forEach(msg => {
         const contentStr = msg.content || "";
         const isSystem   = contentStr.startsWith("__SYSTEM__:") || contentStr.startsWith("__COUNTER__:");
         const isSent     = msg.sender_id === currentUserId;
 
         const wrapper = document.createElement("div");
-        wrapper.className = isSystem
-          ? "message system-msg"
-          : `message ${isSent ? "sent" : "received"}`;
+        wrapper.className = isSystem ? "message system-msg" : `message ${isSent ? "sent" : "received"}`;
 
         if (!isSystem) {
-          // Normal bubble with sender name + time
-          const timeStr = msg.created_at
-            ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-            : "";
+          const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
           wrapper.innerHTML = `
             ${!isSent ? `<span class="msg-sender">${msg.sender_name || ""}</span>` : ""}
             <div class="msg-bubble">${escapeHtml(contentStr)}</div>
@@ -298,19 +322,48 @@ async function loadMessages(id) {
 
         area.appendChild(wrapper);
         lastMessageId = Math.max(lastMessageId, msg.id);
-      });
-      area.scrollTop = area.scrollHeight;
+        added = true;
+    });
+
+    if (added) {
+        const loadingEl = area.querySelector(".loading-state");
+        if (loadingEl) loadingEl.remove();
+        area.scrollTop = area.scrollHeight;
     }
-  } catch (err) {
-    console.error("Load messages failed", err);
-    if (lastMessageId === 0) {
-      document.getElementById("messagesArea").innerHTML =
-        `<div class="loading-state">Error: ${err.message}</div>`;
-    }
-  }
 }
 
 // ── EVENT LISTENERS ───────────────────────────────────────────────────────────
+
+// ✅ SINGLE ACTION HANDLER
+async function performAction(action, payload = {}) {
+  try {
+    await apiCall("/api/interests/action", {
+      method: "POST",
+      body: JSON.stringify({
+        interest_id: currentInterestId,
+        action,
+        ...payload
+      })
+    });
+
+    // 🔥 INSTANT REFRESH (NO WAIT)
+    await loadMessages(currentInterestId);
+
+  } catch (err) {
+    Toast.error(err.message);
+  }
+}
+
+async function loadMessages(interestId) {
+    if (!interestId) return;
+    try {
+        const data = await apiCall(`/api/messages/conversation/${interestId}`);
+        renderMessages(data.messages);
+        renderDealUI(data.interest);
+    } catch (err) {
+        console.error("Manual refresh failed", err);
+    }
+}
 
 function setupEventListeners() {
   const input = document.getElementById("messageInput");
@@ -331,7 +384,7 @@ function setupEventListeners() {
         body: JSON.stringify({ interest_id: currentInterestId, content: val, nonce }),
       });
       input.value = "";
-    }, () => loadMessages(currentInterestId));
+    });
   };
 
   btn.onclick    = send;
@@ -343,23 +396,15 @@ function setupEventListeners() {
     input.style.height = Math.min(input.scrollHeight, 120) + "px";
   });
 
-  // ── Accept ───────────────────────────────────────────────────────────────
-  document.getElementById("acceptBtn").onclick = (e) => {
-    runAction(e.target, async () => {
-      await apiCall(`/api/interests/${currentInterestId}/accept`, { method: "POST" });
-      Toast.success("Accepted!");
-      await loadConversations();
-    });
-  };
+  // ✅ BUTTON HOOKS
+  // Accept
+  document.getElementById("acceptBtn").onclick = (e) => performAction("accept");
 
-  // ── Reject ───────────────────────────────────────────────────────────────
+  // Reject
   document.getElementById("rejectBtn").onclick = (e) => {
-    if (!confirm("Are you sure you want to REJECT this deal?")) return;
-    runAction(e.target, async () => {
-      await apiCall(`/api/interests/${currentInterestId}/reject`, { method: "POST" });
-      Toast.success("Deal rejected.");
-      await loadConversations();
-    });
+    if (confirm("Are you sure you want to REJECT this deal?")) {
+        performAction("reject");
+    }
   };
 
   // ── Counter-offer modal ──────────────────────────────────────────────────
@@ -368,43 +413,55 @@ function setupEventListeners() {
   document.getElementById("closeCounterModal").onclick = () => modal.classList.add("hidden");
   document.getElementById("cancelCounter").onclick = () => modal.classList.add("hidden");
 
+  // Close modal when clicking on the overlay
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  };
+
   document.getElementById("submitCounter").onclick = (e) => {
-    const price = document.getElementById("counterPrice").value;
-    const qty   = document.getElementById("counterQty").value;
-    const note  = document.getElementById("counterNote").value;
+    const price = parseFloat(document.getElementById("counterPrice").value);
+    const quantity = parseInt(document.getElementById("counterQty").value);
 
-    if (!price && !qty) { Toast.error("Enter a new price or quantity"); return; }
+    // ✅ VALIDATION (MANDATORY)
+    if (price <= 0 || quantity <= 0) {
+      Toast.error("Invalid values");
+      return;
+    }
 
-    runAction(e.target, async () => {
-      await apiCall(`/api/interests/${currentInterestId}/counter_offer`, {
-        method: "POST",
-        body: JSON.stringify({ price: price || undefined, quantity: qty || undefined, note }),
-      });
-      Toast.success("Counter offer sent!");
-      modal.classList.add("hidden");
-      // Clear fields
-      document.getElementById("counterPrice").value = "";
-      document.getElementById("counterQty").value   = "";
-      document.getElementById("counterNote").value  = "";
-      await loadConversations();
-      await loadMessages(currentInterestId);
+    // Counter
+    performAction("counter", {
+      price: price,
+      quantity: quantity
     });
+
+    modal.classList.add("hidden");
+    // Clear fields
+    document.getElementById("counterPrice").value = "";
+    document.getElementById("counterQty").value   = "";
+    document.getElementById("counterNote").value  = "";
   };
 }
 
 // ── POLLING ───────────────────────────────────────────────────────────────────
 // 5s message poll + 10s deal summary poll (separate as per spec Part 6)
 
+// ✅ FIX POLLING (FINAL CLEAN)
 function startPolling() {
   stopPolling();
-  // 5s: new messages in open chat
-  msgPollInterval = setInterval(() => {
-    if (currentInterestId) loadMessages(currentInterestId);
-  }, 5000);
-  // 10s: conversation list + deal summary refresh
-  dealPollInterval = setInterval(() => {
-    loadConversations();
-  }, 10000);
+
+  msgPollInterval = setInterval(async () => {
+    if (!currentInterestId) return;
+
+    try {
+      const data = await apiCall(`/api/messages/conversation/${currentInterestId}`);
+
+      renderMessages(data.messages);
+      renderDealUI(data.interest);
+
+    } catch (err) {
+      console.error(err);
+    }
+  }, 3000);
 }
 
 function stopPolling() {

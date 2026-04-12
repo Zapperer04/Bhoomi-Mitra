@@ -107,6 +107,7 @@ class Interest(db.Model):
     # Invariant: accepted_by == "both" iff status == "accepted"
     accepted_by        = db.Column(db.String(20), nullable=True)
     created_at         = db.Column(db.DateTime, default=datetime.utcnow)
+    finalized_at       = db.Column(db.DateTime, nullable=True)
 
     messages = db.relationship(
         "Message", backref="interest", lazy=True, cascade="all, delete-orphan"
@@ -139,6 +140,7 @@ class Interest(db.Model):
             "status":             self.status,
             "accepted_by":        self.accepted_by,
             "created_at":         self.created_at.isoformat() + "Z" if self.created_at else None,
+            "finalized_at":       self.finalized_at.isoformat() + "Z" if self.finalized_at else None,
         }
 
 

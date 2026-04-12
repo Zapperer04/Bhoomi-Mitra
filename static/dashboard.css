@@ -412,15 +412,14 @@ h1, h2, h3, h4 {
 .crop-card p { font-size: 0.9rem; color: var(--gray-600); }
 .crop-card p b { color: var(--gray-900); font-weight: 700; }
 
-.crop-card .status-badge {
-    position: absolute; top: 1.5rem; right: 1.5rem;
-    background: var(--green-50);
-    color: var(--green-700);
-    padding: 0.4rem 0.8rem;
-    border-radius: var(--radius-full);
-    font-weight: 800; font-size: 0.7rem;
     text-transform: uppercase;
 }
+
+/* ── STATUS BADGE VARIANTS (Unified) ── */
+.status-badge.accepted, .status-accepted { background: var(--green-100); color: var(--green-800); }
+.status-badge.rejected, .status-rejected { background: var(--red-light); color: var(--red-dark); }
+.status-badge.pending, .status-pending { background: var(--amber-light); color: var(--amber-dark); }
+.status-badge.negotiating, .status-negotiating { background: var(--blue-light); color: var(--blue-dark); }
 
 /* ── INTEREST REQUESTS ────────────────────────────────────── */
 .interest-card {
@@ -430,7 +429,32 @@ h1, h2, h3, h4 {
     padding: 1.5rem;
     transition: all var(--transition);
 }
-.interest-card:hover { box-shadow: var(--shadow-md); transform: scale(1.02); }
+.interest-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); }
+
+/* ── INTEREST CARD BUTTONS ────────────────────────────────── */
+.interest-card .actions { display: flex; gap: 8px; margin-top: 1rem; flex-wrap: wrap; }
+.interest-card .actions button, .interest-card .actions a {
+    flex: 1; padding: 0.6rem; border-radius: var(--radius-md); font-weight: 700; font-size: 0.8rem;
+    cursor: pointer; border: none; font-family: 'Sora', sans-serif; text-decoration: none; text-align: center;
+    transition: all var(--transition); display: flex; align-items: center; justify-content: center;
+}
+
+.btn-accept { background: var(--green-600); color: white; }
+.btn-accept:hover { background: var(--green-700); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+
+.btn-negotiate { background: var(--white); color: var(--blue-600); border: 1.5px solid var(--blue-100) !important; }
+.btn-negotiate:hover { border-color: var(--blue-400) !important; color: var(--blue-700); }
+
+.btn-reject { background: var(--red-50); color: var(--red-700); border: 1px solid var(--red-100) !important; }
+.btn-reject:hover { background: var(--red-100); }
+
+.btn-withdraw { background: var(--gray-100); color: var(--gray-600); }
+.btn-withdraw:hover { background: var(--gray-200); }
+
+.btn-message { background: var(--green-50); color: var(--green-700); }
+.btn-message:hover { background: var(--green-100); }
+
+.hidden { display: none !important; }
 
 /* ── HISTORY MODIFICATIONS ────────────────────────────────── */
 .history-header {

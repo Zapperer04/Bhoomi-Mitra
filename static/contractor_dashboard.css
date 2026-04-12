@@ -374,10 +374,10 @@ hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacit
     text-transform: uppercase; letter-spacing: 0.05em;
     margin-bottom: 1rem;
 }
-.status-pending     { background: var(--amber-light); color: var(--amber-dark); }
-.status-negotiating { background: var(--blue-light); color: var(--blue-dark); }
-.status-accepted    { background: var(--green-100); color: var(--green-700); }
-.status-rejected    { background: var(--red-light); color: var(--red); }
+.status-pill.accepted, .status-accepted    { background: var(--green-100); color: var(--green-700); }
+.status-pill.rejected, .status-rejected    { background: var(--red-light); color: var(--red); }
+.status-pill.pending, .status-pending      { background: var(--amber-light); color: var(--amber-dark); }
+.status-pill.negotiating, .status-negotiating { background: var(--blue-light); color: var(--blue-dark); }
 
 /* ── BUTTONS & ACTIONS ────────────────────────────────────── */
 .btn, .btn-primary, .btn-chat, .btn-warning, .btn-danger, .btn-secondary, 
@@ -442,8 +442,29 @@ hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacit
 }
 .action-btn.light:hover { background: var(--green-50); border-color: var(--green-200); }
 
-.actions { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
 .actions .btn, .actions button { flex: 1; }
+
+/* ── INTEREST CARD ACTIONS ────────────────────────────────── */
+.interest-grid .actions { display: flex; gap: 8px; margin-top: 1rem; flex-wrap: wrap; }
+.interest-grid .actions .btn {
+    flex: 1; padding: 0.6rem; border-radius: var(--radius-md); font-weight: 700; font-size: 0.8rem;
+    cursor: pointer; border: none; font-family: 'Sora', sans-serif; text-decoration: none; text-align: center;
+    transition: all var(--transition); display: flex; align-items: center; justify-content: center;
+}
+
+.interest-grid .btn-accept { background: var(--green-600); color: white; }
+.interest-grid .btn-accept:hover { background: var(--green-700); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+
+.interest-grid .btn-counter { background: var(--white); color: var(--blue-600); border: 1.5px solid var(--blue-100) !important; }
+.interest-grid .btn-counter:hover { border-color: var(--blue-400) !important; color: var(--blue-700); }
+
+.interest-grid .btn-withdraw { background: var(--gray-100); color: var(--gray-600); }
+.interest-grid .btn-withdraw:hover { background: var(--gray-200); }
+
+.interest-grid .btn-chat { background: var(--green-50); color: var(--green-700); }
+.interest-grid .btn-chat:hover { background: var(--green-100); }
+
+.hidden { display: none !important; }
 
 /* ── MODALS (Unified Premium) ────────────────────────────── */
 .modal {
