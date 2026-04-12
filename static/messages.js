@@ -137,7 +137,52 @@ function openConversation(conv, element = null) {
   lastMessageId = 0;
   document.getElementById("messagesArea").innerHTML = '<div class="loading-state">Loading chat...</div>';
   
+  renderDealUI(conv);
   loadMessages(conv.interest_id);
+}
+
+function renderDealUI(conv) {
+  const bar = document.getElementById("dealStatusBar");
+  const panel = document.getElementById("negotiationPanel");
+  
+  // Populate Status Bar with defensive fallbacks
+  const displayPrice = conv.price_offered || 0;
+  const displayQty = conv.quantity_requested || 0;
+  
+  document.getElementById("statPrice").textContent = `₹${displayPrice}/q`;
+  document.getElementById("statQty").textContent = `${displayQty}q`;
+  
+  const statusEl = document.getElementById("statStatus");
+  const currentStatus = conv.status || "pending";
+  statusEl.textContent = currentStatus.toUpperCase();
+  statusEl.className = `value badge status-${currentStatus}`;
+
+  // Logic to show/hide negotiation panel
+  // Only show if status is pending or negotiating
+  if (conv.status === 'accepted' || conv.status === 'rejected') {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  
+  const isFarmer = currentUserId === conv.farmer_id;
+  const acceptBtn = document.getElementById("acceptBtn");
+  const rejectBtn = document.getElementById("rejectBtn");
+  const counterBtn = document.getElementById("counterBtn");
+  const negText = document.getElementById("negText");
+
+  // Reset states
+  acceptBtn.disabled = false;
+  
+  if (conv.accepted_by === (isFarmer ? 'farmer' : 'contractor')) {
+    acceptBtn.textContent = "You Accepted";
+    acceptBtn.disabled = true;
+    negText.textContent = "Waiting for other party to accept...";
+  } else {
+    acceptBtn.textContent = "Accept Deal";
+    negText.textContent = "Take Action on this Deal";
+  }
 }
 
 async function loadMessages(id) {
@@ -202,6 +247,55 @@ function setupEventListeners() {
 
   btn.onclick = send;
   input.onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+
+  // Negotiation Action Listeners
+  document.getElementById("acceptBtn").onclick = (e) => {
+    runAction(e.target, async () => {
+      await apiCall(`/api/interests/${currentInterestId}/accept`, { method: "POST" });
+      Toast.success("You have accepted the deal!");
+      await loadConversations();
+      const updated = conversations.find(c => c.interest_id === currentInterestId);
+      if (updated) renderDealUI(updated);
+    });
+  };
+
+  document.getElementById("rejectBtn").onclick = (e) => {
+    if (!confirm("Are you sure you want to REJECT this deal?")) return;
+    runAction(e.target, async () => {
+      await apiCall(`/api/interests/${currentInterestId}/reject`, { method: "POST" });
+      Toast.success("Deal rejected.");
+      await loadConversations();
+      // Close chat since it's rejected
+      document.getElementById("chatContainer").classList.add("hidden");
+      document.getElementById("emptyState").style.display = "flex";
+    });
+  };
+
+  // Modal Setup
+  const modal = document.getElementById("counterModal");
+  document.getElementById("counterBtn").onclick = () => modal.classList.remove("hidden");
+  document.getElementById("closeCounterModal").onclick = () => modal.classList.add("hidden");
+  document.getElementById("cancelCounter").onclick = () => modal.classList.add("hidden");
+
+  document.getElementById("submitCounter").onclick = (e) => {
+    const price = document.getElementById("counterPrice").value;
+    const qty = document.getElementById("counterQty").value;
+    const note = document.getElementById("counterNote").value;
+
+    if (!price && !qty) { Toast.error("Please enter a new price or quantity"); return; }
+
+    runAction(e.target, async () => {
+      await apiCall(`/api/interests/${currentInterestId}/counter_offer`, {
+        method: "POST",
+        body: JSON.stringify({ price, quantity: qty, note })
+      });
+      Toast.success("Counter offer sent!");
+      modal.classList.add("hidden");
+      await loadConversations();
+      const updated = conversations.find(c => c.interest_id === currentInterestId);
+      if (updated) renderDealUI(updated);
+    });
+  };
 }
 
 function startPolling() {

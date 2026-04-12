@@ -858,13 +858,19 @@ def counter_offer(interest_id):
 
             if new_qty:
                 new_qty_int = int(new_qty)
-                available   = i.crop.effective_quantity()
+                if new_qty_int <= 0:
+                    return api_response(success=False, error="Quantity must be positive", status=400)
+                
+                available = i.crop.effective_quantity()
                 if new_qty_int > available:
                     return api_response(success=False, error=f"Qty exceeds stock ({available}q)", status=400)
                 i.quantity_requested = new_qty_int
 
             if new_price:
-                i.price_offered = float(new_price)
+                new_price_val = float(new_price)
+                if new_price_val <= 0:
+                    return api_response(success=False, error="Price must be positive", status=400)
+                i.price_offered = new_price_val
 
             # Reset acceptance on counter-offer
             i.accepted_by = None
@@ -958,6 +964,11 @@ def get_conversations():
             "last_message":     preview,
             "last_message_time": last_msg.created_at.isoformat() if last_msg else None,
             "unread_count":     unread,
+            # Deal Metadata for Status Bar
+            "farmer_id":          interest.farmer_id,
+            "contractor_id":      interest.contractor_id,
+            "price_offered":      interest.price_offered,
+            "quantity_requested": interest.quantity_requested,
         })
 
     conversations.sort(key=lambda c: c["last_message_time"] or "", reverse=True)

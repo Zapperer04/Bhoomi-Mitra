@@ -63,9 +63,37 @@
                     </a>
                 </div>
             </div>
+            
+            <div id="dealStatusBar" class="deal-status-bar">
+                <div class="status-item">
+                    <span class="label" data-i18n="messages.status_price">Offered Price</span>
+                    <span id="statPrice" class="value">--</span>
+                </div>
+                <div class="status-divider"></div>
+                <div class="status-item">
+                    <span class="label" data-i18n="messages.status_qty">Quantity</span>
+                    <span id="statQty" class="value">--</span>
+                </div>
+                <div class="status-divider"></div>
+                <div class="status-item">
+                    <span class="label" data-i18n="messages.status_label">Status</span>
+                    <span id="statStatus" class="value badge">--</span>
+                </div>
+            </div>
 
             <div id="messagesArea" class="messages-area">
                 <div class="loading-state">Loading messages...</div>
+            </div>
+
+            <div id="negotiationPanel" class="negotiation-panel hidden">
+                <div class="neg-header">
+                    <span id="negText" data-i18n="messages.action_prompt">Take Action on this Deal</span>
+                </div>
+                <div class="neg-actions">
+                    <button id="rejectBtn" class="btn-neg reject" data-i18n="messages.reject_btn">Reject</button>
+                    <button id="counterBtn" class="btn-neg counter" data-i18n="messages.counter_btn">Counter Offer</button>
+                    <button id="acceptBtn" class="btn-neg accept" data-i18n="messages.accept_btn">Accept Deal</button>
+                </div>
             </div>
 
             <div class="message-input-area">
@@ -82,6 +110,34 @@
             </div>
         </div>
     </section>
+
+    <!-- Counter Offer Modal -->
+    <div id="counterModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="messages.counter_title">Propose Counter Offer</h3>
+                <button id="closeCounterModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label data-i18n="messages.new_price">New Price (₹/quintal)</label>
+                    <input type="number" id="counterPrice" placeholder="E.g. 2100">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="messages.new_qty">New Quantity (quintals)</label>
+                    <input type="number" id="counterQty" placeholder="E.g. 50">
+                </div>
+                <div class="input-group">
+                    <label data-i18n="messages.negotiation_note">Add a Note (Optional)</label>
+                    <textarea id="counterNote" placeholder="Explain your proposal..." rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelCounter" class="btn-secondary" data-i18n="btn.cancel">Cancel</button>
+                <button id="submitCounter" class="btn-primary" data-i18n="messages.submit_counter">Send Offer</button>
+            </div>
+        </div>
+    </div>
 
 </main>
 
