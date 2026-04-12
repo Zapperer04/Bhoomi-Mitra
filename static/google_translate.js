@@ -152,3 +152,49 @@ function buildCustomUI() {
         if (found) document.getElementById('customLangLabel').innerText = found.name;
     }
 }
+
+// =============================================================================
+// DT POLYFILL (Backwards Compatibility)
+// =============================================================================
+// Provides a mock 'DT' object to prevent legacy Dashboard scripts from crashing 
+// now that the manual dictionary system has been removed.
+window.DT = {
+    ready: Promise.resolve(),
+    t: function(key) {
+        const dictionary = {
+            "status.active": "Active", 
+            "status.partially_sold": "Partially Sold", 
+            "status.negotiating": "Negotiating", 
+            "status.sold": "Sold", 
+            "status.pending": "Pending",
+            "status.rejected": "Rejected",
+            "no_active_crops": "No active crops found.", 
+            "label.qty": "Qty", 
+            "farmer.quantity_quintals": "Quintals", 
+            "label.status": "Status", 
+            "remove_listing": "Remove Listing", 
+            "confirm_remove_listing": "Are you sure you want to remove this active listing?",
+            "no_history": "No history available.", 
+            "btn.clear": "Clear", 
+            "no_interests": "No interests found.", 
+            "open_chat": "Open Chat", 
+            "final_accept_btn": "Accept & Finalize",
+            "accept_btn": "Accept", 
+            "reject_btn": "Reject", 
+            "label.contractor": "Contractor", 
+            "label.offered": "Offered Price",
+            "failed_crops": "Failed to load crops data.", 
+            "no_crops": "No active crops available right now.", 
+            "interest_shown": "Interest Shown", 
+            "resubmit_btn": "Resubmit Offer",
+            "show_interest_btn": "Show Interest", 
+            "quantity_lbl": "Quantity", 
+            "quintals": "Quintals", 
+            "price_lbl": "Price", 
+            "quintal_short": "quintal", 
+            "location_lbl": "Location", 
+            "toast.interest_sent": "Interest has been sent successfully!"
+        };
+        return dictionary[key] || key.split('.').pop().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+};

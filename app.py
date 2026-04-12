@@ -352,22 +352,31 @@ def create_crop():
 
     data = request.get_json()
     try:
-        qty  = int(data["quantity"])
+        qty = int(data.get("quantity", 0))
+        prc = float(data.get("price", 0))
+        
+        if qty <= 0:
+            return api_response(success=False, error="Quantity must be greater than zero", status=400)
+        if prc < 0:
+            return api_response(success=False, error="Price cannot be negative", status=400)
+
         crop = Crop(
-            farmer_id         = _current_user_id(),
-            crop_name         = data["cropName"],
-            quantity          = qty,
+            farmer_id          = _current_user_id(),
+            crop_name          = data.get("cropName", "Unknown Crop"),
+            quantity           = qty,
             quantity_remaining = qty,
-            price             = float(data.get("price", 0)),
-            availability_date = date.fromisoformat(data["availabilityDate"]),
-            location          = data["location"],
-            status            = "active",
+            price              = prc,
+            availability_date  = date.fromisoformat(data.get("availabilityDate", date.today().isoformat())),
+            location           = data.get("location", "Not specified"),
+            status             = "active",
         )
         db.session.add(crop)
         db.session.commit()
         return api_response(data={"message": "Crop posted"}, status=201)
+    except (ValueError, KeyError) as e:
+        return api_response(success=False, error=f"Invalid data: {str(e)}", status=400)
     except Exception as e:
-        return api_response(success=False, error=str(e), status=500)
+        return api_response(success=False, error="Internal server error", status=500)
 
 
 @app.route("/api/crops", methods=["GET"])
@@ -479,11 +488,15 @@ def create_interest():
             return api_response(success=False, error="Active interest already exists", status=409)
 
         new_qty = int(data.get("quantity", available_qty))
+        if new_qty <= 0:
+            return api_response(success=False, error="Quantity must be greater than zero", status=400)
         if new_qty > available_qty:
             return api_response(success=False, error=f"Requested quantity exceeds available ({available_qty}q)", status=400)
 
         existing.quantity_requested = new_qty
         existing.price_offered      = float(data.get("price", crop.price))
+        if existing.price_offered < 0:
+            return api_response(success=False, error="Price cannot be negative", status=400)
         existing.status             = "pending"
         existing.accepted_by        = None
         existing.created_at         = datetime.utcnow()
@@ -491,6 +504,8 @@ def create_interest():
         return api_response(data={"message": "Interest re-submitted", "interest_id": existing.id})
 
     qty_req = int(data.get("quantity", available_qty))
+    if qty_req <= 0:
+        return api_response(success=False, error="Requested quantity must be greater than zero", status=400)
     if qty_req > available_qty:
         return api_response(success=False, error=f"Requested quantity exceeds available ({available_qty}q)", status=400)
 
