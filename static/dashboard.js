@@ -59,10 +59,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   initHeader();
   loadDashboardData();
 
-  document.getElementById("logoutBtn")?.addEventListener("click", () => {
-    localStorage.removeItem("access_token");
-    location.href = "/login";
-  });
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("access_token");
+      location.href = "/login";
+    });
+  }
 });
 
 async function initHeader() {

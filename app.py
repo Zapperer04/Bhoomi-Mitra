@@ -279,6 +279,16 @@ def login():           return render_template("login.html")
 @app.route("/signup")
 def signup():          return render_template("Signup.html")
 
+@app.route("/api/me")
+@jwt_required()
+def api_me():
+    user = User.query.get_or_404(int(get_jwt_identity()))
+    return jsonify({"success": True, "data": {
+        "id": user.id,
+        "name": user.name,
+        "role": user.role
+    }})
+
 @app.route("/farmer/dashboard")
 def farmer_dashboard(): return render_template("farmer_dashboard.html")
 

@@ -67,10 +67,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupFilters();
   setupModal();
 
-  document.getElementById("logoutBtn").onclick = () => {
-    localStorage.removeItem("access_token");
-    location.href = "/login";
-  };
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.onclick = () => {
+      localStorage.removeItem("access_token");
+      location.href = "/login";
+    };
+  }
 });
 
 async function initHeader() {

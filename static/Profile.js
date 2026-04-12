@@ -32,32 +32,41 @@ async function apiCall(url, options = {}) {
 document.addEventListener("DOMContentLoaded", async () => {
   if (!localStorage.getItem("access_token")) { window.location.href = "/login"; return; }
 
-  await loadData();
-  setupNameSave();
-  setupPhoneSave();
-  setupPasswordSave();
-  setupDeleteAccount();
-  setupStrengthMeter();
+  try {
+    await loadData();
+    setupNameSave();
+    setupPhoneSave();
+    setupPasswordSave();
+    setupDeleteAccount();
+    setupStrengthMeter();
+  } catch (err) {
+    console.error("Profile initialization error:", err);
+  }
 
-  document.getElementById("logoutBtn").onclick = () => {
-    localStorage.removeItem("access_token");
-    window.location.href = "/login";
-  };
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.onclick = () => {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+    };
+  }
 });
 
 async function loadData() {
   try {
     const user = await apiCall("/auth/profile");
+    if (!user) throw new Error("No user data received");
+
     const initial = (user.name || "?").charAt(0).toUpperCase();
     
     const avatarEl = document.getElementById("avatarInitial");
     if (avatarEl) avatarEl.textContent = initial;
 
     const displayTitle = document.getElementById("displayName");
-    if (displayTitle) displayTitle.textContent = user.name;
+    if (displayTitle) displayTitle.textContent = user.name || "User Profile";
 
     const displayPhone = document.getElementById("displayPhone");
-    if (displayPhone) displayPhone.textContent = user.phone;
+    if (displayPhone) displayPhone.textContent = user.phone || "";
 
     const displayRole = document.getElementById("displayRole");
     if (displayRole) {
@@ -65,13 +74,18 @@ async function loadData() {
     }
 
     const inputName = document.getElementById("inputName");
-    if (inputName) inputName.value = user.name;
+    if (inputName) inputName.value = user.name || "";
 
     const inputPhone = document.getElementById("inputPhone");
-    if (inputPhone) inputPhone.value = user.phone.replace('+91', '');
+    if (inputPhone) {
+      const raw = user.phone || "";
+      inputPhone.value = raw.replace("+91", "");
+    }
 
   } catch (err) { 
     console.error("Profile load error:", err);
+    const displayTitle = document.getElementById("displayName");
+    if (displayTitle) displayTitle.textContent = "Error Loading Profile";
     showFeedback("fbName", "error", "Failed to load profile. Please refresh."); 
   }
 }
@@ -82,8 +96,10 @@ function setupNameSave() {
     setLoading("btnSaveName", true);
     try {
       const data = await apiCall("/auth/profile/name", { method: "PATCH", body: JSON.stringify({ name }) });
-      document.getElementById("displayName").textContent = data.name;
-      await loadData();
+      if (document.getElementById("displayName")) {
+        document.getElementById("displayName").textContent = data.name;
+      }
+      await loadData(); // Correct function name
       showFeedback("fbName", "success", "✓ Name updated");
     } catch (err) { showFeedback("fbName", "error", err.message); }
     finally { setLoading("btnSaveName", false); }

@@ -231,7 +231,7 @@ body {
 .phone-input-group {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: stretch; /* Match heights perfectly */
     background: var(--gray-50);
     border: 2px solid var(--gray-200);
     border-radius: 14px;
@@ -248,7 +248,6 @@ body {
 .phone-prefix {
     background: var(--gray-100);
     border-right: 2px solid var(--gray-200);
-    height: 48px;
     display: flex;
     align-items: center;
     padding: 0 1rem;
@@ -264,9 +263,11 @@ body {
     border: none !important;
     background: transparent !important;
     border-radius: 0 !important;
-    padding-left: 0.8rem;
-    margin-bottom: 0;
+    padding: 0 1rem !important;
+    margin: 0 !important;
+    height: 48px !important;
     box-shadow: none !important;
+    flex: 1;
 }
 
 .btn-primary {
