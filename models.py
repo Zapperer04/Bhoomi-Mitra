@@ -73,7 +73,7 @@ class Crop(db.Model):
         CheckConstraint("quantity_remaining >= 0",          name="ck_crop_qty_remaining_nonneg"),
         CheckConstraint("quantity_remaining <= quantity",   name="ck_crop_qty_remaining_max"),
         CheckConstraint(
-            "status IN ('active', 'partially_sold', 'sold', 'removed')",
+            "status IN ('active', 'partially_sold', 'sold', 'removed', 'expired')",
             name="ck_crop_status_valid"
         ),
     )

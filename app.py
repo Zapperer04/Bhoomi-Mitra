@@ -109,13 +109,7 @@ with app.app_context():
     # This prevents 'already exists' errors from bloating logs and ensures
     # the schema remains in sync with the Interest and Message models.
     with db.engine.connect() as conn:
-        # ✅ RESET DB TRIGGER (Administrative Hook)
-        if os.environ.get("RESET_DB_ON_NEXT_START") == "true":
-            logger.warning("[ADMIN] RESET_DB_ON_NEXT_START is true! Dropping and recreating tables...")
-            db.drop_all()
-            db.create_all()
-            logger.info("[ADMIN] Database reset complete.")
-        else:
+            # 1. No automatic reset logic here; use reset_db.py manually if needed.
             is_postgres = "postgresql" in str(db.engine.url)
             
             # 1. Add finalized_at to interests
@@ -919,6 +913,7 @@ def create_interest():
 @app.route("/api/interests/details/<int:interest_id>", methods=["GET"])
 @jwt_required()
 def get_interest_details(interest_id):
+    check_expirations()
     user_id = _current_user_id()
     i       = Interest.query.get_or_404(interest_id)
 
@@ -955,6 +950,7 @@ def get_interest_details(interest_id):
 @app.route("/api/interests/farmer", methods=["GET"])
 @jwt_required()
 def farmer_interests():
+    check_expirations()
     user_id   = _current_user_id()
     interests = Interest.query.join(Crop).filter(Crop.farmer_id == user_id).all()
     result    = []
@@ -983,6 +979,7 @@ def farmer_interests():
 @app.route("/api/interests/contractor", methods=["GET"])
 @jwt_required()
 def contractor_interests():
+    check_expirations()
     user_id   = _current_user_id()
     interests = Interest.query.filter_by(contractor_id=user_id).all()
     result    = []

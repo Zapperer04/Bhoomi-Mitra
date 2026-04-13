@@ -54,7 +54,7 @@
         <div class="action-card">
             <h3 data-i18n="farmer.contractors">Interested Contractors</h3>
             <p data-i18n="farmer.contractors_sub">View contractors who have shown interest.</p>
-            <a href="#interestSection" class="action-btn secondary" data-i18n="farmer.view_requests">View Requests</a>
+            <a href="#activeCropContainer" class="action-btn secondary" data-i18n="farmer.view_requests">View Requests</a>
         </div>
 
         <div class="action-card highlight">
@@ -71,12 +71,7 @@
         </div>
     </section>
 
-    <section class="my-crops" id="interestSection">
-        <h3 data-i18n="farmer.interests">🔔 Interest Requests</h3>
-        <div id="interestContainer" class="interest-container">
-            <div class="loading-state" data-i18n="farmer.loading_interests">Loading interests...</div>
-        </div>
-    </section>
+    <!-- Interests are now nested inside Crop Cards (TC-26 Update) -->
 
     <section class="my-crops">
         <div class="history-header">
@@ -94,6 +89,6 @@
 
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script src="{{ url_for('static', filename='toast.js') }}"></script>
-<script src="{{ url_for('static', filename='dashboard.js') }}?v=6"></script>
+<script src="{{ url_for('static', filename='dashboard.js') }}?v=7"></script>
 </body>
 </html>

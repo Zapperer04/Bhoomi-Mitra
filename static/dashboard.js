@@ -272,12 +272,7 @@ function renderInterests(interests, container) {
     });
   });
 
-  // Also handle independent interests container (legacy or fallback)
-  if (container) {
-    container.innerHTML = `<div class="info-card" style="margin-top:2rem;">
-      <p style="font-size:0.9em; color:#6b7280;">Interests are now grouped inside each crop listing card above.</p>
-    </div>`;
-  }
+  // TC-26: Interests are exclusively nested now. Handled above.
 }
 
 async function loadUnreadCount() {
