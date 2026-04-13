@@ -23,7 +23,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 # ================= DB & MODELS =================
-from models import db, Crop, Interest, Message, User
+from models import db, Crop, Interest, Message, User, Waitlist
 from routes.auth_routes import auth_bp
 
 # ================= DATA SERVICES =================
@@ -58,7 +58,11 @@ CANONICAL_CITIES = [
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
 
-from whitenoise import WhiteNoise
+import importlib
+try:
+    WhiteNoise = importlib.import_module("whitenoise").WhiteNoise
+except ImportError:
+    WhiteNoise = None
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
@@ -79,7 +83,8 @@ CONFIRMATION_TIMEOUT_MINS = 1 # TC-41: 1 min for testing, default 4320 (3 days)
 
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
-app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
+if WhiteNoise:
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
 CORS(app, supports_credentials=True)
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
@@ -404,6 +409,7 @@ def check_expirations():
         i.accepted_by = None
         db.session.add(Message(
             interest_id=i.id,
+            sender_id=i.farmer_id,
             content="__SYSTEM__:offer_timed_out"
         ))
     
@@ -419,6 +425,7 @@ def check_expirations():
         i.status = "disputed"
         db.session.add(Message(
             interest_id=i.id,
+            sender_id=i.farmer_id,
             content="__SYSTEM__:deal_disputed"
         ))
 
@@ -436,6 +443,7 @@ def auto_reject_safe(crop_id, reason="auto_rejected_sold_out"):
             i.accepted_by = None
             db.session.add(Message(
                 interest_id=i.id,
+                sender_id=i.farmer_id,
                 content=f"__SYSTEM__:{reason}"
             ))
 
@@ -549,11 +557,11 @@ def join_waitlist():
     
     existing = Waitlist.query.filter_by(crop_id=crop_id, user_id=user_id).first()
     if existing:
-        return api_response(True, message="Already on waitlist")
+        return api_response(True, data={"message": "Already on waitlist"})
     
     db.session.add(Waitlist(crop_id=crop_id, user_id=user_id))
     db.session.commit()
-    return api_response(True, message="Joined waitlist")
+    return api_response(True, data={"message": "Joined waitlist"})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -692,7 +700,15 @@ def delete_crop(crop_id):
     if crop.status in ("sold", "removed"):
         return api_response(success=False, error="Crop is already sold or removed", status=409)
 
-    # Auto-reject all open interests and notify via system message
+    # Block FIRST if a deal is finalized
+    live_accepted = Interest.query.filter(
+        Interest.crop_id == crop_id,
+        Interest.status == "accepted",
+    ).first()
+    if live_accepted:
+        return api_response(success=False, error="Cannot remove a crop with a finalized deal.", status=409)
+
+    # Only then auto-reject open interests
     open_interests = Interest.query.filter(
         Interest.crop_id == crop_id,
         Interest.status.in_(["pending", "negotiating"]),
@@ -702,19 +718,9 @@ def delete_crop(crop_id):
         i.accepted_by = None
         db.session.add(Message(
             interest_id=i.id,
+            sender_id=i.farmer_id,
             content="__SYSTEM__:crop_listing_removed"
         ))
-    
-    crop.status = "removed"
-    db.session.commit()
-
-    # Block removal only if a deal is ALREADY finalized (accepted by both)
-    live_accepted = Interest.query.filter(
-        Interest.crop_id == crop_id,
-        Interest.status == "accepted",
-    ).first()
-    if live_accepted:
-        return api_response(success=False, error="Cannot remove a crop with a finalized deal.", status=409)
 
     crop.status = "removed"
     db.session.commit()
@@ -782,6 +788,7 @@ def update_crop(crop_id):
             i.accepted_by = None
             db.session.add(Message(
                 interest_id=i.id,
+                sender_id=i.farmer_id,
                 content="__SYSTEM__:listing_price_changed_voided"
             ))
     
@@ -797,6 +804,7 @@ def update_crop(crop_id):
             if i.status != "rejected" and i.quantity_requested > crop.quantity_remaining:
                  db.session.add(Message(
                      interest_id=i.id,
+                     sender_id=i.farmer_id,
                      content="__SYSTEM__:qty_correction_required"
                  ))
 
@@ -1472,13 +1480,13 @@ def confirm_deal_status(interest_id):
         if interest.farmer_id != user_id:
             return api_response(success=False, error="Only farmer can confirm payment", status=403)
         interest.payment_confirmed_at = datetime.utcnow()
-        db.session.add(Message(interest_id=interest.id, content="__SYSTEM__:payment_confirmed"))
+        db.session.add(Message(interest_id=interest.id, sender_id=user_id, content="__SYSTEM__:payment_confirmed"))
 
     elif confirm_type == "goods":
         if interest.contractor_id != user_id:
             return api_response(success=False, error="Only contractor can confirm goods", status=403)
         interest.goods_confirmed_at = datetime.utcnow()
-        db.session.add(Message(interest_id=interest.id, content="__SYSTEM__:goods_confirmed"))
+        db.session.add(Message(interest_id=interest.id, sender_id=user_id, content="__SYSTEM__:goods_confirmed"))
     else:
         return api_response(success=False, error="Invalid confirmation type", status=400)
         
@@ -1487,7 +1495,7 @@ def confirm_deal_status(interest_id):
     # Move to completed if both are confirmed
     if interest.payment_confirmed_at and interest.goods_confirmed_at:
         interest.status = "completed"
-        db.session.add(Message(interest_id=interest.id, content="__SYSTEM__:deal_completed"))
+        db.session.add(Message(interest_id=interest.id, sender_id=interest.farmer_id, content="__SYSTEM__:deal_completed"))
 
     db.session.commit()
     return api_response(data={"message": f"{confirm_type} confirmed", "interest": interest.to_dict()})

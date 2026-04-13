@@ -949,16 +949,7 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 
 /* ── TRANSACTION LIFECYCLE ELEMENTS (TC-10 to TC-41) ───────────────── */
 
-.waiting-banner {
-    background: #eff6ff;
-    color: #2563eb;
-    text-align: center;
-    padding: 0.6rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-bottom: 1px solid #bfdbfe;
-    animation: fadeIn 0.3s ease;
-}
+
 
 .system-banner {
     background: linear-gradient(135deg, var(--green-600), var(--green-500));

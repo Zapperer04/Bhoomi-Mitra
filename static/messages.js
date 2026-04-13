@@ -181,7 +181,11 @@ function openConversation(conv, element = null) {
 // Spec Part 6: pinned above messages, re-fetched every 10s.
 
 function renderDealUI(conv) {
+  if (!conv) return;
+  currentConv = conv;
   const panel = document.getElementById("negotiationPanel");
+  const compPanel = document.getElementById("completionPanel");
+  const inputArea = document.querySelector(".message-input-area");
 
   // ── Status bar values ────────────────────────────────────────────────────
   const displayPrice = conv.price_offered     != null ? `₹${conv.price_offered}/q` : "—";
@@ -232,7 +236,7 @@ function renderDealUI(conv) {
     const myRole    = isFarmer ? "farmer" : "contractor";
     const otherRole = isFarmer ? "contractor" : "farmer";
 
-    if (conv.accepted_by === myRole) {
+    if (conv.accepted_by === myRole && conv.status !== "accepted") {
       waitBanner.textContent = `⏳ Waiting for ${otherRole} to confirm`;
       waitBanner.classList.remove("hidden");
     } else {
@@ -240,30 +244,10 @@ function renderDealUI(conv) {
     }
   }
 
-  // ── Negotiation action panel ─────────────────────────────────────────────
-  // Hide entirely for accepted or rejected deals
-  if (conv.status === "accepted" || conv.status === "rejected") {
-    panel.classList.add("hidden");
-    // Disable message input for rejected deals
-    const inputArea = document.querySelector(".message-input-area");
-    if (inputArea && conv.status === "rejected") {
-      inputArea.style.opacity = "0.4";
-      inputArea.style.pointerEvents = "none";
-      document.getElementById("messageInput").placeholder = "Chat closed — deal was rejected";
-    }
-    return;
-  }
-
-  // Restore input area if previously disabled
-  const inputArea = document.querySelector(".message-input-area");
-  if (inputArea) { inputArea.style.opacity = ""; inputArea.style.pointerEvents = ""; }
-
-  const compPanel = document.getElementById("completionPanel");
-  if (compPanel) compPanel.classList.add("hidden");
-
-  // Hide entirely for rejected, completed, disputed
+  // ── Logic Group 1: Terminal states ────────────────────────────────────────
   if (["rejected", "completed", "disputed"].includes(conv.status)) {
     panel.classList.add("hidden");
+    compPanel?.classList.add("hidden");
     if (inputArea && conv.status === "rejected") {
       inputArea.style.opacity = "0.4";
       inputArea.style.pointerEvents = "none";
@@ -272,36 +256,41 @@ function renderDealUI(conv) {
     return;
   }
 
-  const isFarmer  = (currentUserId === conv.farmer_id);
-
-  // TC-38: If accepted, hide negotiation but show completion panel
+  // ── Logic Group 2: Accepted (Finalizing transactions) ────────────────────
   if (conv.status === "accepted") {
-     panel.classList.add("hidden");
-     if (compPanel) compPanel.classList.remove("hidden");
+    panel.classList.add("hidden");
+    if (compPanel) {
+      compPanel.classList.remove("hidden");
+      const isFarmer = (currentUserId === conv.farmer_id);
+      const payBtn = document.getElementById("confirmPaymentBtn");
+      const goodsBtn = document.getElementById("confirmGoodsBtn");
 
-     const payBtn = document.getElementById("confirmPaymentBtn");
-     const goodsBtn = document.getElementById("confirmGoodsBtn");
-
-     if (isFarmer) {
-         if (payBtn) payBtn.style.display = "inline-block";
-         if (goodsBtn) goodsBtn.style.display = "none";
-         if (payBtn) {
-             payBtn.disabled = !!conv.payment_confirmed_at;
-             payBtn.textContent = conv.payment_confirmed_at ? "✓ Payment Confirmed" : "Mark Payment Received";
-         }
-     } else {
-         if (payBtn) payBtn.style.display = "none";
-         if (goodsBtn) goodsBtn.style.display = "inline-block";
-         if (goodsBtn) {
-             goodsBtn.disabled = !!conv.goods_confirmed_at;
-             goodsBtn.textContent = conv.goods_confirmed_at ? "✓ Goods Confirmed" : "Mark Goods Received";
-         }
-     }
-     return;
+      if (isFarmer) {
+        if (payBtn) {
+          payBtn.style.display = "inline-block";
+          payBtn.disabled = !!conv.payment_confirmed_at;
+          payBtn.textContent = conv.payment_confirmed_at ? "✓ Payment Confirmed" : "Mark Payment Received";
+        }
+        if (goodsBtn) goodsBtn.style.display = "none";
+      } else {
+        if (payBtn) payBtn.style.display = "none";
+        if (goodsBtn) {
+          goodsBtn.style.display = "inline-block";
+          goodsBtn.disabled = !!conv.goods_confirmed_at;
+          goodsBtn.textContent = conv.goods_confirmed_at ? "✓ Goods Confirmed" : "Mark Goods Received";
+        }
+      }
+    }
+    return;
   }
 
+  // ── Logic Group 3: Active negotiation (pending, negotiating) ────────────
   panel.classList.remove("hidden");
+  compPanel?.classList.add("hidden");
+  if (inputArea) { inputArea.style.opacity = ""; inputArea.style.pointerEvents = ""; }
+  enableAllActions();
 
+  const isFarmer  = (currentUserId === conv.farmer_id);
   const myRole    = isFarmer ? "farmer" : "contractor";
   const otherRole = isFarmer ? "contractor" : "farmer";
 
@@ -318,18 +307,12 @@ function renderDealUI(conv) {
   counterBtn.classList.remove("hidden");
   if (withdrawBtn) withdrawBtn.classList.add("hidden");
 
-  // TC-10: Negotiation is ALLOWED even on pending deals (Reverting TC-06 hard block)
-  // We only hide it if the deal is finalized or we are waiting for a response.
-  
-  if (conv.accepted_by === "both") {
-    panel.classList.add("hidden");
-  } else if (conv.accepted_by === myRole) {
+  if (conv.accepted_by === myRole) {
     // Current user already accepted/countered — show withdraw option
     acceptBtn.textContent = "✓ Sent — Awaiting Response"; 
     acceptBtn.disabled    = true;
     negText.innerHTML     = `<span style="color:#6b7280">⏳ Waiting for ${otherRole} to respond...</span>`;
     counterBtn.classList.add("hidden");
-    // Show withdraw for both roles now if they want to cancel their turn
     if (withdrawBtn) {
       withdrawBtn.textContent = (myRole === "farmer") ? "↩ Withdraw Acceptance" : "↩ Withdraw Interest";
       withdrawBtn.classList.remove("hidden");
@@ -340,20 +323,12 @@ function renderDealUI(conv) {
     acceptBtn.classList.add("btn-pulse");
     negText.innerHTML     = `<strong style="color:#10b981">⭐ ${otherRole === "farmer" ? "Farmer" : "Contractor"} accepted!</strong> Confirm or Negotiate.`;
   } else {
-    // No acceptance yet — show normal actions
+    // No acceptance yet
     negText.textContent = "Action Required: Take a turn in this deal";
-    // Contractor can fully withdraw a pending OR negotiating deal
     if (withdrawBtn && !isFarmer && (conv.status === "pending" || conv.status === "negotiating")) {
       withdrawBtn.textContent = "↩ Withdraw Interest";
       withdrawBtn.classList.remove("hidden");
     }
-  }
-
-  // ✅ DISABLE CLOSED DEAL
-  if (conv.status === "accepted" || conv.status === "rejected") {
-    disableAllActions();
-  } else {
-    enableAllActions();
   }
 }
 
@@ -445,6 +420,7 @@ async function loadMessages(interestId) {
     if (!interestId) return;
     try {
         const data = await apiCall(`/api/messages/conversation/${interestId}`);
+        currentConv = data.interest;
         renderMessages(data.messages);
         renderDealUI(data.interest);
     } catch (err) {
@@ -528,10 +504,9 @@ function setupEventListeners() {
   // Withdraw (Contractor withdrawing interest OR farmer withdrawing partial acceptance)
   const withdrawBtn = document.getElementById("withdrawBtn");
   if (withdrawBtn) {
-    withdrawBtn.onclick = () => {
-      if (confirm("Withdraw? This will cancel your involvement in this deal.")) {
-        performAction("withdraw");
-      }
+    withdrawBtn.onclick = async () => {
+      const ok = await Toast.confirm("Withdraw? This will cancel your involvement in this deal.", { danger: true });
+      if (ok) performAction("withdraw");
     };
   }
 
@@ -546,27 +521,60 @@ function setupEventListeners() {
     if (e.target === modal) modal.classList.add("hidden");
   };
 
-  document.getElementById("submitCounter").onclick = (e) => {
-    const price = parseFloat(document.getElementById("counterPrice").value);
+  document.getElementById("submitCounter").onclick = () => {
+    const price    = parseFloat(document.getElementById("counterPrice").value);
     const quantity = parseInt(document.getElementById("counterQty").value);
+    const delivery = document.getElementById("counterDelivery").value.trim();
+    const payment  = document.getElementById("counterPayment").value.trim();
+    const note     = document.getElementById("counterNote").value.trim();
 
-    // ✅ VALIDATION (MANDATORY)
     if (price <= 0 || quantity <= 0) {
       Toast.error("Invalid values");
       return;
     }
 
-    // Counter
-    performAction("counter", {
-      price: price,
-      quantity: quantity
-    });
+    // Populate confirmation modal
+    document.getElementById("confPrice").textContent    = `₹${price}/q`;
+    document.getElementById("confQty").textContent      = `${quantity} quintals`;
+    document.getElementById("confDelivery").textContent = delivery || "Not specified";
+    document.getElementById("confPayment").textContent  = payment  || "Not specified";
+    document.getElementById("confNote").textContent     = note     || "—";
 
-    modal.classList.add("hidden");
+    document.getElementById("counterModal").classList.add("hidden");
+    document.getElementById("counterConfirmModal").classList.remove("hidden");
+
+    // Store pending values for finalSubmitCounter
+    document.getElementById("finalSubmitCounter")._pending = { price, quantity, delivery, payment, note };
+  };
+
+  document.getElementById("finalSubmitCounter").onclick = () => {
+    const p = document.getElementById("finalSubmitCounter")._pending;
+    if (!p) return;
+
+    performAction("counter", p);
+    document.getElementById("counterConfirmModal").classList.add("hidden");
+
     // Clear fields
-    document.getElementById("counterPrice").value = "";
-    document.getElementById("counterQty").value   = "";
-    document.getElementById("counterNote").value  = "";
+    ["counterPrice","counterQty","counterDelivery","counterPayment","counterNote"]
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+  };
+
+  document.getElementById("backToCounter").onclick = () => {
+    document.getElementById("counterConfirmModal").classList.add("hidden");
+    document.getElementById("counterModal").classList.remove("hidden");
+  };
+
+  document.getElementById("closeCounterConfirmModal").onclick = () => {
+    document.getElementById("counterConfirmModal").classList.add("hidden");
+  };
+
+  // Close confirm modal on overlay click
+  const confirmModal = document.getElementById("counterConfirmModal");
+  confirmModal.onclick = (e) => {
+    if (e.target === confirmModal) confirmModal.classList.add("hidden");
   };
 
   // ── TC-38 / TC-40: Completion Confirmations ───────────────────────────────
@@ -622,6 +630,7 @@ function startPolling() {
 
       renderMessages(data.messages);
       renderDealUI(data.interest);
+      await loadConversations(); // keep sidebar in sync
 
     } catch (err) {
       console.error(err);
@@ -735,7 +744,8 @@ function formatMessageHelper(content) {
   }
 
   if (content === "__SYSTEM__:contractor_withdrew_finalized") {
-    if (myRole === "farmer") {
+    const isFarmer = currentConv && currentUserId === currentConv.farmer_id;
+    if (isFarmer) {
       return `
         <div class="system-info warning">
           <p>⚠️ The contractor has withdrawn from the finalized deal. Your listing stock has been restored and it is now <b>ACTIVE</b> again.</p>

@@ -227,11 +227,19 @@ async function loadMyInterests() {
       `;
 
       div.querySelector(".btn-accept")?.addEventListener("click", (e) => {
-        runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
+        Toast.confirm("Finalize this deal? You are committing to purchasing this crop.", { danger: false }).then(ok => {
+            if (ok) runAction(e.target, () => apiCall("/api/interests/action", {
+                method: "POST",
+                body: JSON.stringify({ interest_id: i.id, action: "accept" })
+            }));
+        });
       });
       div.querySelector(".btn-withdraw")?.addEventListener("click", async (e) => {
         if (await Toast.confirm("Are you sure you want to withdraw your interest? This cannot be undone.", { danger: true })) {
-          runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
+          runAction(e.target, () => apiCall("/api/interests/action", {
+              method: "POST",
+              body: JSON.stringify({ interest_id: i.id, action: "withdraw" })
+          }));
         }
       });
       div.querySelector(".btn-counter")?.addEventListener("click", (e) => {
@@ -356,12 +364,18 @@ function setupCounterModal() {
     const note  = document.getElementById("counterModalNote").value;
     if (!price && !qty) { Toast.error("Enter a new price or quantity"); return; }
     runAction(e.target, async () => {
-      await apiCall(`/api/interests/${_counterInterestId}/counter_offer`, {
-        method: "POST",
-        body: JSON.stringify({ price: price || undefined, quantity: qty || undefined, note })
-      });
-      Toast.success("Counter offer sent!");
-      hideModal();
+        await apiCall("/api/interests/action", {
+            method: "POST",
+            body: JSON.stringify({
+                interest_id: _counterInterestId,
+                action: "counter",
+                price: parseFloat(price),
+                quantity: parseInt(qty),
+                note: note
+            })
+        });
+        Toast.success("Counter offer sent!");
+        hideModal();
     });
   });
 }

@@ -259,13 +259,30 @@ function renderInterests(interests, container) {
       `;
 
       item.querySelector(".btn-action-sm.accept")?.addEventListener("click", (e) => {
-        runAction(e.target, () => apiCall(`/api/interests/${i.id}/accept`, { method: "POST" }));
+          Toast.confirm("Accept this deal?", { danger: false }).then(ok => {
+              if (ok) runAction(e.target, () => apiCall("/api/interests/action", {
+                  method: "POST",
+                  body: JSON.stringify({ interest_id: i.id, action: "accept" })
+              }));
+          });
       });
+
       item.querySelector(".btn-action-sm.reject")?.addEventListener("click", (e) => {
-        runAction(e.target, () => apiCall(`/api/interests/${i.id}/reject`, { method: "POST" }));
+          Toast.confirm("Reject this interest?", { danger: true }).then(ok => {
+              if (ok) runAction(e.target, () => apiCall("/api/interests/action", {
+                  method: "POST",
+                  body: JSON.stringify({ interest_id: i.id, action: "reject" })
+              }));
+          });
       });
+
       item.querySelector(".btn-action-sm.withdraw")?.addEventListener("click", (e) => {
-        runAction(e.target, () => apiCall(`/api/interests/${i.id}/withdraw_accept`, { method: "POST" }));
+          Toast.confirm("Withdraw your acceptance?", { danger: true }).then(ok => {
+              if (ok) runAction(e.target, () => apiCall("/api/interests/action", {
+                  method: "POST",
+                  body: JSON.stringify({ interest_id: i.id, action: "withdraw" })
+              }));
+          });
       });
 
       div.appendChild(item);
