@@ -155,6 +155,30 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .lang-dropdown button:hover { background: var(--green-50); color: var(--green-800); }
 .lang-dropdown.hidden { display: none; }
 
+/* ── TYPING ANIMATION ───────────────────────────────────────── */
+.typed-text {
+    color: var(--green-600);
+    background: linear-gradient(135deg, var(--green-600), var(--green-400));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.typed-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.1em;
+    background: var(--green-600);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 0.8s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
 /* ── HERO SECTION ─────────────────────────────────────────── */
 .hero {
     max-width: 1200px;
@@ -162,6 +186,7 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     padding: 0 2rem;
     text-align: center;
     animation: fadeInUp 0.8s ease-out;
+    min-height: 400px; /* Space for typed lines */
 }
 
 @keyframes fadeInUp {
