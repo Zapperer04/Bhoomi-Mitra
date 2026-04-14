@@ -22,7 +22,15 @@
     <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <style>
         /* Speed up: Hide Google widget artifacts immediately */
-        .skiptranslate iframe, .goog-te-banner-frame { display: none !important; }
+        .skiptranslate iframe, .goog-te-banner-frame, .goog-te-gadget-icon, .goog-te-gadget-simple img, .goog-te-gadget { 
+            display: none !important; 
+        }
+        #goog-gt-tt, .goog-te-balloon-frame, #goog-gt-tt *, .goog-te-tooltip, .goog-te-tooltip * { 
+            display: none !important; 
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
         body { top: 0px !important; }
         #google_translate_element {
             position: absolute;
@@ -50,7 +58,7 @@
 <section class="hero">
     <h1 id="heroTitle">
         <span data-i18n="home.hero_static">Connecting Farmers Directly with</span> 
-        <span id="typedText" class="typed-text"></span><span class="typed-cursor"></span>
+        <span id="typedText" class="typed-text notranslate"></span><span class="typed-cursor"></span>
     </h1>
     <!-- Hidden source for translated phrases -->
     <div id="phraseSource" style="display:none;">
@@ -121,9 +129,24 @@
         const chars = Array.from(currentPhrase);
 
         if (!isErasing) {
-            // Typing
+            // Typing logic logic logic
             if (charIndex < chars.length) {
-                typedTextSpan.textContent += chars[charIndex];
+                let toType = chars[charIndex];
+                
+                // Advanced: Lookahead for combining marks (Matras) in Indic scripts (U+0900 to U+0DFF)
+                // This ensures "क" + "ि" appear together as "कि" instead of "क" then "कि"
+                while (charIndex + 1 < chars.length) {
+                    const nextCode = chars[charIndex + 1].charCodeAt(0);
+                    // Match common Indic vowel marks / combining chars range
+                    if (nextCode >= 0x0900 && nextCode <= 0x0DFF && !isConsonant(nextCode)) {
+                        charIndex++;
+                        toType += chars[charIndex];
+                    } else {
+                        break;
+                    }
+                }
+
+                typedTextSpan.textContent += toType;
                 charIndex++;
                 setTimeout(startAnimation, typingSpeed);
             } else {
@@ -131,10 +154,15 @@
                 setTimeout(startAnimation, newTextDelay);
             }
         } else {
-            // Erasing
+            // Erasing: Keep consistent with clusters
             if (charIndex > 0) {
-                typedTextSpan.textContent = chars.slice(0, charIndex - 1).join('');
+                // Find the previous cluster boundary
+                let lastChar = typedTextSpan.textContent;
+                typedTextSpan.textContent = Array.from(lastChar).slice(0, -1).join('');
                 charIndex--;
+                
+                // If the character we just typed was a cluster, charIndex might be off.
+                // But since we increment charIndex per cluster-unit in type(), this works.
                 setTimeout(startAnimation, erasingSpeed);
             } else {
                 isErasing = false;
@@ -142,6 +170,14 @@
                 setTimeout(startAnimation, typingSpeed + 300);
             }
         }
+    }
+
+    // Helper: Detect if a code is an Indic consonant (start of a cluster)
+    function isConsonant(code) {
+        // Standardized Indic script blocks (Devanagari, Bengali, Gujarati, etc. all sit in 0x80 blocks)
+        // Most consonants are between offset 0x15 and 0x39 within their block
+        const offset = code % 0x80;
+        return (offset >= 0x15 && offset <= 0x39);
     }
 
     document.addEventListener("DOMContentLoaded", function() {
