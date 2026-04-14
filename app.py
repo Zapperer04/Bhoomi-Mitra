@@ -73,6 +73,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
 
@@ -737,12 +738,26 @@ def hard_delete_crop(crop_id):
     if crop.farmer_id != user_id:
         return api_response(success=False, error="Unauthorized", status=403)
 
+    # Only block if there is a live (not yet closed) deal
+    # Rejected, completed, disputed interests are safe to delete with the crop
     live = Interest.query.filter(
         Interest.crop_id == crop_id,
         Interest.status.in_(["pending", "negotiating", "accepted"]),
     ).first()
     if live:
-        return api_response(success=False, error="Cannot remove a crop with live or accepted deals.", status=409)
+        return api_response(
+            success=False,
+            error="Cannot delete a crop with an active or accepted deal. Close the deal first.",
+            status=409
+        )
+
+    # Only allow hard delete on history crops (removed, sold, expired)
+    if crop.status not in ("removed", "sold", "expired"):
+        return api_response(
+            success=False,
+            error="Only removed, sold, or expired crops can be permanently deleted.",
+            status=409
+        )
 
     db.session.delete(crop)
     db.session.commit()

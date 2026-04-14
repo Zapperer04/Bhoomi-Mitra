@@ -97,8 +97,69 @@ async function loadDashboardData() {
     });
 
     const [crops, interests] = await Promise.all([cropsPromise, interestsPromise]);
+    window._lastCropsData = crops;
 
     renderCrops(crops, interests, activeContainer, historyContainer);
+
+    // Add Clear All listener
+    const clearAllBtn = document.getElementById("clearHistoryBtn");
+    if (clearAllBtn) {
+        clearAllBtn.replaceWith(clearAllBtn.cloneNode(true));
+        document.getElementById("clearHistoryBtn").addEventListener("click", async () => {
+            const historyCards = document.querySelectorAll("#historyCropContainer .crop-card.history");
+            if (historyCards.length === 0) {
+                Toast.info("No history to clear.");
+                return;
+            }
+
+            const confirmed = await Toast.confirm(
+                `Clear all ${historyCards.length} crop(s) from history? This permanently removes sold, removed, and expired listings.`,
+                {
+                    danger: true,
+                    title: "Clear all history",
+                    icon: "🗑️",
+                    okText: "Clear all",
+                    cancelText: "Cancel"
+                }
+            );
+
+            if (!confirmed) return;
+
+            const historyCrops = (window._lastCropsData || []).filter(
+                c => !["active", "partially_sold"].includes(c.status)
+            );
+
+            if (historyCrops.length === 0) {
+                Toast.info("No history to clear.");
+                return;
+            }
+
+            const btn = document.getElementById("clearHistoryBtn");
+            btn.disabled = true;
+            btn.textContent = "Clearing...";
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const crop of historyCrops) {
+                try {
+                    await apiCall(`/api/crops/${crop.id}/hard`, { method: "DELETE" });
+                    successCount++;
+                } catch (err) {
+                    failCount++;
+                    console.warn(`Could not delete crop ${crop.id}:`, err.message);
+                }
+            }
+
+            if (failCount === 0) {
+                Toast.success(`Cleared ${successCount} crop(s) from history.`);
+            } else {
+                Toast.warn(`Cleared ${successCount} crop(s). ${failCount} could not be removed (active deals exist).`);
+            }
+
+            await loadDashboardData();
+        });
+    }
     renderInterests(interests, interestContainer);
     loadUnreadCount();
 
@@ -183,17 +244,67 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
       historyContainer.innerHTML = `<div class="loading-state">${DT.t("no_history")}</div>`;
     } else {
       history.forEach(crop => {
-        const card = document.createElement("div");
-        card.className = "crop-card history";
-        card.innerHTML = `
-          <h4>${crop.crop_name}</h4>
-          <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
-          <button class="hard-delete-btn" data-id="${crop.id}">${DT.t("btn.clear")}</button>
-        `;
-        card.querySelector(".hard-delete-btn").onclick = (e) => {
-          runAction(e.target, () => apiCall(`/api/crops/${crop.id}/hard`, { method: "DELETE" }));
-        };
-        historyContainer.appendChild(card);
+          const card = document.createElement("div");
+          card.className = "crop-card history";
+          card.innerHTML = `
+            <h4>${crop.crop_name}</h4>
+            <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
+            <button class="hard-delete-btn" data-crop-id="${crop.id}" style="
+              background: #f3f4f6;
+              border: 1px solid #e5e7eb;
+              color: #6b7280;
+              padding: 0.5rem 1rem;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 0.85rem;
+              margin-top: 0.75rem;
+              transition: all 0.2s;
+            ">🗑 Clear from history</button>
+          `;
+
+          card.querySelector(".hard-delete-btn").addEventListener("click", async (e) => {
+              const btn = e.currentTarget;
+              const cropId = btn.dataset.cropId;
+
+              const confirmed = await Toast.confirm(
+                  `Permanently remove "${crop.crop_name}" from your history? This cannot be undone.`,
+                  {
+                      danger: true,
+                      title: "Clear crop history",
+                      icon: "🗑️",
+                      okText: "Yes, clear it",
+                      cancelText: "Cancel"
+                  }
+              );
+
+              if (!confirmed) return;
+
+              btn.disabled = true;
+              btn.textContent = "Clearing...";
+
+              try {
+                  await apiCall(`/api/crops/${cropId}/hard`, { method: "DELETE" });
+                  // Remove just this card from the DOM immediately
+                  card.style.transition = "opacity 0.3s, transform 0.3s";
+                  card.style.opacity = "0";
+                  card.style.transform = "translateX(20px)";
+                  setTimeout(() => {
+                      card.remove();
+                      // If no more history cards, show empty state
+                      const remaining = historyContainer.querySelectorAll(".crop-card.history");
+                      if (remaining.length === 0) {
+                          historyContainer.innerHTML = `<div class="loading-state">${DT.t("no_history")}</div>`;
+                      }
+                  }, 300);
+              } catch (err) {
+                  btn.disabled = false;
+                  btn.textContent = "🗑 Clear from history";
+                  Toast.error(err.message || "Could not clear this crop. Try again.");
+              }
+          });
+
+          historyContainer.appendChild(card);
       });
     }
   }
