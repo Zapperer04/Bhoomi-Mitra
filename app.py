@@ -606,9 +606,8 @@ def create_crop():
         location  = data.get("location", "Not specified").strip()[:200]
         user_id   = _current_user_id()
 
-        # ── EXACT DUPLICATE CHECK ──────────────────────────────────────────────
-        # All 5 fields identical → hard block. Different date = different harvest → allow.
-        # TC-02: If 'force' flag is provided, bypass block and post anyway.
+        # ── EXACT DUPLICATE CHECK (DISABLED BLOCKING) ──────────────────────────
+        # Downgraded to a simple logger warning to prevent any blocking of legitimate posts.
         exact_duplicate = Crop.query.filter(
             Crop.farmer_id         == user_id,
             Crop.status.in_(["active", "partially_sold"]),
@@ -619,16 +618,8 @@ def create_crop():
             Crop.availability_date == avail_date,
         ).first()
 
-        force_post = data.get("force", False)
-
-        if exact_duplicate and not force_post:
-            return api_response(
-                success=False,
-                error="You already have an active listing for this crop with identical details. "
-                      "Change the availability date to post a different harvest batch.",
-                status=409,
-                data={"code": "duplicate_listing", "existing_id": exact_duplicate.id}
-            )
+        if exact_duplicate:
+            logger.warning(f"[DUPLICATE_ATTEMPT] Farmer {user_id} is posting an identical crop {crop_name}. Allowing anyway.")
         # ── END DUPLICATE CHECK ────────────────────────────────────────────────
 
         crop = Crop(

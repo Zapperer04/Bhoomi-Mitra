@@ -87,13 +87,15 @@ async function loadDashboardData() {
   const interestContainer = document.getElementById("interestContainer");
 
   try {
-    const cropsPromise = apiCall("/api/crops").catch(err => {
+    // Add timestamp to prevent browser caching of GET requests
+    const ts = Date.now();
+    const cropsPromise = apiCall(`/api/crops?t=${ts}`).catch(err => {
       console.error("Crops load failed:", err);
-      return []; // Fallback 
+      return []; 
     });
-    const interestsPromise = apiCall("/api/interests/farmer").catch(err => {
+    const interestsPromise = apiCall(`/api/interests/farmer?t=${ts}`).catch(err => {
       console.error("Interests load failed:", err);
-      return []; // Fallback
+      return [];
     });
 
     const [crops, interests] = await Promise.all([cropsPromise, interestsPromise]);
