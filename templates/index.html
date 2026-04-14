@@ -97,49 +97,55 @@
     const typedTextSpan = document.getElementById("typedText");
     const phraseSource  = document.getElementById("phraseSource");
 
+    const DEFAULT_PHRASES = ["Connects.", "Growth.", "Direct Trade.", "Markets."];
+
     function getPhrases() {
-        if (!phraseSource) return ["Contractors.", "Growth.", "Opportunities."];
-        return Array.from(phraseSource.querySelectorAll("span")).map(s => s.textContent.trim());
+        if (!phraseSource) return DEFAULT_PHRASES;
+        const spans = Array.from(phraseSource.querySelectorAll("span"));
+        if (spans.length === 0) return DEFAULT_PHRASES;
+        return spans.map(s => s.innerText.trim()).filter(t => t.length > 0);
     }
 
-    const typingSpeed = 75;
+    const typingSpeed = 80;
     const erasingSpeed = 40;
-    const newTextDelay = 2500;
+    const newTextDelay = 2000;
     let phraseIndex = 0;
     let charIndex = 0;
+    let isErasing = false;
 
-    function type() {
+    function startAnimation() {
         const phrases = getPhrases();
-        const currentPhrase = phrases[phraseIndex] || "";
-        const chars = Array.from(currentPhrase); // Correctly handles Unicode clusters
-        
-        if (charIndex < chars.length) {
-            typedTextSpan.textContent += chars[charIndex];
-            charIndex++;
-            setTimeout(type, typingSpeed);
-        } else {
-            setTimeout(erase, newTextDelay);
-        }
-    }
+        if (phrases.length === 0) return;
 
-    function erase() {
-        const phrases = getPhrases();
         const currentPhrase = phrases[phraseIndex] || "";
         const chars = Array.from(currentPhrase);
 
-        if (charIndex > 0) {
-            typedTextSpan.textContent = chars.slice(0, charIndex - 1).join('');
-            charIndex--;
-            setTimeout(erase, erasingSpeed);
+        if (!isErasing) {
+            // Typing
+            if (charIndex < chars.length) {
+                typedTextSpan.textContent += chars[charIndex];
+                charIndex++;
+                setTimeout(startAnimation, typingSpeed);
+            } else {
+                isErasing = true;
+                setTimeout(startAnimation, newTextDelay);
+            }
         } else {
-            phraseIndex++;
-            if (phraseIndex >= phrases.length) phraseIndex = 0;
-            setTimeout(type, typingSpeed + 1100);
+            // Erasing
+            if (charIndex > 0) {
+                typedTextSpan.textContent = chars.slice(0, charIndex - 1).join('');
+                charIndex--;
+                setTimeout(startAnimation, erasingSpeed);
+            } else {
+                isErasing = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(startAnimation, typingSpeed + 300);
+            }
         }
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        if (phrases.length) setTimeout(type, newTextDelay + 250);
+        setTimeout(startAnimation, 1000); // Shorter initial delay
     });
 </script>
 

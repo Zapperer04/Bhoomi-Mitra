@@ -346,8 +346,9 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 @media (max-width: 768px) {
     .nav { padding: 1rem 1.5rem; }
     .logo { font-size: 1.25rem; }
-    .hero { margin-top: 4rem; }
-    .hero h1 { font-size: 2.25rem; }
+    .hero { margin-top: 4rem; min-height: auto; }
+    .hero h1 { font-size: 2.25rem; line-height: 1.3; }
+    .typed-text { min-width: auto; display: inline; } /* Allow natural wrapping on small screens */
     .cta-group { flex-direction: column; }
     .btn { width: 100%; }
 }
