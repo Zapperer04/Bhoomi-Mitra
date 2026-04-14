@@ -174,8 +174,20 @@ def delete_account():
 
     if user.role == "farmer":
         from models import Crop
-        live = Crop.query.filter(Crop.farmer_id == user_id, Crop.status.in_(["active", "negotiating"])).first()
-        if live: return api_response(success=False, error="Remove active listings first", status=409)
+        # Block if any active or partially sold listings exist
+        live = Crop.query.filter(
+            Crop.farmer_id == user_id, 
+            Crop.status.in_(["active", "partially_sold"])
+        ).first()
+        if live: return api_response(success=False, error="You have active or partially sold crop listings. Remove them first.", status=409)
+    else:
+        # Contractor check: block if they have any pending/negotiating interests
+        from models import Interest
+        active_interest = Interest.query.filter(
+            Interest.contractor_id == user_id,
+            Interest.status.in_(["pending", "negotiating"])
+        ).first()
+        if active_interest: return api_response(success=False, error="You have active deal interests. Withdraw them first.", status=409)
 
     db.session.delete(user)
     db.session.commit()

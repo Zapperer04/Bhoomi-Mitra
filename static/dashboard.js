@@ -247,8 +247,14 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
           const card = document.createElement("div");
           card.className = "crop-card history";
           card.innerHTML = `
-            <h4>${crop.crop_name}</h4>
-            <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
+            <div class="crop-header">
+              <h4>${crop.crop_name}</h4>
+              <span class="status-pill ${crop.status}">${tStatus(crop.status)}</span>
+            </div>
+            <div class="crop-details" style="margin: 0.5rem 0; font-size: 0.9rem; color: #4b5563;">
+              <p><b>${DT.t("label.price") || "Price"}:</b> ₹${crop.price} / ${DT.t("farmer.quantity_quintals") || "q"}</p>
+              <p><b>${DT.t("label.qty") || "Quantity"}:</b> ${crop.quantity - crop.quantity_remaining} ${DT.t("sold") || "sold"} / ${crop.quantity} ${DT.t("total") || "total"}</p>
+            </div>
             <button class="hard-delete-btn" data-crop-id="${crop.id}" style="
               background: #f3f4f6;
               border: 1px solid #e5e7eb;
@@ -359,7 +365,10 @@ function renderInterests(interests, container) {
         <div class="interest-row">
           <div class="interest-info">
             <span class="con-name">${i.contractor_name}</span>
-            <span class="price-pill">₹${i.price_offered}</span>
+            <div class="pill-group">
+              <span class="price-pill">₹${i.price_offered}</span>
+              <span class="qty-pill">${i.quantity_requested} ${DT.t("farmer.quantity_quintals") || "q"}</span>
+            </div>
             ${badge}
           </div>
           <div class="interest-actions">

@@ -78,9 +78,9 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 
 # TC-30/31/32: Expiry durations
-OFFER_TIMEOUT_MINS = 2 # 2 mins for testing (TC-30), default 1440 (24h)
+OFFER_TIMEOUT_MINS = 60 # 60 mins for testing (prev 2), default 1440 (24h)
 LISTING_TIMEOUT_DAYS = 7
-CONFIRMATION_TIMEOUT_MINS = 1 # TC-41: 1 min for testing, default 4320 (3 days)
+CONFIRMATION_TIMEOUT_MINS = 30 # 30 mins for testing (prev 1), default 4320 (3 days)
 
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -391,28 +391,9 @@ def check_expirations():
         # Auto-reject all interests on this expired crop
         auto_reject_safe(c.id, reason="listing_expired")
 
-    # 2. Time-out Interests (TC-30, TC-31)
-    # Only time out PENDING or NEGOTIATING deals. Finalized deals don't time out.
-    timeout_limit = now - timedelta(minutes=OFFER_TIMEOUT_MINS)
-    stale_interests = Interest.query.filter(
-        Interest.status.in_(["pending", "negotiating"]),
-        Interest.last_activity_at < timeout_limit
-    ).all()
-    
-    for i in stale_interests:
-        # If it was blocking stock (accepted by one party but not both), restore it!
-        if i.accepted_by in ["farmer", "contractor"]:
-             i.crop.quantity_remaining += i.quantity_requested
-             if i.crop.status in ["sold", "partially_sold"]:
-                 i.crop.status = "active"
-
-        i.status = "rejected"
-        i.accepted_by = None
-        db.session.add(Message(
-            interest_id=i.id,
-            sender_id=i.farmer_id,
-            content="__SYSTEM__:offer_timed_out"
-        ))
+    # 2. Time-out Interests (DISABLED — Let Farmer decide)
+    # Previously, interests would auto-reject after OFFER_TIMEOUT_MINS.
+    # This logic has been removed as per user request to allow manual decisions only.
     
     # 3. Time-out Accepted Deals to Disputed (TC-41)
     dispute_limit = now - timedelta(minutes=CONFIRMATION_TIMEOUT_MINS)

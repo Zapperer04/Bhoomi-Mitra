@@ -725,12 +725,27 @@ h1, h2, h3, h4 {
 }
 
 .price-pill {
-    background: var(--green-100);
-    color: var(--green-800);
     font-weight: 800;
     font-size: 0.8rem;
     padding: 0.1rem 0.4rem;
     border-radius: var(--radius-sm);
+    background: var(--green-100);
+    color: var(--green-800);
+}
+
+.qty-pill {
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-sm);
+    background: var(--blue-100);
+    color: var(--blue-800);
+}
+
+.pill-group {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
 }
 
 .badge-mini {
@@ -769,3 +784,56 @@ h1, h2, h3, h4 {
 
 .btn-action-sm.withdraw { background: var(--gray-200); color: var(--gray-700); }
 .btn-action-sm.withdraw:hover { background: var(--gray-300); }
+
+/* ── STATUS PILLS & HISTORY ENHANCEMENTS ────────────────── */
+.status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Sora', sans-serif;
+}
+
+.status-pill.sold { 
+    background: var(--blue-light); 
+    color: var(--blue-dark); 
+    border: 1px solid var(--blue-200); 
+}
+.status-pill.removed { 
+    background: var(--gray-100); 
+    color: var(--gray-600); 
+    border: 1px solid var(--gray-200); 
+}
+.status-pill.expired { 
+    background: var(--amber-light); 
+    color: var(--amber-dark); 
+    border: 1px solid var(--amber-200); 
+}
+
+.crop-card.history {
+    opacity: 0.85;
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.crop-card.history:hover {
+    opacity: 1;
+}
+
+.crop-card.history h4 {
+    color: var(--gray-700);
+}
+
+.crop-details p {
+    margin: 0.25rem 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.crop-details p b {
+    color: var(--gray-500);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}

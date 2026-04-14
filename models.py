@@ -22,11 +22,11 @@ class User(db.Model):
     )
     interests_as_contractor = db.relationship(
         "Interest", backref="contractor", lazy=True,
-        foreign_keys="Interest.contractor_id"
+        cascade="all, delete-orphan", foreign_keys="Interest.contractor_id"
     )
     interests_as_farmer = db.relationship(
         "Interest", backref="farmer_user", lazy=True,
-        foreign_keys="Interest.farmer_id"
+        cascade="all, delete-orphan", foreign_keys="Interest.farmer_id"
     )
     waitlist_subscriptions = db.relationship(
         "Waitlist", backref="user", lazy=True, cascade="all, delete-orphan"
