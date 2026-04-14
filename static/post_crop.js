@@ -11,7 +11,7 @@ async function apiCall(url, options = {}) {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
-  };
+  };  
 
   const res = await fetch(url, { ...options, headers });
   const json = await res.json();

@@ -62,10 +62,10 @@
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script>
     const typedTextSpan = document.getElementById("typedText");
-    const phrases = ["Contractors", "Markets", "Opportunities", "Growth"];
-    const typingSpeed = 100;
-    const erasingSpeed = 50;
-    const newTextDelay = 2000;
+    const phrases = ["the Markets.", "Better Deals.", "Contractors.", "Growth.", "New Opportunities."];
+    const typingSpeed = 75; // Faster typing
+    const erasingSpeed = 40; // Faster erasing
+    const newTextDelay = 2500; // Longer pause at end
     let phraseIndex = 0;
     let charIndex = 0;
 
