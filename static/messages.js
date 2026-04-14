@@ -244,14 +244,22 @@ function renderDealUI(conv) {
     }
   }
 
-  // ── Logic Group 1: Terminal states ────────────────────────────────────────
+  // Reset input area for the new selection (prevents state leakage from rejected chats)
+  if (inputArea) {
+    inputArea.style.opacity = "";
+    inputArea.style.pointerEvents = "";
+    document.getElementById("messageInput").placeholder = "Type your message...";
+  }
+
+  // ── Logic Group 1: Terminal states (rejected, completed, disputed) ──────────
   if (["rejected", "completed", "disputed"].includes(conv.status)) {
     panel.classList.add("hidden");
     compPanel?.classList.add("hidden");
-    if (inputArea && conv.status === "rejected") {
+    if (inputArea) {
       inputArea.style.opacity = "0.4";
       inputArea.style.pointerEvents = "none";
-      document.getElementById("messageInput").placeholder = "Chat closed — deal was rejected";
+      const reason = conv.status === "rejected" ? "deal was rejected" : "deal was closed";
+      document.getElementById("messageInput").placeholder = `Chat closed — ${reason}`;
     }
     return;
   }

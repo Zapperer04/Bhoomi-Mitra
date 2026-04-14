@@ -674,13 +674,8 @@ def delete_crop(crop_id):
     if crop.status in ("sold", "removed"):
         return api_response(success=False, error="Crop is already sold or removed", status=409)
 
-    # Block FIRST if a deal is finalized
-    live_accepted = Interest.query.filter(
-        Interest.crop_id == crop_id,
-        Interest.status == "accepted",
-    ).first()
-    if live_accepted:
-        return api_response(success=False, error="Cannot remove a crop with a finalized deal.", status=409)
+    # We allow removal even if 'accepted' deals exist (Partial Sale Case). 
+    # Finalized transactions are preserved, we just stop the listing for the remaining stock.
 
     # Only then auto-reject open interests
     open_interests = Interest.query.filter(
@@ -805,10 +800,16 @@ def update_crop(crop_id):
 def list_marketplace_crops():
     check_expirations()
     """Crops available for contractors to browse (active/partially_sold only, not their own)."""
-    user_id = _current_user_id()
+    # Exclude crops where the user already has an active/pending interest
+    interested_crop_ids = db.session.query(Interest.crop_id).filter(
+        Interest.contractor_id == user_id,
+        Interest.status != "rejected"
+    ).subquery()
+
     crops = Crop.query.filter(
         Crop.status.in_(["active", "partially_sold"]),
         Crop.farmer_id != user_id,
+        ~Crop.id.in_(interested_crop_ids)
     ).order_by(Crop.created_at.desc()).all()
     # Filter out zero-quantity rows defensively; expose farmer_name but NOT farmer_phone
     result = []

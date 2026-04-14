@@ -248,16 +248,43 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
       history.forEach(crop => {
           const card = document.createElement("div");
           card.className = "crop-card history";
+
+          // Find the interest that successfully closed this deal
+          const winningInterest = interests.find(i => i.crop_id === crop.id && (i.status === "accepted" || i.status === "completed"));
+          let chatBtn = "";
+          if (winningInterest) {
+              chatBtn = `
+                <a href="/messages?deal=${winningInterest.id}" class="reach-contractor-btn" style="
+                  display: block;
+                  background: var(--blue-600);
+                  color: white;
+                  text-decoration: none;
+                  text-align: center;
+                  padding: 0.5rem 1rem;
+                  border-radius: 8px;
+                  font-weight: 600;
+                  font-size: 0.85rem;
+                  margin-top: 0.5rem;
+                  transition: opacity 0.2s;
+                ">💬 Reach to Contractor</a>
+              `;
+          }
+
+          const wasPartiallySold = crop.status === "removed" && crop.quantity_remaining < crop.quantity;
+          const displayStatus = wasPartiallySold ? "Partially Sold / Removed" : tStatus(crop.status);
+
           card.innerHTML = `
             <div class="crop-header">
               <h4>${crop.crop_name}</h4>
-              <span class="status-pill ${crop.status}">${tStatus(crop.status)}</span>
+              <span class="status-pill ${crop.status}">${displayStatus}</span>
             </div>
             <div class="crop-details" style="margin: 0.5rem 0; font-size: 0.9rem; color: #4b5563;">
               <p><b>${DT.t("label.price") || "Price"}:</b> ₹${crop.price} / ${DT.t("farmer.quantity_quintals") || "q"}</p>
               <p><b>${DT.t("label.qty") || "Quantity"}:</b> ${crop.quantity - crop.quantity_remaining} ${DT.t("sold") || "sold"} / ${crop.quantity} ${DT.t("total") || "total"}</p>
             </div>
+            ${chatBtn}
             <button class="hard-delete-btn" data-crop-id="${crop.id}" style="
+              width: 100%;
               background: #f3f4f6;
               border: 1px solid #e5e7eb;
               color: #6b7280;
@@ -266,7 +293,7 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
               cursor: pointer;
               font-weight: 600;
               font-size: 0.85rem;
-              margin-top: 0.75rem;
+              margin-top: 0.5rem;
               transition: all 0.2s;
             ">🗑 Clear from history</button>
           `;
