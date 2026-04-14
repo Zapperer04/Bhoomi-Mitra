@@ -157,19 +157,20 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 
 .typed-text {
     display: inline-block;
-    min-width: 250px; /* Prevent layout jitter/shifting */
+    min-width: 380px; /* Safer for translated Indic phrases */
     text-align: left;
     color: var(--green-600);
     background: linear-gradient(135deg, var(--green-600), var(--green-400));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    transition: min-width 0.3s ease; /* Smooth growth */
 }
 
 .typed-cursor {
     display: inline-block;
     width: 3px;
-    height: 1.1em;
+    height: 1.2em; /* Slightly taller for Indic matras */
     background: var(--green-600);
     margin-left: 2px;
     vertical-align: middle;
@@ -188,7 +189,19 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
     padding: 0 2rem;
     text-align: center;
     animation: fadeInUp 0.8s ease-out;
-    min-height: 400px; /* Space for typed lines */
+    min-height: 450px; /* Extra height for multi-line Indic scripts */
+}
+
+.hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 1.5; /* Generous height to prevent clipping matras */
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--green-900), var(--green-600));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em; /* Less tight for better script readability */
 }
 
 @keyframes fadeInUp {

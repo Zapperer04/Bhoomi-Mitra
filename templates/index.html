@@ -8,6 +8,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Faster Translation Init -->
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,bn,te,mr,ta,gu,ur,kn,or,pa,ml,en', 
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
+    <style>
+        /* Speed up: Hide Google widget artifacts immediately */
+        .skiptranslate iframe, .goog-te-banner-frame { display: none !important; }
+        body { top: 0px !important; }
+        #google_translate_element {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
 
@@ -25,8 +49,17 @@
 
 <section class="hero">
     <h1 id="heroTitle">
-        Connecting Farmers Directly with <span id="typedText" class="typed-text"></span><span class="typed-cursor"></span>
+        <span data-i18n="home.hero_static">Connecting Farmers Directly with</span> 
+        <span id="typedText" class="typed-text"></span><span class="typed-cursor"></span>
     </h1>
+    <!-- Hidden source for translated phrases -->
+    <div id="phraseSource" style="display:none;">
+        <span data-i18n="home.phrase1">the Markets.</span>
+        <span data-i18n="home.phrase2">Better Deals.</span>
+        <span data-i18n="home.phrase3">Contractors.</span>
+        <span data-i18n="home.phrase4">Growth.</span>
+        <span data-i18n="home.phrase5">New Opportunities.</span>
+    </div>
     <p data-i18n="home.hero_sub">A smart agriculture platform combining direct trade and a farming chatbot.</p>
 
     <div class="cta-group">
@@ -62,16 +95,26 @@
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>
 <script>
     const typedTextSpan = document.getElementById("typedText");
-    const phrases = ["the Markets.", "Better Deals.", "Contractors.", "Growth.", "New Opportunities."];
-    const typingSpeed = 75; // Faster typing
-    const erasingSpeed = 40; // Faster erasing
-    const newTextDelay = 2500; // Longer pause at end
+    const phraseSource  = document.getElementById("phraseSource");
+
+    function getPhrases() {
+        if (!phraseSource) return ["Contractors.", "Growth.", "Opportunities."];
+        return Array.from(phraseSource.querySelectorAll("span")).map(s => s.textContent.trim());
+    }
+
+    const typingSpeed = 75;
+    const erasingSpeed = 40;
+    const newTextDelay = 2500;
     let phraseIndex = 0;
     let charIndex = 0;
 
     function type() {
-        if (charIndex < phrases[phraseIndex].length) {
-            typedTextSpan.textContent += phrases[phraseIndex].charAt(charIndex);
+        const phrases = getPhrases();
+        const currentPhrase = phrases[phraseIndex] || "";
+        const chars = Array.from(currentPhrase); // Correctly handles Unicode clusters
+        
+        if (charIndex < chars.length) {
+            typedTextSpan.textContent += chars[charIndex];
             charIndex++;
             setTimeout(type, typingSpeed);
         } else {
@@ -80,8 +123,12 @@
     }
 
     function erase() {
+        const phrases = getPhrases();
+        const currentPhrase = phrases[phraseIndex] || "";
+        const chars = Array.from(currentPhrase);
+
         if (charIndex > 0) {
-            typedTextSpan.textContent = phrases[phraseIndex].substring(0, charIndex - 1);
+            typedTextSpan.textContent = chars.slice(0, charIndex - 1).join('');
             charIndex--;
             setTimeout(erase, erasingSpeed);
         } else {

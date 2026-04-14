@@ -1,40 +1,6 @@
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'en',
-    includedLanguages: 'hi,bn,te,mr,ta,gu,ur,kn,or,pa,ml,en', 
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-    autoDisplay: false
-  }, 'google_translate_element');
-}
+// ── CUSTOM LANGUAGE SELECTOR UI ───────────────────────────────────────────
+// Built to feel premium and fast. Google Translate core logic is handled in the template head.
 
-// 1. Hide the native Google elements globally
-var css = `
-    .skiptranslate iframe, .goog-te-banner-frame {
-        display: none !important;
-    }
-    body {
-        top: 0px !important;
-    }
-    #google_translate_element {
-        position: absolute;
-        left: -9999px;
-        top: -9999px;
-        opacity: 0;
-    }
-`;
-var style = document.createElement('style');
-style.appendChild(document.createTextNode(css));
-document.head.appendChild(style);
-
-// 2. Load the Google Translate Script
-(function() {
-  var gtScript = document.createElement('script');
-  gtScript.type = 'text/javascript';
-  gtScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-  document.body.appendChild(gtScript);
-})();
-
-// 3. Inject a Fully Custom, Premium Button & Menu
 document.addEventListener("DOMContentLoaded", function() {
     setTimeout(buildCustomUI, 500); // slight delay to map to DOM rendering
 });
