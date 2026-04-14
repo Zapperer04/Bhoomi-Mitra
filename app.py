@@ -411,7 +411,8 @@ def check_expirations():
             content="__SYSTEM__:deal_disputed"
         ))
 
-    if expired_crops or stale_interests or stale_accepted:
+    # FIXED: removed stale_interests from condition since that block is disabled
+    if expired_crops or stale_accepted:
         db.session.commit()
 
 def auto_reject_safe(crop_id, reason="auto_rejected_sold_out"):
