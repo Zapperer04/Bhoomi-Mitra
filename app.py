@@ -800,6 +800,7 @@ def update_crop(crop_id):
 def list_marketplace_crops():
     check_expirations()
     """Crops available for contractors to browse (active/partially_sold only, not their own)."""
+    user_id = _current_user_id()
     # Exclude crops where the user already has an active/pending interest
     interested_crop_ids = db.session.query(Interest.crop_id).filter(
         Interest.contractor_id == user_id,

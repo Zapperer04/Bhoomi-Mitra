@@ -191,7 +191,9 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
         const finalizedInterest = (interests || []).find(i => i.crop_id === crop.id && i.status === "accepted" && i.accepted_by === "both");
         const activeInterestCount = (interests || []).filter(i => i.crop_id === crop.id && ["pending", "negotiating"].includes(i.status)).length;
         
-        const deleteBtnAttr = finalizedInterest ? 'disabled title="Cannot remove a crop with a finalized deal." style="opacity:0.5; cursor:not-allowed;"' : '';
+        // We now allow removing listings even with finalized deals (for partially sold cases)
+        const deleteBtnAttr = '';
+        const deleteBtnTitle = finalizedInterest ? 'Finalized deals will be preserved, remaining stock will be removed.' : 'Remove this listing from the market.';
 
         const waitlistCount = crop.waitlist_count || 0;
         const waitlistBadge = waitlistCount > 0 ? `<span class="waitlist-badge">👥 Waitlist: ${waitlistCount}</span>` : '';
@@ -220,7 +222,7 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
 
           <div class="crop-actions" style="margin-top:1rem; border-top:1px solid #eee; padding-top:0.75rem; display:flex; gap:0.5rem;">
             <button class="edit-btn secondary-btn" data-id="${crop.id}">Edit</button>
-            <button class="delete-btn danger-btn" data-id="${crop.id}" ${deleteBtnAttr}>${DT.t("remove_listing")}</button>
+            <button class="delete-btn danger-btn" data-id="${crop.id}" ${deleteBtnAttr} title="${deleteBtnTitle}">${DT.t("remove_listing")}</button>
           </div>
         `;
           card.querySelector(".edit-btn").onclick = () => openEditModal(crop);
@@ -256,17 +258,20 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
               chatBtn = `
                 <a href="/messages?deal=${winningInterest.id}" class="reach-contractor-btn" style="
                   display: block;
-                  background: var(--blue-600);
+                  background: var(--blue, #3b82f6);
                   color: white;
                   text-decoration: none;
                   text-align: center;
-                  padding: 0.5rem 1rem;
-                  border-radius: 8px;
-                  font-weight: 600;
-                  font-size: 0.85rem;
-                  margin-top: 0.5rem;
-                  transition: opacity 0.2s;
-                ">💬 Reach to Contractor</a>
+                  padding: 0.75rem 1rem;
+                  border-radius: 10px;
+                  font-weight: 700;
+                  font-size: 0.9rem;
+                  margin-top: 0.75rem;
+                  transition: transform 0.2s, background 0.2s;
+                  box-shadow: var(--shadow-sm);
+                " onmouseover="this.style.background='var(--blue-dark, #1d4ed8)'; this.style.transform='translateY(-1px)';" 
+                   onmouseout="this.style.background='var(--blue, #3b82f6)'; this.style.transform='translateY(0)';"
+                >💬 Reach to Contractor</a>
               `;
           }
 
