@@ -27,7 +27,57 @@ window.googleTranslateElementInit = function() {
     }
 })();
 
-// 3. Fast UI initialization for the custom dropdown
+// 3. Inject CSS to hide Google's default UI elements and clean up headers
+(function injectHidingCSS() {
+    const css = `
+        /* Hide Google top banner and all its variants */
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-banner-frame,
+        .goog-te-banner,
+        .skiptranslate iframe,
+        iframe.skiptranslate,
+        .goog-te-gadget-icon,
+        .goog-te-gadget-simple img,
+        .goog-te-gadget { 
+            display: none !important; 
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+        }
+        
+        /* Stop Google from pushing the body down */
+        body { 
+            top: 0px !important; 
+            position: static !important;
+        }
+        
+        /* Hide tooltips and highlights */
+        #goog-gt-tt, 
+        .goog-te-balloon-frame, 
+        #goog-gt-tt *, 
+        .goog-te-tooltip, 
+        .goog-te-tooltip * { 
+            display: none !important; 
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .goog-text-highlight { 
+            background: none !important; 
+            box-shadow: none !important; 
+        }
+
+        /* Hide the actual widget element entirely */
+        #google_translate_element {
+            display: none !important;
+        }
+    `;
+    const style = document.createElement('style');
+    style.innerHTML = css;
+    document.head.appendChild(style);
+})();
+
+// 4. Fast UI initialization for the custom dropdown
 (function initFast() {
     if (document.getElementById('google_translate_element')) {
         buildCustomUI();
