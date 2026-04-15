@@ -899,7 +899,7 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .badge-pending, .status-pending     { background: #fef3c7; color: #92400e; }
 .badge-negotiating, .status-negotiating { background: var(--blue-light); color: var(--blue-dark); }
 .status-completed, .status-success { background: var(--green-100); color: var(--green-800); border: 1px solid var(--green-200); }
-.status-disputed { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.status-disputed, .status-pill.disputed { background: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fecaca !important; }
 
 /* ── CALL BUTTON ──────────────────────────────────────────── */
 .btn-call {

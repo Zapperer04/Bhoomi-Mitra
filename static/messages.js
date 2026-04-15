@@ -864,11 +864,28 @@ function startDealTimer(interest) {
     return;
   }
 
-  const lastActivity = new Date(interest.last_activity_at);
-  const expiryDate   = new Date(lastActivity.getTime() + OFFER_TIMEOUT_MINS * 60000);
+  const lastActiveStr = interest.last_activity_at;
+  const finalizedStr  = interest.finalized_at;
+  
+  if (st === "accepted") {
+      // 3-Day confirmation timer
+      if (!finalizedStr) { timerItem.style.display = "none"; return; }
+      const start = new Date(finalizedStr);
+      expiryDate = new Date(start.getTime() + (4320 * 60000)); // 3 days
+  } else {
+      // Negotiation timer
+      if (!lastActiveStr) { timerItem.style.display = "none"; return; }
+      const start = new Date(lastActiveStr);
+      expiryDate = new Date(start.getTime() + (OFFER_TIMEOUT_MINS * 60000));
+  }
 
   const update = () => {
     const now  = new Date();
+    if (isNaN(expiryDate.getTime())) {
+        timerItem.style.display = "none";
+        clearInterval(timerInterval);
+        return;
+    }
     const diff = expiryDate - now;
 
     if (diff <= 0) {
@@ -880,9 +897,16 @@ function startDealTimer(interest) {
       return;
     }
 
-    const mins = Math.floor(diff / 60000);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (60000));
     const secs = Math.floor((diff % 60000) / 1000);
-    timerVal.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+    if (days > 0) {
+        timerVal.textContent = `${days}d ${hours}h`;
+    } else {
+        timerVal.textContent = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
     
     // Proactive Warning (TC-31)
     // Warning at 30s for the 2m test case, or at 6h for longer durations

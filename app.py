@@ -1276,6 +1276,8 @@ def get_conversation(interest_id):
             "farmer_phone":      farmer_phone,
             "contractor_phone":  contractor_phone,
             "viewer_role":       "farmer" if viewer_is_farmer else "contractor",
+            "last_activity_at":  interest.last_activity_at.isoformat() + "Z" if interest.last_activity_at else None,
+            "finalized_at":      interest.finalized_at.isoformat() + "Z" if interest.finalized_at else None,
         }
     })
 

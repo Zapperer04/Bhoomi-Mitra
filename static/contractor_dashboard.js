@@ -228,7 +228,8 @@ async function loadMyInterests() {
       } else {
         // pending, no action yet
         badge = `<span class="status-badge badge-pending">${DT.t("status.pending") || "Pending review"}</span>`;
-        actions = chatLink;
+        actions = `<button class="btn btn-secondary btn-withdraw" data-id="${i.id}">${DT.t("withdraw_btn") || "Withdraw"}</button>`
+                + chatLink;
       }
 
       div.innerHTML = `
