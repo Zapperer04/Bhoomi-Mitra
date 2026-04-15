@@ -10,18 +10,6 @@
     <link rel="preconnect" href="https://translate.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Faster Translation Init -->
-    <script>
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'hi,bn,te,mr,ta,gu,ur,kn,or,pa,ml,en', 
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-    </script>
-    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <style>
         /* Speed up: Hide Google widget artifacts immediately */
         .skiptranslate iframe, .goog-te-banner-frame, .goog-te-gadget-icon, .goog-te-gadget-simple img, .goog-te-gadget { 
@@ -46,7 +34,7 @@
 <body>
 
 <nav class="nav">
-    <div class="logo">Bhoomi Mitra</div>
+    <div class="logo notranslate">Bhoomi Mitra</div>
     <div class="nav-right">
         <a href="{{ url_for('index') }}" class="nav-link" data-i18n="home.nav_home">Home</a>
         

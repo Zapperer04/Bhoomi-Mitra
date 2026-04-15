@@ -1,11 +1,38 @@
-// Built to feel premium and fast. Google Translate core logic is handled in the template head.
+// =============================================================================
+// SELF-INITIALIZING GOOGLE TRANSLATE WIDGET
+// =============================================================================
+// This script handles both the background Google Translate logic and the 
+// custom premium UI, making it a "drop-in" solution for any page.
 
-// Fast UI initialization
+// 1. Define the global initialization callback that Google's script expects
+window.googleTranslateElementInit = function() {
+    if (typeof google !== 'undefined' && google.translate) {
+        new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'hi,bn,te,mr,ta,gu,ur,kn,or,pa,ml,en', 
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element');
+    }
+};
+
+// 2. Dynamically load the Google Translate external script if not already present
+(function loadGoogleScript() {
+    if (!document.querySelector('script[src*="translate.google.com"]')) {
+        const script = document.createElement('script');
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    }
+})();
+
+// 3. Fast UI initialization for the custom dropdown
 (function initFast() {
     if (document.getElementById('google_translate_element')) {
         buildCustomUI();
     } else if (document.readyState !== 'complete') {
-        setTimeout(initFast, 50); // Aggressive polling every 50ms until ready
+        setTimeout(initFast, 100); 
     }
 })();
 
