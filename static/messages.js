@@ -434,7 +434,7 @@ function renderMessages(messages) {
         lastMessageId = Math.max(lastMessageId, msg.id);
         added = true;
     });
-
+    if (added) {
         const loadingEl = area.querySelector(".loading-state");
         if (loadingEl) loadingEl.remove();
         // Use a tiny timeout to ensure DOM has rendered before scroll
