@@ -1,1 +1,1 @@
-web: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --keep-alive 5 --log-level info
+web: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 3 --threads 4 --timeout 120 --keep-alive 5 --log-level info

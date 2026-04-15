@@ -7,7 +7,18 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
+_weather_cache = {}
+CACHE_TTL_WEATHER = 600 # 10 minutes
+
 def get_weather(location):
+    location = location.lower().strip()
+    
+    # Check cache
+    if location in _weather_cache:
+        cached_data, timestamp = _weather_cache[location]
+        if (datetime.now() - timestamp).total_seconds() < CACHE_TTL_WEATHER:
+            return cached_data
+
     try:
         api_key = os.getenv("OPENWEATHER_API_KEY") or os.getenv("WEATHER_API_KEY")
         if api_key:
@@ -18,20 +29,25 @@ def get_weather(location):
             return None
 
         query = f"{location},IN"
+        # Reduce timeout to 5s for better responsiveness
         url = f"https://api.openweathermap.org/data/2.5/weather?q={query}&appid={api_key}&units=metric"
         
-        resp = requests.get(url, timeout=10)
+        resp = requests.get(url, timeout=5)
         data = resp.json()
 
         if resp.status_code != 200:
             print(f"❌ Weather API failed with status {resp.status_code}: {data}")
             return None
 
-        return {
+        result = {
             "location": data["name"],
             "temperature": data["main"]["temp"],
             "condition": data["weather"][0]["description"]
         }
+        
+        # Update cache
+        _weather_cache[location] = (result, datetime.now())
+        return result
     except Exception as e:
         print(f"❌ Weather error: {e}")
         return None

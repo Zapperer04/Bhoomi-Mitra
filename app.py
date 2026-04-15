@@ -123,93 +123,14 @@ db.init_app(app)
 jwt = JWTManager(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
+
+# ── DB INIT (MOVED TO init_db.py) ───────────────────────────────────────────
+# We No longer run migrations on EVERY startup to prevent Render 502 timeouts.
+# Use 'python init_db.py' manually or in the build/release phase.
 with app.app_context():
+    # Only create tables if they don't exist, don't run heavy ALTERS here.
     db.create_all()
 
-    # ── Safe Migration Engine: PostgreSQL & SQLite Compatible ────────────────
-    # We explicitly check for column existence before attempting ALTER TABLE.
-    # This prevents 'already exists' errors from bloating logs and ensures
-    # the schema remains in sync with the Interest and Message models.
-    with db.engine.connect() as conn:
-            # 1. No automatic reset logic here; use reset_db.py manually if needed.
-            is_postgres = "postgresql" in str(db.engine.url)
-            
-            # 1. Add finalized_at to interests
-            if is_postgres:
-                check_finalized = text("SELECT column_name FROM information_schema.columns WHERE table_name='interests' AND column_name='finalized_at'")
-            else:
-                check_finalized = text("PRAGMA table_info(interests)")
-            
-            res = conn.execute(check_finalized)
-            if is_postgres:
-                finalized_exists = res.fetchone() is not None
-            else:
-                finalized_exists = any(row[1] == "finalized_at" for row in res.fetchall())
-                
-            if not finalized_exists:
-                col_type = "TIMESTAMP" if is_postgres else "DATETIME"
-                conn.execute(text(f"ALTER TABLE interests ADD COLUMN finalized_at {col_type}"))
-                conn.commit()
-                logger.info("[MIGRATION] Added finalized_at to interests")
-
-            # ── HARDENING: Add missing columns for stability ─────────────────
-            
-            def add_col_if_missing(table, column, col_type):
-                if is_postgres:
-                    check = text(f"SELECT column_name FROM information_schema.columns WHERE table_name='{table}' AND column_name='{column}'")
-                else:
-                    check = text(f"PRAGMA table_info({table})")
-                
-                try:
-                    res = conn.execute(check)
-                    if is_postgres:
-                        exists = res.fetchone() is not None
-                    else:
-                        exists = any(row[1] == column for row in res.fetchall())
-                    
-                    if not exists:
-                        conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
-                        conn.commit()
-                        logger.info(f"[MIGRATION] Added {column} to {table}")
-                except Exception as e:
-                    conn.rollback()
-                    logger.warning(f"[MIGRATION_SKIP] Could not add {column} to {table} (Likely already exists): {str(e)}")
-
-            # Crops
-            add_col_if_missing("crops", "expires_at", "TIMESTAMP" if is_postgres else "DATETIME")
-            
-            # Interests
-            ts_type = "TIMESTAMP" if is_postgres else "DATETIME"
-            add_col_if_missing("interests", "last_activity_at", ts_type)
-            add_col_if_missing("interests", "payment_confirmed_at", ts_type)
-            add_col_if_missing("interests", "goods_confirmed_at", ts_type)
-
-            # 2. Add nonce to messages
-            if is_postgres:
-                check_nonce = text("SELECT column_name FROM information_schema.columns WHERE table_name='messages' AND column_name='nonce'")
-            else:
-                check_nonce = text("PRAGMA table_info(messages)")
-                
-            res = conn.execute(check_nonce)
-            if is_postgres:
-                nonce_exists = res.fetchone() is not None
-            else:
-                nonce_exists = any(row[1] == "nonce" for row in res.fetchall())
-                
-            if not nonce_exists:
-                conn.execute(text("ALTER TABLE messages ADD COLUMN nonce VARCHAR(64)"))
-                conn.commit()
-                logger.info("[MIGRATION] Added nonce to messages")
-
-            # 3. Create indices
-            try:
-                conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)"))
-                conn.commit()
-            except Exception as e:
-                # Special check for f405/rollback issues
-                try: conn.rollback()
-                except: pass
-                logger.warning(f"[INIT_INDEX_SKIP] {str(e)}")
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}, "last_activity": time.time()})
 
@@ -434,8 +355,18 @@ def finalize_transaction_safe(interest):
     interest.finalized_at = datetime.now(timezone.utc)
 
 
+LAST_EXPIRY_CHECK = 0
+EXPIRY_CHECK_INTERVAL = 60 # Check at most once per minute
+
 def check_expirations():
-    """Lazy cleanup for expired crops and interests. Called on key GET/POLL routes."""
+    """Lazy cleanup for expired crops and interests. Throttled to prevent DB thrashing."""
+    global LAST_EXPIRY_CHECK
+    now_ts = time.time()
+    
+    if now_ts - LAST_EXPIRY_CHECK < EXPIRY_CHECK_INTERVAL:
+        return
+    
+    LAST_EXPIRY_CHECK = now_ts
     from datetime import timezone
     now = datetime.now(timezone.utc)
 
@@ -1128,46 +1059,77 @@ def get_conversations():
     check_expirations()
     user_id = _current_user_id()
 
-    interests = Interest.query.filter(
+    from sqlalchemy import func
+
+    interests = Interest.query.options(
+        db.joinedload(Interest.crop).joinedload(Crop.farmer),
+        db.joinedload(Interest.contractor)
+    ).filter(
         (Interest.farmer_id == user_id) | (Interest.contractor_id == user_id),
         Interest.status.in_(["pending", "negotiating", "accepted", "rejected"]),
     ).all()
 
+    if not interests:
+        return api_response(data=[])
+
+    interest_ids = [i.id for i in interests]
+
+    # Batch load unread counts: 1 query for all conversations
+    unread_counts = db.session.query(
+        Message.interest_id, func.count(Message.id)
+    ).filter(
+        Message.interest_id.in_(interest_ids),
+        Message.is_read == False,
+        Message.sender_id != user_id
+    ).group_by(Message.interest_id).all()
+    unread_map = dict(unread_counts)
+
+    # Batch load last messages: 1 refined query
+    # Using a subquery to find the latest message ID per interest
+    last_msg_sub = db.session.query(
+        Message.interest_id, func.max(Message.id).label("last_id")
+    ).filter(Message.interest_id.in_(interest_ids)).group_by(Message.interest_id).subquery()
+
+    last_messages = Message.query.filter(Message.id == last_msg_sub.c.last_id).all()
+    msg_map = {m.interest_id: m for m in last_messages}
+
     conversations = []
     for interest in interests:
-        if interest.status == "rejected":
-            if not Message.query.filter_by(interest_id=interest.id).first():
-                continue
+        # Rejected interests logic: only show if messages exist
+        last_msg = msg_map.get(interest.id)
+        if interest.status == "rejected" and not last_msg:
+            continue
 
-        other_id   = interest.contractor_id if interest.farmer_id == user_id else interest.farmer_id
-        other_user = User.query.get(other_id)
-        last_msg   = Message.query.filter_by(interest_id=interest.id)\
-                                  .order_by(Message.created_at.desc()).first()
-        unread     = Message.query.filter_by(interest_id=interest.id, is_read=False)\
-                                  .filter(Message.sender_id != user_id).count()
+        other_id = interest.contractor_id if interest.farmer_id == user_id else interest.farmer_id
+        
+        if interest.farmer_id == user_id:
+            other_name = interest.contractor.name if interest.contractor else "Unknown"
+            other_phone = interest.contractor.phone if (interest.status == "accepted" and interest.contractor) else None
+        else:
+            other_name = interest.crop.farmer.name if (interest.crop and interest.crop.farmer) else "Unknown"
+            other_phone = interest.crop.farmer.phone if (interest.status == "accepted" and interest.crop and interest.crop.farmer) else None
 
-        other_phone = other_user.phone if (other_user and interest.status == "accepted") else None
-        preview     = _strip_system_prefix(last_msg.content if last_msg else None)
+        unread = unread_map.get(interest.id, 0)
+        preview = _strip_system_prefix(last_msg.content if last_msg else None)
 
         conversations.append({
             "interest_id":      interest.id,
             "crop_id":          interest.crop_id,
-            "crop_name":        interest.crop.crop_name,
+            "crop_name":        interest.crop.crop_name if interest.crop else "Unknown",
             "status":           interest.status,
             "accepted_by":      interest.accepted_by,
             "other_user_id":    other_id,
-            "other_user_name":  other_user.name if other_user else "Unknown",
+            "other_user_name":  other_name,
             "other_user_phone": other_phone,
             "last_message":     preview,
             "last_message_time": last_msg.created_at.isoformat() if last_msg else None,
             "unread_count":     unread,
-            # Deal Metadata for Status Bar
             "farmer_id":          interest.farmer_id,
             "contractor_id":      interest.contractor_id,
             "price_offered":      interest.price_offered,
             "quantity_requested": interest.quantity_requested,
-            "original_price":     interest.crop.price,
-            "original_quantity":  interest.crop.quantity,
+            "original_price":     interest.crop.price if interest.crop else None,
+            "original_quantity":  interest.crop.quantity if interest.crop else None,
         })
 
     conversations.sort(key=lambda c: c["last_message_time"] or "", reverse=True)
@@ -1177,17 +1139,18 @@ def get_conversations():
 @app.route("/api/messages/unread-count", methods=["GET"])
 @jwt_required()
 def get_unread_count():
-    user_id   = _current_user_id()
-    interests = Interest.query.filter(
+    from sqlalchemy import func
+    user_id = _current_user_id()
+    
+    # Efficient aggregation in 1 query
+    unread = db.session.query(func.count(Message.id)).join(Interest).filter(
         (Interest.farmer_id == user_id) | (Interest.contractor_id == user_id),
         Interest.status.in_(["pending", "negotiating", "accepted"]),
-    ).all()
-    total = sum(
-        Message.query.filter_by(interest_id=i.id, is_read=False)
-                     .filter(Message.sender_id != user_id).count()
-        for i in interests
-    )
-    return api_response(data={"unread_count": total})
+        Message.is_read == False,
+        Message.sender_id != user_id
+    ).scalar() or 0
+    
+    return api_response(data={"unread_count": unread})
 
 
 @app.route("/api/messages/interest/<int:interest_id>", methods=["GET"])
@@ -1550,26 +1513,18 @@ def confirm_deal_status(interest_id):
     return api_response(data={"message": f"{confirm_type} confirmed", "interest": interest.to_dict()})
 
 
-# ── GLOBAL ERROR HANDLER (PRESENTATION SAFETY) ──────────────────────────────
-@app.errorhandler(Exception)
-def handle_exception(e):
-    logger.error(f"[PRESENTATION_RECOVERY] Caught unexpected error: {str(e)}", exc_info=True)
-    # Return a JSON error that the frontend can handle gracefully
-    return api_response(
-        success=False,
-        error="Something went wrong, but we've logged it and kept the server alive.",
-        status=500
-    )
 
 # ── MEMORY PRUNING (VITAL FOR RENDER FREE TIER) ──────────────────────────────
 @app.before_request
 def clear_old_memory():
-    # If we have more than 50 active chat sessions, clear the oldest 10 to save RAM
-    if len(CHAT_SESSIONS) > 50:
+    """Memory management optimized for production performance."""
+    # Throttled: Only prune if likely necessary to reduce per-request overhead
+    if len(CHAT_SESSIONS) > 100:
         sorted_sessions = sorted(CHAT_SESSIONS.items(), key=lambda x: x[1].get('last_activity', 0))
-        for i in range(10):
+        # Remove 20 oldest sessions if we hit the cap (more aggressive pruning less often)
+        for i in range(20):
             CHAT_SESSIONS.pop(sorted_sessions[i][0], None)
-        logger.info("[MEMORY_PRUNE] Cleared 10 old sessions to prevent OOM crash")
+        logger.info(f"[MEMORY_PRUNE] Pruned 20 sessions. Active: {len(CHAT_SESSIONS)}")
 
 
 if __name__ == "__main__":
