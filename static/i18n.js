@@ -38,6 +38,8 @@ window.DT = {
             "price_lbl": "Price", 
             "quintal_short": "quintal", 
             "location_lbl": "Location", 
+            "withdraw_btn": "Withdraw Offer",
+            "status.withdrawn": "Withdrawn",
             "toast.interest_sent": "Interest has been sent successfully!"
         };
         // If the key exists in our fallback dict, return it. Otherwise just prettify the key.

@@ -111,8 +111,16 @@ async function initUser() {
     const roleBadge = document.getElementById("roleBadge");
 
     if (navName)   navName.textContent   = me.name;
-    if (navAvatar) navAvatar.textContent = (me.name || "?").charAt(0).toUpperCase();
+    if (navAvatar) {
+        const namePart = (me.name || "U");
+        navAvatar.textContent = namePart.charAt(0).toUpperCase() || "👤";
+    }
     if (roleBadge) roleBadge.textContent = (me.role || "User").toUpperCase();
+
+    // Auto-mark as read if we are in this conversation
+    if (currentInterestId) {
+        apiCall(`/api/messages/mark-read/${currentInterestId}`, { method: "POST" }).catch(()=>{});
+    }
 
   } catch (err) { console.error("User init failed", err); }
 }
@@ -286,6 +294,7 @@ function renderDealUI(conv) {
       inputArea.style.pointerEvents = "none";
       let reason = "deal was closed";
       if (conv.status === "rejected") reason = "deal was rejected";
+      if (conv.status === "completed") reason = "deal successfully closed";
       if (conv.status === "disputed") reason = "deal is in dispute";
       document.getElementById("messageInput").placeholder = `Chat closed — ${reason}`;
     }
@@ -426,10 +435,10 @@ function renderMessages(messages) {
         added = true;
     });
 
-    if (added) {
         const loadingEl = area.querySelector(".loading-state");
         if (loadingEl) loadingEl.remove();
-        area.scrollTop = area.scrollHeight;
+        // Use a tiny timeout to ensure DOM has rendered before scroll
+        setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
     }
 }
 
@@ -718,7 +727,9 @@ function formatMessageHelper(content) {
       "deal_fully_accepted":            "🎉 Deal closed — both parties confirmed ✓",
       "deal_disputed":                  "⚠️ DISPUTED — Contact Help Desk",
       "deal_completed":                 "🎉 Deal Completed Successfully ✓",
-      "rejected":                       "❌ Deal rejected",
+      "rejected":                       "❌ Deal rejected by farmer",
+      "contractor_withdrew":            "📋 Interest withdrawn by contractor",
+      "contractor_withdrew_finalized":  "🔄 Deal cancelled — contractor withdrew",
       "rejected_crop_sold_out":         "❌ Rejected — crop sold out",
       "auto_rejected_sold_out":         "❌ Crop sold out — this interest was closed",
       "crop_listing_removed":           "❌ Farmer removed this crop listing",

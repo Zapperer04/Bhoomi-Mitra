@@ -396,7 +396,9 @@ function renderInterests(interests, container) {
                     Contact Help Desk
                  </p>`;
       } else if (st === "rejected") {
-        badge = `<span class="badge-mini rejected">Rejected</span>`;
+        const isWithdrawal = i.last_message_content === "__SYSTEM__:contractor_withdrew";
+        const label = isWithdrawal ? "Withdrawn" : "Rejected";
+        badge = `<span class="badge-mini rejected">${label}</span>`;
       } else if (ab === "farmer") {
         badge = `<span class="badge-mini pending">Waiting...</span>`;
         actions = `<button class="btn-action-sm withdraw" data-id="${i.id}" title="Withdraw">↩</button>`;

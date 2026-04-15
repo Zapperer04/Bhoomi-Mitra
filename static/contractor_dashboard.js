@@ -191,7 +191,9 @@ async function loadMyInterests() {
         actions = chatLink;
 
       } else if (st === "rejected") {
-        badge = `<span class="status-badge badge-rejected">${DT.t("status.rejected") || "Rejected"}</span>`;
+        const isWithdrawal = i.last_message_content === "__SYSTEM__:contractor_withdrew";
+        const label = isWithdrawal ? "Withdrawn" : (DT.t("status.rejected") || "Rejected");
+        badge = `<span class="status-badge badge-rejected">${label}</span>`;
         actions = `<button class="btn btn-warning js-open-interest" data-id="${i.crop_id}"
                     data-qty="${i.quantity_requested}" data-price="${i.price_offered}">
                     ${DT.t("resubmit_btn") || "Resubmit"}</button>` + chatLink;

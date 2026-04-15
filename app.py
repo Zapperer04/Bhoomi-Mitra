@@ -245,8 +245,8 @@ def _recompute_crop_status(crop):
 
 
 def transition_interest(interest, action, actor_role, new_price=None, new_qty=None, delivery=None, payment=None, note=None):
-    if interest.status in ["accepted", "rejected"]:
-        raise ValueError("Deal closed")
+    if interest.status in ["accepted", "rejected", "completed", "disputed"]:
+        raise ValueError("Deal in terminal state")
 
     interest.last_activity_at = datetime.now(timezone.utc) # Refresh expiry timer on ANY action
 
