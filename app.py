@@ -99,10 +99,13 @@ if db_url.startswith("postgres://"):
 
 app.config["SQLALCHEMY_DATABASE_URI"]     = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"]   = {
+
+# ── DATABASE PERFORMANCE & STABILITY ─────────────────────────────────────────
+is_sqlite = "sqlite" in db_url
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
     "pool_recycle": 280,
-    "connect_args": {"timeout": 30} # Prevent SQLite 'database is locked' errors during presentation
+    "connect_args": {"timeout": 30} if is_sqlite else {"connect_timeout": 30}
 }
 # Required >= 32 chars for JWT to prevent InsecureKeyLengthWarning -> 502 crashes in strict envs
 app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "fallback-dev-extra-long-secret-key-at-least-32-chars")
