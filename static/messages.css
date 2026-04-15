@@ -173,12 +173,14 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 }
 
 .logout-btn {
-    background: var(--white); border: 1px solid var(--red-light);
-    color: var(--red); padding: 0.6rem 1.2rem;
+    background: var(--white); border: 1.5px solid var(--red-light);
+    color: var(--red); padding: 0.5rem 1rem;
     border-radius: var(--radius-md); cursor: pointer;
     font-weight: 700; font-size: 0.85rem;
+    line-height: 1;
+    transition: all var(--transition);
 }
-.logout-btn:hover { background: var(--red); color: white; border-color: var(--red); }
+.logout-btn:hover { background: var(--red); color: white; border-color: var(--red); transform: translateY(-1px); }
 
 /* ── MESSAGES CONTAINER ──────────────────────────────────── */
 .messages-container {
@@ -896,6 +898,8 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .badge-rejected, .status-rejected   { background: var(--red-light); color: #991b1b; }
 .badge-pending, .status-pending     { background: #fef3c7; color: #92400e; }
 .badge-negotiating, .status-negotiating { background: var(--blue-light); color: var(--blue-dark); }
+.status-completed, .status-success { background: var(--green-100); color: var(--green-800); border: 1px solid var(--green-200); }
+.status-disputed { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
 /* ── CALL BUTTON ──────────────────────────────────────────── */
 .btn-call {

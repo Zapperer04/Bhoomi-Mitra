@@ -102,8 +102,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function initUser() {
   try {
-    const data = await apiCall("/debug/whoami");
-    currentUserId = parseInt(data.identity_received);
+    const me = await apiCall("/api/me");
+    currentUserId = me.id;
+    
+    // Update Header UI
+    const navName   = document.getElementById("navName");
+    const navAvatar = document.getElementById("navAvatar");
+    const roleBadge = document.getElementById("roleBadge");
+
+    if (navName)   navName.textContent   = me.name;
+    if (navAvatar) navAvatar.textContent = (me.name || "?").charAt(0).toUpperCase();
+    if (roleBadge) roleBadge.textContent = (me.role || "User").toUpperCase();
+
   } catch (err) { console.error("User init failed", err); }
 }
 

@@ -48,12 +48,24 @@ window.googleTranslateElementInit = function() {
             width: 0 !important;
             opacity: 0 !important;
         }
-        
-        /* Stop Google from pushing the body down */
-        body { 
-            top: 0px !important; 
-            position: static !important;
+
+        .goog-te-gadget-simple img,
+        .goog-te-gadget-simple .goog-te-gadget-icon,
+        .goog-te-gadget-simple span {
+            display: none !important;
         }
+
+        /* Prevent Google from translating the text of our custom button if it's nested */
+        #google_translate_element {
+            display: none !important;
+            height: 0 !important;
+            width: 0 !important;
+            overflow: hidden !important;
+        }
+
+        /* Force eliminate the top gap on HTML/Body */
+        html { top: 0px !important; }
+        body { top: 0px !important; position: static !important; }
         
         /* Hide tooltips and highlights completely */
         #goog-gt-tt, 
