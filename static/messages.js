@@ -191,12 +191,13 @@ function renderDealUI(conv) {
   const displayPrice = conv.price_offered     != null ? `₹${conv.price_offered}/q` : "—";
   const displayQty   = conv.quantity_requested != null ? `${conv.quantity_requested}q` : "—";
   const currentStatus = conv.status || "pending";
+  const displayStatus = (currentStatus === "completed") ? "SUCCESS" : currentStatus.toUpperCase();
 
   document.getElementById("statPrice").textContent  = displayPrice;
   document.getElementById("statQty").textContent    = displayQty;
 
   const statusEl = document.getElementById("statStatus");
-  statusEl.textContent = currentStatus.toUpperCase();
+  statusEl.textContent = displayStatus;
   statusEl.className = `value badge status-${currentStatus}`;
 
   // Start / Reset Timer (TC-31)

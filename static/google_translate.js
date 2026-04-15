@@ -38,11 +38,15 @@ window.googleTranslateElementInit = function() {
         iframe.skiptranslate,
         .goog-te-gadget-icon,
         .goog-te-gadget-simple img,
-        .goog-te-gadget { 
+        .goog-te-gadget,
+        .goog-logo-link,
+        .goog-te-gadget span,
+        .goog-te-gadget-simple { 
             display: none !important; 
             visibility: hidden !important;
             height: 0 !important;
             width: 0 !important;
+            opacity: 0 !important;
         }
         
         /* Stop Google from pushing the body down */
@@ -51,15 +55,17 @@ window.googleTranslateElementInit = function() {
             position: static !important;
         }
         
-        /* Hide tooltips and highlights */
+        /* Hide tooltips and highlights completely */
         #goog-gt-tt, 
         .goog-te-balloon-frame, 
         #goog-gt-tt *, 
         .goog-te-tooltip, 
-        .goog-te-tooltip * { 
+        .goog-te-tooltip *,
+        .VIpgJd-Zvi9ab-aZ2w3d-vS79t-ad21 { 
             display: none !important; 
             visibility: hidden !important;
             pointer-events: none !important;
+            opacity: 0 !important;
         }
         
         .goog-text-highlight { 
@@ -70,6 +76,9 @@ window.googleTranslateElementInit = function() {
         /* Hide the actual widget element entirely */
         #google_translate_element {
             display: none !important;
+            height: 0 !important;
+            width: 0 !important;
+            overflow: hidden !important;
         }
     `;
     const style = document.createElement('style');

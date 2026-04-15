@@ -212,6 +212,7 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
             <p>${stockInfo}</p>
             ${activeInfo}
           </div>
+          <p><b>${DT.t("label.price") || "Price"}:</b> ₹${crop.price} / ${DT.t("farmer.quantity_quintals") || "q"}</p>
           <p><b>Available From:</b> ${availDate}</p>
           <p><b>${DT.t("label.status")}:</b> ${tStatus(crop.status)}</p>
           

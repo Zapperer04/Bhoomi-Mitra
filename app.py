@@ -80,7 +80,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 # TC-30/31/32: Expiry durations
 OFFER_TIMEOUT_MINS = 60 # 60 mins for testing (prev 2), default 1440 (24h)
 LISTING_TIMEOUT_DAYS = 7
-CONFIRMATION_TIMEOUT_MINS = 30 # 30 mins for testing (prev 1), default 4320 (3 days)
+CONFIRMATION_TIMEOUT_MINS = 4320 # 3 days (TC-41: Duration before a confirmed deal becomes 'disputed')
 
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -1066,7 +1066,7 @@ def get_conversations():
         db.joinedload(Interest.contractor)
     ).filter(
         (Interest.farmer_id == user_id) | (Interest.contractor_id == user_id),
-        Interest.status.in_(["pending", "negotiating", "accepted", "rejected"]),
+        Interest.status.in_(["pending", "negotiating", "accepted", "rejected", "completed", "disputed"]),
     ).all()
 
     if not interests:
@@ -1482,8 +1482,8 @@ def confirm_deal_status(interest_id):
     user_id = _current_user_id()
     interest = Interest.query.get_or_404(interest_id)
     
-    if interest.status != "accepted":
-        return api_response(success=False, error="Deal must be accepted first", status=400)
+    if interest.status not in ["accepted", "disputed"]:
+        return api_response(success=False, error="Deal must be in an actionable state (accepted or disputed)", status=400)
     
     data = request.get_json() or {}
     confirm_type = data.get("type")
