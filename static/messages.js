@@ -266,13 +266,33 @@ function renderDealUI(conv) {
   if (["rejected", "completed", "disputed"].includes(conv.status)) {
     panel.classList.add("hidden");
     compPanel?.classList.add("hidden");
+    
+    // Help Desk prompt for disputes
+    const existingPrompt = document.getElementById("disputeSupportPrompt");
+    if (conv.status === "disputed") {
+        if (!existingPrompt) {
+            const prompt = document.createElement("div");
+            prompt.id = "disputeSupportPrompt";
+            prompt.style = "background:#fef2f2; border:1.5px dashed #ef4444; color:#b91c1c; padding:1.2rem; margin:1rem 3rem; border-radius:12px; font-weight:700; text-align:center;";
+            prompt.innerHTML = `⚠️ This deal is currently DISPUTED.<br><span style="font-size:0.9em; font-weight:500;">Please contact the Bhoomi Mitra Help Desk at <a href="mailto:support@bhoomimitra.org" style="color:#ef4444; text-decoration:underline;">support@bhoomimitra.org</a> to resolve this.</span>`;
+            document.getElementById("chatContainer").insertBefore(prompt, document.getElementById("messagesArea"));
+        }
+    } else if (existingPrompt) {
+        existingPrompt.remove();
+    }
+
     if (inputArea) {
       inputArea.style.opacity = "0.4";
       inputArea.style.pointerEvents = "none";
-      const reason = conv.status === "rejected" ? "deal was rejected" : "deal was closed";
+      let reason = "deal was closed";
+      if (conv.status === "rejected") reason = "deal was rejected";
+      if (conv.status === "disputed") reason = "deal is in dispute";
       document.getElementById("messageInput").placeholder = `Chat closed — ${reason}`;
     }
     return;
+  } else {
+    // Clear prompt if moving out of disputed (e.g. self-resolution)
+    document.getElementById("disputeSupportPrompt")?.remove();
   }
 
   // ── Logic Group 2: Accepted (Finalizing transactions) ────────────────────
@@ -696,6 +716,8 @@ function formatMessageHelper(content) {
       "farmer_accepted":                "✅ Farmer accepted · waiting for contractor",
       "contractor_accepted":            "✅ Contractor accepted · waiting for farmer",
       "deal_fully_accepted":            "🎉 Deal closed — both parties confirmed ✓",
+      "deal_disputed":                  "⚠️ DISPUTED — Contact Help Desk",
+      "deal_completed":                 "🎉 Deal Completed Successfully ✓",
       "rejected":                       "❌ Deal rejected",
       "rejected_crop_sold_out":         "❌ Rejected — crop sold out",
       "auto_rejected_sold_out":         "❌ Crop sold out — this interest was closed",

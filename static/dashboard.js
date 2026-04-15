@@ -252,8 +252,8 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
           const card = document.createElement("div");
           card.className = "crop-card history";
 
-          // Find the interest that successfully closed this deal
-          const winningInterest = interests.find(i => i.crop_id === crop.id && (i.status === "accepted" || i.status === "completed"));
+          // Find the interest that relates to this history item (Accepted, Completed, or Disputed)
+          const winningInterest = interests.find(i => i.crop_id === crop.id && ["accepted", "completed", "disputed"].includes(i.status));
           let chatBtn = "";
           if (winningInterest) {
               chatBtn = `
@@ -277,12 +277,19 @@ function renderCrops(crops, interests, activeContainer, historyContainer) {
           }
 
           const wasPartiallySold = crop.status === "removed" && crop.quantity_remaining < crop.quantity;
-          const displayStatus = wasPartiallySold ? "Partially Sold / Removed" : tStatus(crop.status);
+          let displayStatus = wasPartiallySold ? "Partially Sold / Removed" : tStatus(crop.status);
+          let statusClass = crop.status;
+
+          // Override status pill if there's a dispute
+          if (winningInterest && winningInterest.status === "disputed") {
+              displayStatus = "⚠️ DISPUTED";
+              statusClass = "disputed";
+          }
 
           card.innerHTML = `
             <div class="crop-header">
               <h4>${crop.crop_name}</h4>
-              <span class="status-pill ${crop.status}">${displayStatus}</span>
+              <span class="status-pill ${statusClass}" style="${statusClass === 'disputed' ? 'background:#fee2e2; color:#991b1b; border:1px solid #fecaca;' : ''}">${displayStatus}</span>
             </div>
             <div class="crop-details" style="margin: 0.5rem 0; font-size: 0.9rem; color: #4b5563;">
               <p><b>${DT.t("label.price") || "Price"}:</b> ₹${crop.price} / ${DT.t("farmer.quantity_quintals") || "q"}</p>
@@ -383,6 +390,11 @@ function renderInterests(interests, container) {
 
       if (st === "accepted" && ab === "both") {
         badge = `<span class="badge-mini accepted">✓ Closed</span>`;
+      } else if (st === "disputed") {
+        badge = `<span class="badge-mini rejected" style="background:#fee2e2; color:#991b1b; display:block; margin:4px 0;">⚠️ DISPUTED</span>
+                 <p style="font-size:0.7rem; color:#ef4444; font-weight:700; border:1px dashed #ef4444; padding:4px; border-radius:4px; margin-bottom:8px;">
+                    Contact Help Desk
+                 </p>`;
       } else if (st === "rejected") {
         badge = `<span class="badge-mini rejected">Rejected</span>`;
       } else if (ab === "farmer") {

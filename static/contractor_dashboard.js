@@ -30,7 +30,9 @@ const STATUS_MAP = {
   sold: "status.sold",
   pending: "status.pending",
   accepted: "status.sold",
-  rejected: "status.rejected"
+  rejected: "status.rejected",
+  disputed: "status.disputed",
+  completed: "status.completed"
 };
 
 function tStatus(status) {
@@ -204,6 +206,17 @@ async function loadMyInterests() {
         // Farmer accepted — contractor should finalize
         actions = `<button class="btn btn-primary btn-accept" data-id="${i.id}">${DT.t("final_accept_btn")}</button>`
                 + chatLink;
+
+      } else if (st === "disputed") {
+        badge = `<span class="status-badge badge-rejected" style="background:#fee2e2; color:#991b1b; display:block; margin-bottom:8px;">⚠️ DISPUTED</span>
+                 <p style="font-size:0.85rem; color:#ef4444; font-weight:700; border:1px dashed #ef4444; padding:8px; border-radius:8px;">
+                    Contact Bhoomi Mitra Help Desk immediately to resolve this deal.
+                 </p>`;
+        actions = chatLink;
+
+      } else if (st === "completed") {
+        badge = `<span class="status-badge status-success" style="background:#d1fae5; color:#065f46; border:1px solid #6ee7b7;">🎉 SUCCESS</span>`;
+        actions = chatLink;
 
       } else if (st === "negotiating") {
         // Active negotiation, no partial accept yet
