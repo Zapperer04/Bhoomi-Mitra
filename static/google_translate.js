@@ -1,9 +1,13 @@
-// ── CUSTOM LANGUAGE SELECTOR UI ───────────────────────────────────────────
 // Built to feel premium and fast. Google Translate core logic is handled in the template head.
 
-document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(buildCustomUI, 500); // slight delay to map to DOM rendering
-});
+// Fast UI initialization
+(function initFast() {
+    if (document.getElementById('google_translate_element')) {
+        buildCustomUI();
+    } else if (document.readyState !== 'complete') {
+        setTimeout(initFast, 50); // Aggressive polling every 50ms until ready
+    }
+})();
 
 function buildCustomUI() {
     const googleDiv = document.getElementById('google_translate_element');

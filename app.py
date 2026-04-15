@@ -2,7 +2,7 @@ import os
 import re
 import logging
 import time
-from datetime import timedelta, date, datetime, timedelta as py_timedelta
+from datetime import timedelta, date, datetime, timezone, timedelta as py_timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
 
@@ -85,7 +85,9 @@ CONFIRMATION_TIMEOUT_MINS = 30 # 30 mins for testing (prev 1), default 4320 (3 d
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 if WhiteNoise:
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
+    # Use empty prefix for WhiteNoise to allow Flask's url_for and direct /static/ paths
+    # to resolve correctly across both local and production (Gunicorn) servers.
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="")
 CORS(app, supports_credentials=True)
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
@@ -98,10 +100,22 @@ if db_url.startswith("postgres://"):
 
 app.config["SQLALCHEMY_DATABASE_URI"]     = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"]   = {"pool_pre_ping": True}
+app.config["SQLALCHEMY_ENGINE_OPTIONS"]   = {
+    "pool_pre_ping": True,
+    "pool_recycle": 280,
+    "connect_args": {"timeout": 30} # Prevent SQLite 'database is locked' errors during presentation
+}
 # Required >= 32 chars for JWT to prevent InsecureKeyLengthWarning -> 502 crashes in strict envs
-app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "fallback-dev-secret-key-at-least-32-chars")
+app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "fallback-dev-extra-long-secret-key-at-least-32-chars")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"]    = timedelta(days=30)
+
+# ── ENVIRONMENT DETECTION ────────────────────────────────────────────────────
+IS_DEV = os.environ.get("FLASK_ENV") == "development" or "localhost" in db_url or "127.0.0.1" in db_url
+app.debug = IS_DEV
+if IS_DEV:
+    logger.info("🔧 Running in DEVELOPMENT mode (Debug Active)")
+else:
+    logger.info("🚀 Running in PRODUCTION mode")
 
 db.init_app(app)
 jwt = JWTManager(app)
@@ -136,6 +150,38 @@ with app.app_context():
                 conn.commit()
                 logger.info("[MIGRATION] Added finalized_at to interests")
 
+            # ── HARDENING: Add missing columns for stability ─────────────────
+            
+            def add_col_if_missing(table, column, col_type):
+                if is_postgres:
+                    check = text(f"SELECT column_name FROM information_schema.columns WHERE table_name='{table}' AND column_name='{column}'")
+                else:
+                    check = text(f"PRAGMA table_info({table})")
+                
+                try:
+                    res = conn.execute(check)
+                    if is_postgres:
+                        exists = res.fetchone() is not None
+                    else:
+                        exists = any(row[1] == column for row in res.fetchall())
+                    
+                    if not exists:
+                        conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+                        conn.commit()
+                        logger.info(f"[MIGRATION] Added {column} to {table}")
+                except Exception as e:
+                    conn.rollback()
+                    logger.warning(f"[MIGRATION_SKIP] Could not add {column} to {table} (Likely already exists): {str(e)}")
+
+            # Crops
+            add_col_if_missing("crops", "expires_at", "TIMESTAMP" if is_postgres else "DATETIME")
+            
+            # Interests
+            ts_type = "TIMESTAMP" if is_postgres else "DATETIME"
+            add_col_if_missing("interests", "last_activity_at", ts_type)
+            add_col_if_missing("interests", "payment_confirmed_at", ts_type)
+            add_col_if_missing("interests", "goods_confirmed_at", ts_type)
+
             # 2. Add nonce to messages
             if is_postgres:
                 check_nonce = text("SELECT column_name FROM information_schema.columns WHERE table_name='messages' AND column_name='nonce'")
@@ -160,7 +206,7 @@ with app.app_context():
             except Exception:
                 conn.rollback()
 
-CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}})
+CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}, "last_activity": time.time()})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -270,7 +316,7 @@ def transition_interest(interest, action, actor_role, new_price=None, new_qty=No
     if interest.status in ["accepted", "rejected"]:
         raise ValueError("Deal closed")
 
-    interest.last_activity_at = datetime.utcnow() # Refresh expiry timer on ANY action
+    interest.last_activity_at = datetime.now(timezone.utc) # Refresh expiry timer on ANY action
 
     # ── COUNTER ─────────────────────────────
     if action == "counter":
@@ -374,12 +420,13 @@ def finalize_transaction_safe(interest):
         auto_reject_safe(crop.id)
     else:
         crop.status = "partially_sold"
-    interest.finalized_at = datetime.utcnow()
+    interest.finalized_at = datetime.now(timezone.utc)
 
 
 def check_expirations():
     """Lazy cleanup for expired crops and interests. Called on key GET/POLL routes."""
-    now = datetime.utcnow()
+    from datetime import timezone
+    now = datetime.now(timezone.utc)
 
     # 1. Expire Crops (TC-32)
     expired_crops = Crop.query.filter(
@@ -632,7 +679,7 @@ def create_crop():
             availability_date  = avail_date,
             location           = location,
             status             = "active",
-            expires_at         = datetime.utcnow() + timedelta(days=LISTING_TIMEOUT_DAYS)
+            expires_at         = datetime.now(timezone.utc) + timedelta(days=LISTING_TIMEOUT_DAYS)
         )
         db.session.add(crop)
         db.session.commit()
@@ -1268,6 +1315,7 @@ def chat():
     data       = request.get_json() or {}
     session_id = request.headers.get("X-Session-ID", "default")
     session    = CHAT_SESSIONS[session_id]
+    session["last_activity"] = time.time()
 
     lang  = data.get("lang") or session["context"].get("lang") or "en"
     session["context"]["lang"] = lang
@@ -1489,6 +1537,28 @@ def confirm_deal_status(interest_id):
 
     db.session.commit()
     return api_response(data={"message": f"{confirm_type} confirmed", "interest": interest.to_dict()})
+
+
+# ── GLOBAL ERROR HANDLER (PRESENTATION SAFETY) ──────────────────────────────
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.error(f"[PRESENTATION_RECOVERY] Caught unexpected error: {str(e)}", exc_info=True)
+    # Return a JSON error that the frontend can handle gracefully
+    return api_response(
+        success=False,
+        error="Something went wrong, but we've logged it and kept the server alive.",
+        status=500
+    )
+
+# ── MEMORY PRUNING (VITAL FOR RENDER FREE TIER) ──────────────────────────────
+@app.before_request
+def clear_old_memory():
+    # If we have more than 50 active chat sessions, clear the oldest 10 to save RAM
+    if len(CHAT_SESSIONS) > 50:
+        sorted_sessions = sorted(CHAT_SESSIONS.items(), key=lambda x: x[1].get('last_activity', 0))
+        for i in range(10):
+            CHAT_SESSIONS.pop(sorted_sessions[i][0], None)
+        logger.info("[MEMORY_PRUNE] Cleared 10 old sessions to prevent OOM crash")
 
 
 if __name__ == "__main__":

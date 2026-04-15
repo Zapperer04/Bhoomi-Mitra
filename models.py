@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint, UniqueConstraint
 
@@ -58,7 +58,7 @@ class Crop(db.Model):
     # Valid statuses: active | partially_sold | sold | removed
     # "negotiating" is INTENTIONALLY excluded — negotiation lives on Interest, not Crop.
     status            = db.Column(db.String(20), nullable=False, default="active", index=True)
-    created_at        = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at        = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     expires_at        = db.Column(db.DateTime, nullable=True) # TC-32: Auto-expiry support
 
     interests = db.relationship(
@@ -124,8 +124,8 @@ class Interest(db.Model):
     # accepted_by: None | "farmer" | "contractor" | "both"
     # Invariant: accepted_by == "both" iff status == "accepted"
     accepted_by        = db.Column(db.String(20), nullable=True)
-    created_at         = db.Column(db.DateTime, default=datetime.utcnow)
-    last_activity_at  = db.Column(db.DateTime, default=datetime.utcnow) # TC-30, TC-31: Offer timeouts
+    created_at         = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    last_activity_at  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc)) # TC-30, TC-31: Offer timeouts
     finalized_at       = db.Column(db.DateTime, nullable=True)
     
     # TC-38 to TC-41: Post-acceptance confirmation records
@@ -178,7 +178,7 @@ class Message(db.Model):
     interest_id = db.Column(db.Integer, db.ForeignKey("interests.id"), nullable=False, index=True)
     sender_id   = db.Column(db.Integer, db.ForeignKey("users.id"),     nullable=False, index=True)
     content     = db.Column(db.Text, nullable=False)
-    created_at  = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     is_read     = db.Column(db.Boolean, default=False)
     nonce       = db.Column(db.String(64), unique=True, nullable=True, index=True)
 
@@ -204,7 +204,7 @@ class Waitlist(db.Model):
     id         = db.Column(db.Integer, primary_key=True)
     crop_id    = db.Column(db.Integer, db.ForeignKey("crops.id"), nullable=False, index=True)
     user_id    = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     __table_args__ = (
         UniqueConstraint("crop_id", "user_id", name="uq_waitlist_per_crop"),
