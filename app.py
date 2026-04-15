@@ -85,9 +85,8 @@ CONFIRMATION_TIMEOUT_MINS = 30 # 30 mins for testing (prev 1), default 4320 (3 d
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 if WhiteNoise:
-    # Use empty prefix for WhiteNoise to allow Flask's url_for and direct /static/ paths
-    # to resolve correctly across both local and production (Gunicorn) servers.
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="")
+    # Industry-standard prefix to avoid routing collisions with API endpoints
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
 CORS(app, supports_credentials=True)
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
@@ -199,14 +198,23 @@ with app.app_context():
                 conn.commit()
                 logger.info("[MIGRATION] Added nonce to messages")
 
-            # 3. Create nonce index
+            # 3. Create indices
             try:
                 conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_nonce ON messages(nonce)"))
                 conn.commit()
-            except Exception:
-                conn.rollback()
+            except Exception as e:
+                # Special check for f405/rollback issues
+                try: conn.rollback()
+                except: pass
+                logger.warning(f"[INIT_INDEX_SKIP] {str(e)}")
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}, "last_activity": time.time()})
+
+# ── HEALTH CHECK (VITAL FOR RENDER STABILITY) ──────────────────────────────
+@app.route("/health")
+def health():
+    """Lightweight endpoint for Render health checks to prevent 502s."""
+    return jsonify({"status": "healthy", "timestamp": time.time()}), 200
 
 
 # ─────────────────────────────────────────────────────────────────────────────
