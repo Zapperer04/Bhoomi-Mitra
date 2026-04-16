@@ -64,11 +64,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!localStorage.getItem("access_token")) { location.href = "/login"; return; }
   await DT.ready;
 
-  initHeader();
-  loadData();
+  await initHeader();
   setupFilters();
   setupModal();
   setupCounterModal();
+  await loadData();
 
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
@@ -89,17 +89,16 @@ async function initHeader() {
 }
 
 async function loadData() {
-  const p1 = loadMyInterests().catch(e => console.error("Interests failed", e));
-  const p2 = loadAvailableCrops().catch(e => console.error("Crops failed", e));
-  const p3 = loadUnreadCount().catch(e => console.error("Unread failed", e));
-  await Promise.all([p1, p2, p3]);
+  await loadMyInterests().catch(e => console.error("Interests failed", e));
+  await loadAvailableCrops().catch(e => console.error("Crops failed", e));
+  await loadUnreadCount().catch(e => console.error("Unread failed", e));
 }
 
 async function loadAvailableCrops() {
   try {
     allCrops = await apiCall("/api/marketplace/crops");
-    renderCrops(allCrops);
     populateLocationFilter();
+    applyFiltersAndRender();
   } catch (err) {
     document.getElementById("availableCropsContainer").innerHTML =
       `<div class="loading-state">${DT.t("failed_crops")}</div>`;
@@ -315,11 +314,31 @@ function setupModal() {
 
 function setupFilters() {
   const apply = () => {
-    const search = document.getElementById("searchInput").value.toLowerCase();
-    const filtered = allCrops.filter(c => c.crop_name.toLowerCase().includes(search) || c.location.toLowerCase().includes(search));
-    renderCrops(filtered);
+    applyFiltersAndRender();
   };
-  document.getElementById("searchInput").addEventListener("input", apply);
+  document.getElementById("searchInput")?.addEventListener("input", apply);
+  document.getElementById("locationFilter")?.addEventListener("change", apply);
+  document.getElementById("sortSelect")?.addEventListener("change", apply);
+}
+
+function applyFiltersAndRender() {
+  const search = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
+  const location = document.getElementById("locationFilter")?.value || "";
+  const sort = document.getElementById("sortSelect")?.value || "";
+
+  let filtered = allCrops.filter(c => {
+    const matchesSearch = !search || c.crop_name.toLowerCase().includes(search) || c.location.toLowerCase().includes(search);
+    const matchesLocation = !location || c.location === location;
+    return matchesSearch && matchesLocation;
+  });
+
+  if (sort === "price_asc") {
+    filtered = [...filtered].sort((a, b) => (a.price || 0) - (b.price || 0));
+  } else if (sort === "price_desc") {
+    filtered = [...filtered].sort((a, b) => (b.price || 0) - (a.price || 0));
+  }
+
+  renderCrops(filtered);
 }
 
 function populateLocationFilter() {

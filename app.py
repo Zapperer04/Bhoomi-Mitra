@@ -1,5 +1,6 @@
 import os
 import re
+import hashlib
 import logging
 import time
 from datetime import timedelta, date, datetime, timezone, timedelta as py_timedelta
@@ -255,9 +256,10 @@ def transition_interest(interest, action, actor_role, new_price=None, new_qty=No
         if not new_price or not new_qty or float(new_price) <= 0 or int(new_qty) <= 0:
             raise ValueError("Invalid counter values")
 
-        # TC-20: Backend check for quantity above matching crop limit
-        if int(new_qty) > interest.crop.quantity:
-             raise ValueError(f"Quantity requested ({new_qty}) cannot exceed the original listing amount ({interest.crop.quantity})")
+        # Counter-offer quantity cannot exceed currently available stock.
+        available_qty = interest.crop.effective_quantity()
+        if int(new_qty) > available_qty:
+            raise ValueError(f"Quantity requested ({new_qty}) cannot exceed available stock ({available_qty})")
 
         interest.price_offered = float(new_price)
         interest.quantity_requested = int(new_qty)
@@ -357,6 +359,33 @@ def finalize_transaction_safe(interest):
 
 LAST_EXPIRY_CHECK = 0
 EXPIRY_CHECK_INTERVAL = 60 # Check at most once per minute
+_EXTENDED_INTEREST_STATUS_SUPPORTED = None
+
+
+def _supports_extended_interest_statuses():
+    """
+    Backward-compatibility for older SQLite schemas where ck_interest_status_valid
+    may only allow pending/negotiating/accepted/rejected.
+    """
+    global _EXTENDED_INTEREST_STATUS_SUPPORTED
+    if _EXTENDED_INTEREST_STATUS_SUPPORTED is not None:
+        return _EXTENDED_INTEREST_STATUS_SUPPORTED
+
+    if not is_sqlite:
+        _EXTENDED_INTEREST_STATUS_SUPPORTED = True
+        return True
+
+    try:
+        create_sql = db.session.execute(
+            text("SELECT sql FROM sqlite_master WHERE type='table' AND name='interests'")
+        ).scalar() or ""
+        lowered = create_sql.lower()
+        _EXTENDED_INTEREST_STATUS_SUPPORTED = ("'completed'" in lowered and "'disputed'" in lowered)
+    except Exception:
+        # Fail open to avoid blocking flow on metadata lookup issues.
+        _EXTENDED_INTEREST_STATUS_SUPPORTED = True
+
+    return _EXTENDED_INTEREST_STATUS_SUPPORTED
 
 def check_expirations():
     """Lazy cleanup for expired crops and interests. Throttled to prevent DB thrashing."""
@@ -393,7 +422,8 @@ def check_expirations():
     ).all()
 
     for i in stale_accepted:
-        i.status = "disputed"
+        if _supports_extended_interest_statuses():
+            i.status = "disputed"
         db.session.add(Message(
             interest_id=i.id,
             sender_id=i.farmer_id,
@@ -765,8 +795,17 @@ def update_crop(crop_id):
             ))
     
     # TC-37: If qty reduced below what's requested in active deals, flag them
+    # Legacy rows may have NULL quantity_remaining; treat as unsold baseline.
+    qty_remaining = crop.quantity_remaining if crop.quantity_remaining is not None else crop.quantity
+    old_sold = max(0, crop.quantity - qty_remaining)
+    if new_qty < old_sold:
+        return api_response(
+            success=False,
+            error=f"Quantity cannot be set below already sold amount ({old_sold})",
+            status=400
+        )
+
     # Update logic for quantity_remaining
-    old_sold = crop.quantity - crop.quantity_remaining
     crop.quantity = new_qty
     crop.quantity_remaining = max(0, new_qty - old_sold)
     crop.price = new_price
@@ -791,10 +830,10 @@ def list_marketplace_crops():
     """Crops available for contractors to browse (active/partially_sold only, not their own)."""
     user_id = _current_user_id()
     # Exclude crops where the user already has an active/pending interest
-    interested_crop_ids = db.session.query(Interest.crop_id).filter(
+    interested_crop_ids = select(Interest.crop_id).where(
         Interest.contractor_id == user_id,
         Interest.status != "rejected"
-    ).subquery()
+    )
 
     crops = Crop.query.filter(
         Crop.status.in_(["active", "partially_sold"]),
@@ -1102,12 +1141,14 @@ def get_conversations():
 
         other_id = interest.contractor_id if interest.farmer_id == user_id else interest.farmer_id
         
+        phone_visible = interest.status == "accepted" and interest.accepted_by == "both"
+
         if interest.farmer_id == user_id:
             other_name = interest.contractor.name if interest.contractor else "Unknown"
-            other_phone = interest.contractor.phone if (interest.status == "accepted" and interest.contractor) else None
+            other_phone = interest.contractor.phone if (phone_visible and interest.contractor) else None
         else:
             other_name = interest.crop.farmer.name if (interest.crop and interest.crop.farmer) else "Unknown"
-            other_phone = interest.crop.farmer.phone if (interest.status == "accepted" and interest.crop and interest.crop.farmer) else None
+            other_phone = interest.crop.farmer.phone if (phone_visible and interest.crop and interest.crop.farmer) else None
 
         unread = unread_map.get(interest.id, 0)
         preview = _strip_system_prefix(last_msg.content if last_msg else None)
@@ -1278,6 +1319,8 @@ def get_conversation(interest_id):
             "viewer_role":       "farmer" if viewer_is_farmer else "contractor",
             "last_activity_at":  interest.last_activity_at.isoformat() + "Z" if interest.last_activity_at else None,
             "finalized_at":      interest.finalized_at.isoformat() + "Z" if interest.finalized_at else None,
+            "payment_confirmed_at": interest.payment_confirmed_at.isoformat() + "Z" if interest.payment_confirmed_at else None,
+            "goods_confirmed_at":   interest.goods_confirmed_at.isoformat() + "Z" if interest.goods_confirmed_at else None,
         }
     })
 
@@ -1289,7 +1332,14 @@ def get_conversation(interest_id):
 @app.route("/chat", methods=["POST"])
 def chat():
     data       = request.get_json() or {}
-    session_id = request.headers.get("X-Session-ID", "default")
+    session_id = request.headers.get("X-Session-ID")
+    if not session_id:
+        # Fallback keeps anonymous browsers isolated even if header is missing.
+        forwarded_for = (request.headers.get("X-Forwarded-For") or request.remote_addr or "anon").split(",")[0].strip()
+        user_agent = request.headers.get("User-Agent", "")
+        digest = hashlib.sha256(f"{forwarded_for}|{user_agent}".encode("utf-8")).hexdigest()[:24]
+        session_id = f"anon-{digest}"
+
     session    = CHAT_SESSIONS[session_id]
     session["last_activity"] = time.time()
 
@@ -1382,7 +1432,20 @@ def chat():
         return jsonify({"message": msg, "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}]})
 
     if session["state"] == "WEATHER_CITY":
-        city    = normalize_city_input(text_input or value)
+        raw_city = text_input or value
+        if not raw_city:
+            return jsonify({
+                "message": get_text("SELECT_WEATHER_CITY", lang),
+                "options": [
+                    {"label": get_city_label(city, lang), "action": "WEATHER_CITY", "value": city}
+                    for city in CANONICAL_CITIES
+                ] + [
+                    {"label": get_text("OTHER_CITY", lang), "action": "WEATHER_OTHER"},
+                    {"label": get_text("BACK", lang), "action": "BACK"},
+                ],
+            })
+
+        city    = normalize_city_input(raw_city)
         weather = get_weather(city)
         session["state"] = "START"
         if not weather:
@@ -1394,6 +1457,12 @@ def chat():
 
     if session["state"] == "WEATHER_OTHER_INPUT":
         city_query = text_input or value
+        if not city_query:
+            return jsonify({
+                "message": get_text("ENTER_CITY", lang),
+                "options": [{"label": get_text("BACK", lang), "action": "BACK"}],
+                "input": "text",
+            })
         weather    = get_weather(city_query)
         if not weather:
             return jsonify({
@@ -1508,7 +1577,8 @@ def confirm_deal_status(interest_id):
 
     # Move to completed if both are confirmed
     if interest.payment_confirmed_at and interest.goods_confirmed_at:
-        interest.status = "completed"
+        if _supports_extended_interest_statuses():
+            interest.status = "completed"
         db.session.add(Message(interest_id=interest.id, sender_id=interest.farmer_id, content="__SYSTEM__:deal_completed"))
 
     db.session.commit()

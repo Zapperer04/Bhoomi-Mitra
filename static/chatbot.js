@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const chatBox = document.getElementById("chatBox");
   const userInput = document.getElementById("userInput");
   const sendBtn = document.getElementById("sendBtn");
+  const SESSION_KEY = "bm_chat_session_id";
 
   const state = {
     lang: "en",
@@ -10,6 +11,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function scrollBottom() {
     chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function getSessionId() {
+    let sid = localStorage.getItem(SESSION_KEY);
+    if (!sid) {
+      sid = (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
+        ? crypto.randomUUID()
+        : `bm-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem(SESSION_KEY, sid);
+    }
+    return sid;
   }
 
   function addBot(text) {
@@ -77,7 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await fetch("/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Session-ID": getSessionId(),
+        },
         body: JSON.stringify({
           action: action,
           value: value,

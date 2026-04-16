@@ -4,7 +4,7 @@
  */
 
 // ── TIMEOUT CONFIG (TC-30, TC-31) ───────────────────────────────────────────
-const OFFER_TIMEOUT_MINS = 2; // Matches app.py
+const OFFER_TIMEOUT_MINS = 60; // Matches backend app.py
 let timerInterval = null;
 
 // ── API HELPER ────────────────────────────────────────────────────────────────
@@ -868,8 +868,8 @@ function startDealTimer(interest) {
   if (!timerItem || !timerVal) return;
 
   const st = interest.status;
-  // Finalized or rejected deals don't time out
-  if (st !== "pending" && st !== "negotiating") {
+  // Finalized terminal states don't show countdown.
+  if (!["pending", "negotiating", "accepted"].includes(st)) {
     timerItem.style.display = "none";
     if (timerDivider) timerDivider.style.display = "none";
     return;
@@ -877,6 +877,7 @@ function startDealTimer(interest) {
 
   const lastActiveStr = interest.last_activity_at;
   const finalizedStr  = interest.finalized_at;
+  let expiryDate;
   
   if (st === "accepted") {
       // 3-Day confirmation timer
@@ -919,9 +920,10 @@ function startDealTimer(interest) {
         timerVal.textContent = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     
-    // Proactive Warning (TC-31)
-    // Warning at 30s for the 2m test case, or at 6h for longer durations
-    const warnThreshold = Math.min(30, OFFER_TIMEOUT_MINS * 60 * 0.1); // 10% or 30s
+    // Proactive warning for near-expiry deals.
+    const warnThreshold = st === "accepted"
+      ? 6 * 60 * 60
+      : Math.min(60, OFFER_TIMEOUT_MINS * 60 * 0.1);
     if (diff > 0 && diff <= warnThreshold * 1000 && !window._expiryWarned) {
         Toast.warning(`Warning: This deal will expire in less than ${Math.ceil(diff/1000)} seconds!`);
         window._expiryWarned = true;
