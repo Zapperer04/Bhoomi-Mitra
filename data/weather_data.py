@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 # Ensure environment variables are loaded relative to this file
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv(os.path.join(BASE_DIR, "Backend", ".env"), override=False)
 
 _weather_cache = {}
 CACHE_TTL_WEATHER = 600 # 10 minutes

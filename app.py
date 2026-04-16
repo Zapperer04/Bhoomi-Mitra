@@ -58,6 +58,7 @@ CANONICAL_CITIES = [
 # ================= ENV & APP SETUP =================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
+load_dotenv(os.path.join(BASE_DIR, "Backend", ".env"), override=False)
 
 import importlib
 try:
