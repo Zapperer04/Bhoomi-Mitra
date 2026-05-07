@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/toast.css">
+    <link rel="stylesheet" href="/static/Signup.css">
+</head>
+<body>
+
+<nav class="signup-nav">
+    <div class="nav-left">
+        <a href="/" class="nav-logo">Bhoomi Mitra</a>
+    </div>
+    <div class="nav-right">
+        <a href="/" class="nav-back" data-i18n="home.back_home">← Back to Home</a>
+        <div id="google_translate_element"></div>
+    </div>
+</nav>
+
+<div class="signup-page">
+    <div class="signup-card">
+        <h2 data-i18n="login.title">Welcome back</h2>
+        <p class="subtitle" data-i18n="login.subtitle">Login to your account</p>
+
+        <form id="loginForm">
+            <div class="phone-input-group">
+                <span class="phone-prefix">+91</span>
+                <input type="tel" id="phone"
+                       placeholder="XXXXXXXXXX" maxlength="10" autocomplete="tel" required>
+            </div>
+            <input type="password" id="password"
+                data-i18n="login.password_placeholder"
+                data-i18n-attr="placeholder"
+                placeholder="Password" required>
+            <button type="submit" class="submit-btn" data-i18n="login.submit">Login</button>
+        </form>
+
+        <p class="subtitle" style="margin-top:18px;">
+            <span data-i18n="login.no_account">Don't have an account?</span>
+            <a href="/Signup" style="color:#2E7D32;font-weight:600;" data-i18n="login.create_one">Create one</a>
+        </p>
+    </div>
+</div>
+
+<script src="/static/google_translate.js"></script>
+<script src="/static/toast.js"></script>
+<script src="/static/Signup.js"></script>
+<script src="/static/script.js"></script>
+</body>
+</html>

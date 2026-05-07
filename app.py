@@ -89,7 +89,10 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 if WhiteNoise:
     # Industry-standard prefix to avoid routing collisions with API endpoints
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
-CORS(app, supports_credentials=True)
+# ================= CORS & HOSTING =================
+# Allowing all origins for the frontend split (Vercel -> Render)
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
+
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
 os.makedirs(INSTANCE_DIR, exist_ok=True)

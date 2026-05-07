@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Post Crop – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/toast.css">
+    <link rel="stylesheet" href="/static/post_crop.css">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo notranslate">Bhoomi Mitra</span>
+        <a href="/farmer/dashboard" class="nav-messages-link">
+            ← <span data-i18n="nav.dashboard">Dashboard</span>
+        </a>
+        <a href="/messages" class="nav-messages-link">
+            💬 <span data-i18n="nav.messages">Messages</span>
+            <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div id="google_translate_element"></div>
+        <a href="/profile" class="profile-nav-btn" id="profileNavBtn">
+            <span class="profile-nav-avatar" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
+        </a>
+        <span class="role-badge">Farmer</span>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
+    </div>
+</nav>
+
+<main class="post-crop-page">
+    <section class="form-wrapper">
+        <header class="form-header">
+            <h1 data-i18n="farmer.post_crop">Post Crop for Sale</h1>
+            <p data-i18n="farmer.post_crop_sub">
+                Add crop details and let contractors contact you directly.
+            </p>
+        </header>
+
+        <form id="postCropForm">
+            <div class="form-section">
+                <h3 data-i18n="farmer.crop_details">Crop Details</h3>
+                <div class="field-group">
+                    <label data-i18n="farmer.crop_name">Crop Name</label>
+                    <input type="text" name="crop" 
+                           data-i18n="farmer.crop_placeholder"
+                           data-i18n-attr="placeholder"
+                           placeholder="Wheat, Paddy" required>
+                </div>
+                <div class="field-group">
+                    <label data-i18n="farmer.quantity_quintals">Quantity (Quintals)</label>
+                    <input type="number" name="quantity" min="1" required>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 data-i18n="farmer.pricing_title">Pricing</h3>
+                <div class="field-group">
+                    <label data-i18n="farmer.expected_price">Expected Price (₹ / Quintal)</label>
+                    <input type="number" name="price" min="1">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 data-i18n="farmer.availability_title">Availability</h3>
+                <div class="field-group">
+                    <label data-i18n="farmer.available_from">Available From</label>
+                    <input type="date" name="availability" id="availabilityDate" required>
+                </div>
+                <div class="field-group">
+                    <label data-i18n="farmer.location_lbl">Location</label>
+                    <input type="text" name="location" 
+                           data-i18n="signup.village_placeholder"
+                           data-i18n-attr="placeholder"
+                           placeholder="Village / District" required>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" data-i18n="farmer.post_crop_btn">
+                Post Crop
+            </button>
+        </form>
+    </section>
+</main>
+
+<script src="/static/config.js"></script>
+<script src="/static/google_translate.js"></script>
+<script src="/static/toast.js"></script>
+<script src="/static/post_crop.js"></script>
+</body>
+</html>

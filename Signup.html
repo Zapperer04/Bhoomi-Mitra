@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/toast.css">
+    <link rel="stylesheet" href="/static/Signup.css">
+</head>
+<body>
+
+<nav class="signup-nav">
+    <div class="nav-left">
+        <a href="/" class="nav-logo">Bhoomi Mitra</a>
+    </div>
+    <div class="nav-right">
+        <a href="/" class="nav-back" data-i18n="home.back_home">← <span data-i18n="nav.back_home">Back to Home</span></a>
+        <div id="google_translate_element"></div>
+    </div>
+</nav>
+
+<div class="signup-page">
+    <div class="signup-card">
+        <h2 data-i18n="signup.title">Create your account</h2>
+        <p class="subtitle" data-i18n="signup.subtitle">Select your role to continue</p>
+
+        <div class="role-toggle">
+            <button class="role-btn active" data-role="farmer" data-i18n="signup.role_farmer">Farmer</button>
+            <button class="role-btn" data-role="contractor" data-i18n="signup.role_contractor">Contractor</button>
+        </div>
+
+        <form id="signupForm">
+            <input type="text" id="name"
+                data-i18n="signup.name_placeholder"
+                data-i18n-attr="placeholder"
+                placeholder="Full Name" required>
+            <div class="phone-input-group">
+                <span class="phone-prefix">+91</span>
+                <input type="tel" id="phone"
+                    maxlength="10"
+                    placeholder="XXXXXXXXXX" required>
+            </div>
+            <input type="password" id="password"
+                data-i18n="signup.password_placeholder"
+                data-i18n-attr="placeholder"
+                placeholder="Password (Min 6 chars, with number)" required>
+            <p class="pw-hint" style="font-size: 11px; color: var(--gray-500); margin-top: -10px; margin-bottom: 1rem; text-align: left; padding-left: 5px;">
+                Must have at least 6 characters, one letter and one number.
+            </p>
+
+            <div class="role-field farmer-field">
+                <input type="text" id="village"
+                    data-i18n="signup.village_placeholder"
+                    data-i18n-attr="placeholder"
+                    placeholder="Village / District">
+                <input type="text" id="primaryCrops"
+                    data-i18n="signup.crops_placeholder"
+                    data-i18n-attr="placeholder"
+                    placeholder="Primary Crops">
+            </div>
+
+            <div class="role-field contractor-field hidden">
+                <input type="text" id="businessType"
+                    data-i18n="signup.business_placeholder"
+                    data-i18n-attr="placeholder"
+                    placeholder="Business Type">
+                <input type="text" id="regions"
+                    data-i18n="signup.regions_placeholder"
+                    data-i18n-attr="placeholder"
+                    placeholder="Operating Regions">
+            </div>
+
+            <button type="submit" class="submit-btn" data-i18n="signup.submit">Create Account</button>
+        </form>
+    </div>
+</div>
+
+<script src="/static/google_translate.js"></script>
+<script src="/static/toast.js"></script>
+<script src="/static/Signup.js"></script>
+<script src="/static/script.js"></script>
+<script>
+// ── Role toggle ───────────────────────────────────────────────────────────────
+let selectedRole = "farmer";
+const roleButtons     = document.querySelectorAll(".role-btn");
+const farmerFields    = document.querySelector(".farmer-field");
+const contractorFields = document.querySelector(".contractor-field");
+
+roleButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        roleButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedRole = btn.dataset.role;
+        if (selectedRole === "farmer") {
+            farmerFields.classList.remove("hidden");
+            contractorFields.classList.add("hidden");
+        } else {
+            contractorFields.classList.remove("hidden");
+            farmerFields.classList.add("hidden");
+        }
+    });
+});
+window.getSelectedSignupRole = () => selectedRole;
+</script>
+</body>
+</html>

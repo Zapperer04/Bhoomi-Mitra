@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Government Schemes – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/gov.css">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo notranslate">Bhoomi Mitra</span>
+        <a href="/farmer/dashboard" class="nav-messages-link">
+            ← <span data-i18n="nav.dashboard">Dashboard</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div id="google_translate_element"></div>
+        <a href="/profile" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
+            <span class="profile-nav-avatar" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
+        </a>
+        <span class="role-badge" data-i18n="farmer.role_badge">Farmer</span>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
+    </div>
+</nav>
+
+<main class="gov-page">
+    <section class="gov-header">
+        <h1 data-i18n="gov.title">Government Schemes for Farmers</h1>
+        <p data-i18n="gov.subtitle">
+            Verified central and state government schemes with direct links
+            to official portals for detailed information and application.
+        </p>
+    </section>
+
+    <section class="scheme-grid">
+        <div class="scheme-card">
+            <h3 data-i18n="gov.scheme1_name">PM-KISAN</h3>
+            <p data-i18n="gov.scheme1_desc">
+                Income support of ₹6,000 per year to eligible farmer families,
+                paid in three installments.
+            </p>
+            <div class="scheme-footer">
+                <span class="tag" data-i18n="gov.tag_income">Income Support</span>
+                <a href="https://pmkisan.gov.in" target="_blank" class="scheme-link" data-i18n="gov.learn_more">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3 data-i18n="gov.scheme2_name">PM Fasal Bima Yojana</h3>
+            <p data-i18n="gov.scheme2_desc">
+                Crop insurance scheme protecting farmers against losses
+                due to natural calamities and pests.
+            </p>
+            <div class="scheme-footer">
+                <span class="tag" data-i18n="gov.tag_insurance">Insurance</span>
+                <a href="https://pmfby.gov.in" target="_blank" class="scheme-link" data-i18n="gov.learn_more">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3 data-i18n="gov.scheme3_name">Soil Health Card Scheme</h3>
+            <p data-i18n="gov.scheme3_desc">
+                Provides soil testing reports and fertilizer recommendations
+                to improve crop productivity.
+            </p>
+            <div class="scheme-footer">
+                <span class="tag" data-i18n="gov.tag_soil">Soil & Fertility</span>
+                <a href="https://soilhealth.dac.gov.in" target="_blank" class="scheme-link" data-i18n="gov.learn_more">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3 data-i18n="gov.scheme4_name">Kisan Credit Card (KCC)</h3>
+            <p data-i18n="gov.scheme4_desc">
+                Enables farmers to access short-term credit for cultivation
+                and allied activities.
+            </p>
+            <div class="scheme-footer">
+                <span class="tag" data-i18n="gov.tag_credit">Credit</span>
+                <a href="https://www.myscheme.gov.in/schemes/kcc" target="_blank" class="scheme-link" data-i18n="gov.learn_more">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+
+        <div class="scheme-card">
+            <h3 data-i18n="gov.scheme5_name">Pradhan Mantri Krishi Sinchayee Yojana</h3>
+            <p data-i18n="gov.scheme5_desc">
+                Improves irrigation efficiency and promotes water conservation
+                through modern techniques.
+            </p>
+            <div class="scheme-footer">
+                <span class="tag" data-i18n="gov.tag_irrigation">Irrigation</span>
+                <a href="https://pmksy.gov.in" target="_blank" class="scheme-link" data-i18n="gov.learn_more">
+                    Learn more →
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script src="/static/config.js"></script>
+<script src="/static/google_translate.js"></script>
+<script src="/static/gov.js"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://translate.google.com">
+    <link rel="preconnect" href="https://translate.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Speed up: Hide Google widget artifacts immediately */
+        .skiptranslate iframe, .goog-te-banner-frame, .goog-te-gadget-icon, .goog-te-gadget-simple img, .goog-te-gadget { 
+            display: none !important; 
+        }
+        #goog-gt-tt, .goog-te-balloon-frame, #goog-gt-tt *, .goog-te-tooltip, .goog-te-tooltip * { 
+            display: none !important; 
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+        body { top: 0px !important; }
+        #google_translate_element {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="logo notranslate">Bhoomi Mitra</div>
+    <div class="nav-right">
+        <a href="/" class="nav-link" data-i18n="home.nav_home">Home</a>
+        
+        <!-- Language Selector -->
+        <div id="google_translate_element"></div>
+
+        <a href="/login" class="nav-link login" data-i18n="home.nav_login">Login</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1 id="heroTitle">
+        <span data-i18n="home.hero_static">Connecting Farmers Directly with</span> 
+        <span id="typedText" class="typed-text notranslate"></span><span class="typed-cursor"></span>
+    </h1>
+    <!-- Hidden source for translated phrases -->
+    <div id="phraseSource" style="display:none;">
+        <span data-i18n="home.phrase1">the Markets.</span>
+        <span data-i18n="home.phrase2">Better Deals.</span>
+        <span data-i18n="home.phrase3">Contractors.</span>
+        <span data-i18n="home.phrase4">Growth.</span>
+        <span data-i18n="home.phrase5">New Opportunities.</span>
+    </div>
+    <p data-i18n="home.hero_sub">A smart agriculture platform combining direct trade and a farming chatbot.</p>
+
+    <div class="cta-group">
+        <a href="/Signup?role=farmer" class="btn farmer-btn" data-i18n="home.join_farmer">
+            Join as Farmer
+        </a>
+        <a href="/Signup?role=contractor" class="btn contractor-btn" data-i18n="home.join_contractor">
+            Join as Contractor
+        </a>
+    </div>
+</section>
+
+<section class="features">
+    <div class="card">
+        <div class="card-icon">🌾</div>
+        <h3 data-i18n="home.card_farmer_title">For Farmers</h3>
+        <p data-i18n="home.card_farmer_body">Sell crops directly to contractors, discover local demand, and avoid middlemen completely.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">🤝</div>
+        <h3 data-i18n="home.card_contractor_title">For Contractors</h3>
+        <p data-i18n="home.card_contractor_body">Find farmers by crop and region, source produce efficiently, and build long-term supply connections.</p>
+    </div>
+
+    <div class="card highlight">
+        <div class="card-icon">🤖</div>
+        <h3 data-i18n="home.card_chatbot_title">Farming Chatbot</h3>
+        <p data-i18n="home.card_chatbot_body">Get instant crop advice, weather updates, MSP information, and government schemes — anytime, in your language.</p>
+    </div>
+</section>
+
+<script src="/static/google_translate.js"></script>
+<script>
+    const typedTextSpan = document.getElementById("typedText");
+    const phraseSource  = document.getElementById("phraseSource");
+
+    const DEFAULT_PHRASES = ["Connects.", "Growth.", "Direct Trade.", "Markets."];
+
+    function getPhrases() {
+        if (!phraseSource) return DEFAULT_PHRASES;
+        const spans = Array.from(phraseSource.querySelectorAll("span"));
+        if (spans.length === 0) return DEFAULT_PHRASES;
+        return spans.map(s => s.innerText.trim()).filter(t => t.length > 0);
+    }
+
+    const typingSpeed = 80;
+    const erasingSpeed = 40;
+    const newTextDelay = 2000;
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isErasing = false;
+
+    function startAnimation() {
+        const phrases = getPhrases();
+        if (phrases.length === 0) return;
+
+        const currentPhrase = phrases[phraseIndex] || "";
+        const chars = Array.from(currentPhrase);
+
+        if (!isErasing) {
+            // Typing logic logic logic
+            if (charIndex < chars.length) {
+                let toType = chars[charIndex];
+                
+                // Advanced: Lookahead for combining marks (Matras) in Indic scripts (U+0900 to U+0DFF)
+                // This ensures "क" + "ि" appear together as "कि" instead of "क" then "कि"
+                while (charIndex + 1 < chars.length) {
+                    const nextCode = chars[charIndex + 1].charCodeAt(0);
+                    // Match common Indic vowel marks / combining chars range
+                    if (nextCode >= 0x0900 && nextCode <= 0x0DFF && !isConsonant(nextCode)) {
+                        charIndex++;
+                        toType += chars[charIndex];
+                    } else {
+                        break;
+                    }
+                }
+
+                typedTextSpan.textContent += toType;
+                charIndex++;
+                setTimeout(startAnimation, typingSpeed);
+            } else {
+                isErasing = true;
+                setTimeout(startAnimation, newTextDelay);
+            }
+        } else {
+            // Erasing: Keep consistent with clusters
+            if (charIndex > 0) {
+                // Find the previous cluster boundary
+                let lastChar = typedTextSpan.textContent;
+                typedTextSpan.textContent = Array.from(lastChar).slice(0, -1).join('');
+                charIndex--;
+                
+                // If the character we just typed was a cluster, charIndex might be off.
+                // But since we increment charIndex per cluster-unit in type(), this works.
+                setTimeout(startAnimation, erasingSpeed);
+            } else {
+                isErasing = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(startAnimation, typingSpeed + 300);
+            }
+        }
+    }
+
+    // Helper: Detect if a code is an Indic consonant (start of a cluster)
+    function isConsonant(code) {
+        // Standardized Indic script blocks (Devanagari, Bengali, Gujarati, etc. all sit in 0x80 blocks)
+        // Most consonants are between offset 0x15 and 0x39 within their block
+        const offset = code % 0x80;
+        return (offset >= 0x15 && offset <= 0x39);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(startAnimation, 1000); // Shorter initial delay
+    });
+</script>
+
+</body>
+</html>

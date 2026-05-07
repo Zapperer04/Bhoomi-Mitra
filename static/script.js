@@ -1,6 +1,11 @@
+// Update this to your actual Render backend URL
+const API_BASE_URL = "https://bhoomi-mitra-backend.onrender.com";
+
 // Standardized API wrapper
 async function apiCall(url, options = {}) {
-  const res = await fetch(url, options);
+  // Ensure we use absolute URL for cross-origin requests
+  const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+  const res = await fetch(fullUrl, options);
   const json = await res.json();
   if (!json.success) throw new Error(json.error || "Request failed");
   return json.data;

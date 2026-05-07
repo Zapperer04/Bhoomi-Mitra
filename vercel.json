@@ -1,0 +1,15 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/farmer/dashboard", "destination": "/farmer_dashboard.html" },
+    { "source": "/contractor/dashboard", "destination": "/contractor_dashboard.html" },
+    { "source": "/chatbot", "destination": "/Chatbot.html" },
+    { "source": "/gov", "destination": "/gov.html" },
+    { "source": "/messages", "destination": "/messages.html" },
+    { "source": "/profile", "destination": "/Profile.html" },
+    { "source": "/post-crop", "destination": "/post_crop.html" },
+    { "source": "/signup", "destination": "/Signup.html" },
+    { "source": "/login", "destination": "/login.html" }
+  ]
+}

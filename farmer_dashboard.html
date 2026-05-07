@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Farmer Dashboard – Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/toast.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo notranslate">Bhoomi Mitra</span>
+        <a href="/gov" class="nav-messages-link">
+            🏛️ <span data-i18n="nav.gov_schemes">Gov Schemes</span>
+        </a>
+        <a href="/messages" class="nav-messages-link">
+            💬 <span data-i18n="nav.messages">Messages</span>
+            <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div id="google_translate_element"></div>
+        <a href="/profile" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
+            <span class="profile-nav-avatar notranslate" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
+        </a>
+        <span class="role-badge" data-i18n="farmer.role_badge">Farmer</span>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
+    </div>
+</nav>
+
+<main class="dashboard">
+    <section class="welcome">
+        <h1 data-i18n="farmer.welcome">Welcome, Farmer 👋</h1>
+        <p data-i18n="farmer.welcome_sub">Manage your crops, connect with contractors, and track history.</p>
+    </section>
+
+    <section class="quick-actions">
+        <div class="action-card">
+            <h3 data-i18n="farmer.post_crop">Post Crop for Sale</h3>
+            <p data-i18n="farmer.post_crop_sub">Add crop details and let contractors contact you.</p>
+            <a href="/post-crop" class="action-btn primary" data-i18n="farmer.post_crop_btn">Post Crop</a>
+        </div>
+
+        <div class="action-card">
+            <h3 data-i18n="farmer.contractors">Interested Contractors</h3>
+            <p data-i18n="farmer.contractors_sub">View contractors who have shown interest.</p>
+            <a href="#activeCropContainer" class="action-btn secondary" data-i18n="farmer.view_requests">View Requests</a>
+        </div>
+
+        <div class="action-card highlight">
+            <h3 data-i18n="farmer.chatbot_title">Your Farming Assistant</h3>
+            <p data-i18n="farmer.chatbot_sub">Get crop advice, weather, MSP and schemes.</p>
+            <a href="/chatbot" class="action-btn light" data-i18n="farmer.open_chatbot">Open Chatbot</a>
+        </div>
+    </section>
+
+    <section class="my-crops">
+        <h2 data-i18n="farmer.active_crops">My Active Crops</h2>
+        <div class="crop-list" id="activeCropContainer">
+            <div class="loading-state" data-i18n="farmer.loading_crops">Fetching active crops…</div>
+        </div>
+    </section>
+
+    <section class="my-crops">
+        <div class="history-header">
+            <h2 data-i18n="farmer.crop_history">Crop History</h2>
+            <button class="clear-history-btn" id="clearHistoryBtn" data-i18n="farmer.clear_history">
+                Clear History
+            </button>
+        </div>
+        <div class="crop-list" id="historyCropContainer">
+            <div class="loading-state" data-i18n="farmer.no_history">No crop history yet.</div>
+        </div>
+    </section>
+</main>
+
+<script src="/static/config.js"></script>
+<script src="/static/google_translate.js"></script>
+<script src="/static/toast.js"></script>
+<script src="/static/i18n.js"></script>
+<script src="/static/dashboard.js"></script>
+</body>
+</html>

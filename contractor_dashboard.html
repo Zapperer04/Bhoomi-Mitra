@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contractor Dashboard | Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/toast.css">
+    <link rel="stylesheet" href="/static/contractor_dashboard.css">
+</head>
+<body>
+
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo notranslate">Bhoomi Mitra</span>
+        <a href="/messages" class="nav-messages-link">
+            💬 <span data-i18n="nav.messages">Messages</span>
+            <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div id="google_translate_element"></div>
+        <a href="/profile" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
+            <span class="profile-nav-avatar notranslate" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
+        </a>
+        <span class="role-badge" data-i18n="contractor.role_badge">Contractor</span>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
+    </div>
+</nav>
+
+<main class="dashboard">
+    <section class="intro-card">
+        <h2 data-i18n="contractor.greeting">👋 Hi Contractor</h2>
+        <p data-i18n="contractor.greeting_sub">Browse crops listed by farmers and show interest in purchasing.</p>
+    </section>
+
+    <section class="controls">
+        <input type="text" id="searchInput"
+               data-i18n="contractor.search"
+               data-i18n-attr="placeholder"
+               placeholder="Search crop or location...">
+        <select id="sortSelect">
+            <option value="" data-i18n="contractor.sort">Sort by</option>
+            <option value="price_asc" data-i18n="contractor.price_asc">Price: Low to High</option>
+            <option value="price_desc" data-i18n="contractor.price_desc">Price: High to Low</option>
+        </select>
+        <select id="locationFilter">
+            <option value="" data-i18n="contractor.all_locations">All Locations</option>
+        </select>
+    </section>
+
+    <section class="crop-section">
+        <h3 data-i18n="contractor.available">🌾 Available Crops for Sale</h3>
+        <div id="availableCropsContainer" class="crop-grid">
+            <div class="loading-state" data-i18n="contractor.loading_crops">Loading crops...</div>
+        </div>
+    </section>
+
+    <hr>
+
+    <section class="interest-section">
+        <h3 data-i18n="contractor.my_interests">📨 My Interests</h3>
+        <div id="myInterestsContainer" class="interest-grid">
+            <div class="loading-state" data-i18n="contractor.loading_interests">Loading interests...</div>
+        </div>
+    </section>
+</main>
+
+<div id="interestModal" class="modal hidden">
+    <div class="modal-content">
+        <button id="cancelModalCross" class="modal-close">&times;</button>
+        <header class="modal-header">
+            <h3 data-i18n="contractor.modal_title">Show Interest</h3>
+            <p id="modalCropInfo" class="modal-subtitle"></p>
+        </header>
+        <div class="modal-body">
+            <div class="field-group">
+                <label data-i18n="contractor.modal_qty_label">Quantity (Quintals)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="interestQuantity"
+                           data-i18n="contractor.modal_qty_placeholder"
+                           data-i18n-attr="placeholder"
+                           placeholder="Ex: 10" min="1">
+                </div>
+            </div>
+            <div class="field-group">
+                <label data-i18n="contractor.modal_price_label">Offer Price per Quintal (₹)</label>
+                <div class="input-wrapper">
+                    <span class="currency-prefix">₹</span>
+                    <input type="number" id="interestPrice"
+                           data-i18n="contractor.modal_price_placeholder"
+                           data-i18n-attr="placeholder"
+                           placeholder="Ex: 2100" min="1">
+                </div>
+            </div>
+            <div class="field-group">
+                <label data-i18n="contractor.modal_msg_label">Message to Farmer</label>
+                <textarea id="interestMessage"
+                          data-i18n="contractor.modal_msg_placeholder"
+                          data-i18n-attr="placeholder"
+                          placeholder="Write a message..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelModal" class="btn btn-neutral" data-i18n="contractor.modal_cancel">Cancel</button>
+            <button id="submitInterest" class="btn btn-primary" data-i18n="contractor.modal_submit">Submit Interest</button>
+        </div>
+    </div>
+</div>
+
+<div id="counterOfferModal" class="modal hidden">
+    <div class="modal-content">
+        <button id="closeCounterOfferModal" class="modal-close">&times;</button>
+        <header class="modal-header">
+            <h3>Propose Counter Offer</h3>
+        </header>
+        <div class="modal-body">
+            <div class="field-group">
+                <label>New Price (₹/quintal)</label>
+                <div class="input-wrapper">
+                    <span class="currency-prefix">₹</span>
+                    <input type="number" id="counterModalPrice" placeholder="E.g. 2100" min="1">
+                </div>
+            </div>
+            <div class="field-group">
+                <label>New Quantity (quintals)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="counterModalQty" placeholder="E.g. 50" min="1">
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Optional Note</label>
+                <textarea id="counterModalNote" placeholder="Reason for counter-offer..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelCounterModal" class="btn btn-neutral">Cancel</button>
+            <button id="submitCounterOffer" class="btn btn-primary">Send Counter Offer</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/config.js"></script>
+<script src="/static/google_translate.js"></script>
+<script src="/static/toast.js"></script>
+<script src="/static/i18n.js"></script>
+<script src="/static/contractor_dashboard.js"></script>
+</body>
+</html>
