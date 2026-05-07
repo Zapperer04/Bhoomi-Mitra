@@ -109,7 +109,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 is_sqlite = "sqlite" in db_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
-    "pool_recycle": 280,
+    "pool_recycle": 300,
     "connect_args": {"timeout": 30} if is_sqlite else {"connect_timeout": 30}
 }
 # Required >= 32 chars for JWT to prevent InsecureKeyLengthWarning -> 502 crashes in strict envs
@@ -129,12 +129,9 @@ jwt = JWTManager(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
 
-# ── DB INIT (MOVED TO init_db.py) ───────────────────────────────────────────
-# We No longer run migrations on EVERY startup to prevent Render 502 timeouts.
-# Use 'python init_db.py' manually or in the build/release phase.
-with app.app_context():
-    # Only create tables if they don't exist, don't run heavy ALTERS here.
-    db.create_all()
+# ── DB INIT (HANDLED BY init_db.py) ───────────────────────────────────────────
+# We no longer run db.create_all() here to avoid startup crashes on Render.
+# The build command 'python init_db.py' handles table creation.
 
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}, "last_activity": time.time()})
