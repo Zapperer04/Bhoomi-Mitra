@@ -18,9 +18,9 @@
         <a href="javascript:history.back()" class="nav-messages-link">
             ← <span data-i18n="nav.back">Back to Dashboard</span>
         </a>
-        <button id="helpBtn" class="nav-messages-link" style="border:none; cursor:pointer;">
+        <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
             ❓ <span data-i18n="nav.help">Help</span>
-        </button>
+        </a>
     </div>
     <div class="nav-right">
         <!-- Language Selector (Simplified for Messages) -->
@@ -283,6 +283,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Floating Help FAB -->
+    <button id="helpFAB" class="help-fab" title="Help Center" style="
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #059669, #064e3b);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    " onmouseover="this.style.transform='scale(1.1) rotate(15deg)';" onmouseout="this.style.transform='scale(1) rotate(0)';"
+    >❓</button>
 </main>
 
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>

@@ -86,6 +86,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (e.target === helpModal) closeFn();
     });
   }
+
+  const helpFAB = document.getElementById("helpFAB");
+  if (helpFAB && helpModal) {
+    helpFAB.onclick = () => helpModal.classList.remove("hidden");
+  }
 });
 
 async function initHeader() {

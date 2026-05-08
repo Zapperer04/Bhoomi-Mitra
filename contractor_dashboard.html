@@ -19,9 +19,9 @@
             💬 <span data-i18n="nav.messages">Messages</span>
             <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
         </a>
-        <button id="helpBtn" class="nav-messages-link" style="border:none; cursor:pointer;">
+        <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
             ❓ <span data-i18n="nav.help">Help</span>
-        </button>
+        </a>
     </div>
     <div class="nav-right">
         <div id="google_translate_element"></div>
@@ -178,6 +178,9 @@
     </div>
 </div>
 
+
+<!-- Floating Help FAB -->
+<button id="helpFAB" class="help-fab" title="Help Center">❓</button>
 
 <script src="/static/config.js"></script>
 <script src="/static/google_translate.js"></script>

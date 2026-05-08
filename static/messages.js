@@ -124,6 +124,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.target === helpFarmer) helpFarmer.classList.add("hidden");
     if (e.target === helpContractor) helpContractor.classList.add("hidden");
   });
+
+  const helpFAB = document.getElementById("helpFAB");
+  if (helpFAB && helpBtn) {
+    helpFAB.onclick = helpBtn.onclick;
+  }
 });
 
 // ── USER INIT ─────────────────────────────────────────────────────────────────
