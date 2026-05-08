@@ -1450,9 +1450,15 @@ def chat():
         weather = get_weather(city)
         session["state"] = "START"
         if not weather:
-            return jsonify({"message": "Weather info unavailable.", "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}]})
+            return jsonify({"message": get_text("WEATHER_UNAVAILABLE", lang), "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}]})
+        
+        weather_msg = (
+            get_text("WEATHER_INFO", lang).format(city=city.title()) + "\n" +
+            get_text("TEMP", lang) + f": {weather['temperature']}°C\n" +
+            get_text("CONDITION", lang) + f": {weather['condition']}"
+        )
         return jsonify({
-            "message": f"Weather in {city.title()}:\nTemp: {weather['temperature']}°C\nCondition: {weather['condition']}",
+            "message": weather_msg,
             "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}],
         })
 
@@ -1467,13 +1473,18 @@ def chat():
         weather    = get_weather(city_query)
         if not weather:
             return jsonify({
-                "message": f"Could not find weather for '{city_query}'. Please check the city name.",
+                "message": get_text("CITY_NOT_FOUND", lang).format(city=city_query),
                 "options": [{"label": get_text("BACK", lang), "action": "BACK"}],
                 "input":   "text",
             })
         session["state"] = "START"
+        weather_msg = (
+            get_text("WEATHER_INFO", lang).format(city=weather['location']) + "\n" +
+            get_text("TEMP", lang) + f": {weather['temperature']}°C\n" +
+            get_text("CONDITION", lang) + f": {weather['condition']}"
+        )
         return jsonify({
-            "message": f"Weather in {weather['location']}:\nTemp: {weather['temperature']}°C\nCondition: {weather['condition']}",
+            "message": weather_msg,
             "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}],
         })
 
@@ -1533,7 +1544,7 @@ def chat():
         schemes = SCHEMES_DATA.get(value, [])
         session["state"] = "START"
         if not schemes:
-            return jsonify({"message": "No specific schemes found.", "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}]})
+            return jsonify({"message": get_text("SCHEMES_NOT_FOUND", lang), "options": [{"label": get_text("MAIN_MENU", lang), "action": "BACK"}]})
         msg_list = [
             f"🌾 {s['name'].get(lang, s['name']['en'])}\n"
             f"{s['desc'].get(lang, s['desc']['en'])}\n"
@@ -1598,6 +1609,16 @@ def clear_old_memory():
         for i in range(20):
             CHAT_SESSIONS.pop(sorted_sessions[i][0], None)
         logger.info(f"[MEMORY_PRUNE] Pruned 20 sessions. Active: {len(CHAT_SESSIONS)}")
+
+# ================= TRANSLATION API =================
+@app.route("/api/translations", methods=["GET"])
+def get_translations():
+    lang = request.args.get("lang", "en")
+    return jsonify({
+        "success": True,
+        "data": get_dashboard_strings(lang)
+    })
+
 
 
 if __name__ == "__main__":

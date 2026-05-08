@@ -1,48 +1,55 @@
-// Deprecation Wrapper
-// This file formerly contained the manual Indian Language dictionary system.
-// It has been replaced by the dynamic Google Translate widget.
-// We provide a tiny stub 'DT' object here so older dashboard scripts don't throw ReferenceErrors 
-// and break execution. It simply returns hardcoded English, which Google Translate automatically translates.
+/**
+ * i18n.js — Dynamic Translation System for Bhoomi Mitra
+ * Fetches translations from the Render backend.
+ */
 
 window.DT = {
-    ready: Promise.resolve(),
-    t: function(key) {
-        const dictionary = {
-            "status.active": "Active", 
-            "status.partially_sold": "Partially Sold", 
-            "status.negotiating": "Negotiating", 
-            "status.sold": "Sold", 
-            "status.pending": "Pending",
-            "no_active_crops": "No active crops found.", 
-            "label.qty": "Qty", 
-            "farmer.quantity_quintals": "Quintals", 
-            "label.status": "Status", 
-            "remove_listing": "Remove Listing", 
-            "confirm_remove_listing": "Are you sure you want to remove this active listing?",
-            "no_history": "No history available.", 
-            "btn.clear": "Clear", 
-            "no_interests": "No interests found.", 
-            "open_chat": "Open Chat", 
-            "final_accept_btn": "Accept & Finalize",
-            "accept_btn": "Accept", 
-            "reject_btn": "Reject", 
-            "label.contractor": "Contractor", 
-            "label.offered": "Offered Price",
-            "failed_crops": "Failed to load crops data.", 
-            "no_crops": "No active crops available right now.", 
-            "interest_shown": "Interest Shown", 
-            "resubmit_btn": "Resubmit Offer",
-            "show_interest_btn": "Show Interest", 
-            "quantity_lbl": "Quantity", 
-            "quintals": "Quintals", 
-            "price_lbl": "Price", 
-            "quintal_short": "quintal", 
-            "location_lbl": "Location", 
-            "withdraw_btn": "Withdraw Offer",
-            "status.withdrawn": "Withdrawn",
-            "toast.interest_sent": "Interest has been sent successfully!"
-        };
-        // If the key exists in our fallback dict, return it. Otherwise just prettify the key.
-        return dictionary[key] || key.split('.').pop().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    lang: localStorage.getItem("bm_lang") || "en",
+    dict: {},
+    ready: null,
+
+    async init() {
+        this.ready = this.fetchTranslations();
+        await this.ready;
+        this.applyTranslations();
+    },
+
+    async fetchTranslations() {
+        try {
+            // Using absolute URL if defined in config.js (API_BASE_URL)
+            const url = `/api/translations?lang=${this.lang}`;
+            const res = await fetch(url);
+            const json = await res.json();
+            if (json.success) {
+                this.dict = json.data;
+            }
+        } catch (err) {
+            console.error("Failed to load translations:", err);
+        }
+    },
+
+    t(key) {
+        // Fallback: return prettified key if missing
+        return this.dict[key] || key.split('.').pop().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+
+    applyTranslations() {
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            const translation = this.t(key);
+            if (translation) {
+                el.textContent = translation;
+            }
+        });
+    },
+
+    setLang(lang) {
+        this.lang = lang;
+        localStorage.setItem("bm_lang", lang);
+        // Refresh or just re-fetch and apply? Refresh is safer for all components.
+        window.location.reload();
     }
 };
+
+// Auto-init
+window.DT.init();
