@@ -1,163 +1,303 @@
 /* ============================================================
-   nav-mobile.css — Unified Mobile Navigation for ALL Pages
+   nav-mobile.css — Hamburger Menu for Phone Layouts
    ============================================================
-   Single source of truth for mobile navbar behavior.
-   Included by every page that uses .dash-nav or .nav
+   Clean slide-in hamburger for all .dash-nav and .nav pages.
    ============================================================ */
 
-/* ── TABLET (≤ 992px) ─────────────────────────────────────── */
-@media (max-width: 992px) {
+/* ── HAMBURGER BUTTON (hidden on desktop) ─────────────────── */
+.hamburger-toggle {
+    display: none;
+    background: none;
+    border: 1.5px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    position: relative;
+    z-index: 1001;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
 
-    /* Dashboard-style nav (.dash-nav) */
+.hamburger-toggle:hover {
+    border-color: var(--green-400, #34d399);
+    background: var(--green-50, #f0fdf4);
+}
+
+/* Three lines */
+.hamburger-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--green-800, #065f46);
+    margin: 3px auto;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* X animation when open */
+.hamburger-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(4px, 4px);
+}
+.hamburger-toggle.active span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.hamburger-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(4px, -4px);
+}
+
+/* ── BACKDROP ─────────────────────────────────────────────── */
+.nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.nav-backdrop.visible {
+    display: block;
+    opacity: 1;
+}
+
+/* ── SLIDE-IN PANEL ───────────────────────────────────────── */
+.nav-slide-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    background: #ffffff;
+    z-index: 1000;
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.12);
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.nav-slide-panel.open {
+    right: 0;
+}
+
+/* Panel header */
+.nav-panel-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.nav-panel-header .panel-title {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #064e3b;
+    background: linear-gradient(135deg, #047857, #10b981);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.nav-panel-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.nav-panel-close:hover {
+    color: #ef4444;
+}
+
+/* Panel nav items */
+.nav-panel-items {
+    padding: 0.75rem 0;
+}
+.nav-panel-items a,
+.nav-panel-items button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+    text-decoration: none;
+    color: #374151;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+.nav-panel-items a:hover,
+.nav-panel-items button:hover {
+    background: #f0fdf4;
+    color: #047857;
+}
+
+.nav-panel-items .panel-icon {
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.nav-panel-divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 0.5rem 1.5rem;
+}
+
+/* Profile section in panel */
+.nav-panel-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    margin: 0.5rem 1rem;
+    background: #f0fdf4;
+    border-radius: 12px;
+    border: 1px solid #d1fae5;
+}
+.nav-panel-profile .panel-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #059669, #34d399);
+    color: white;
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    flex-shrink: 0;
+}
+.nav-panel-profile .panel-profile-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.nav-panel-profile .panel-profile-name {
+    font-weight: 700;
+    color: #064e3b;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nav-panel-profile .panel-profile-role {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #059669;
+}
+
+/* Logout in panel */
+.nav-panel-items .panel-logout {
+    color: #ef4444;
+    margin-top: 0.25rem;
+}
+.nav-panel-items .panel-logout:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* Language widget in panel */
+.nav-panel-lang {
+    padding: 0.75rem 1.5rem;
+}
+
+/* ── PHONE BREAKPOINT ─────────────────────────────────────── */
+@media (max-width: 768px) {
+
+    /* Show hamburger */
+    .hamburger-toggle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Enable the panel */
+    .nav-slide-panel {
+        display: block;
+    }
+
+    /* -- Dashboard nav (.dash-nav) -- */
     .dash-nav {
-        padding: 0.6rem 1rem;
-        height: auto;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+        height: 60px;
+        padding: 0 1rem;
     }
 
     .dash-nav .nav-left {
-        flex: 1 1 auto;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        flex: 1;
         min-width: 0;
-        flex-wrap: wrap;
     }
 
+    /* Hide everything except logo in nav-left */
+    .dash-nav .nav-left > *:not(.logo):not(.hamburger-toggle) {
+        display: none !important;
+    }
+
+    /* Hide entire nav-right (moved into panel) */
     .dash-nav .nav-right {
-        flex: 1 1 auto;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        min-width: 0;
-        flex-wrap: wrap;
+        display: none !important;
     }
 
     .dash-nav .logo {
-        font-size: 1.2rem;
-        flex-shrink: 0;
+        font-size: 1.3rem;
     }
 
-    .dash-nav .nav-messages-link {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
-        gap: 0.3rem;
-    }
-
-    .dash-nav .profile-nav-btn {
-        padding: 0.25rem 0.6rem 0.25rem 0.25rem;
-        height: auto;
-    }
-
-    .dash-nav .profile-nav-avatar {
-        width: 26px;
-        height: 26px;
-        font-size: 0.7rem;
-    }
-
-    .dash-nav .profile-nav-name {
-        font-size: 0.8rem;
-    }
-
-    .dash-nav .role-badge {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.65rem;
-    }
-
-    .dash-nav .logout-btn {
-        padding: 0.4rem 0.7rem;
-        font-size: 0.8rem;
-    }
-
-    /* Landing-page nav (.nav) */
+    /* -- Landing nav (.nav) -- */
     .nav {
         padding: 0.75rem 1rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
     }
-    .nav .nav-right {
-        gap: 0.75rem;
-        flex-wrap: wrap;
+
+    .nav > .nav-right {
+        display: none !important;
     }
+
     .nav .logo {
         font-size: 1.3rem;
     }
+
+    /* -- Page content adjustments -- */
+    .dashboard {
+        padding: 0 1rem;
+        margin: 1.5rem auto;
+    }
 }
 
-
-/* ── PHONE (≤ 576px) ──────────────────────────────────────── */
-@media (max-width: 576px) {
-
-    /* Stack nav into 2 rows */
+/* ── TABLET — keep desktop nav, no hamburger ──────────────── */
+@media (min-width: 769px) and (max-width: 992px) {
     .dash-nav {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.4rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.5rem 1.25rem;
+        gap: 1rem;
     }
-
-    .dash-nav .nav-left,
-    .dash-nav .nav-right {
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    .dash-nav .nav-messages-link {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.82rem;
     }
-
-    .dash-nav .logo {
-        font-size: 1.1rem;
-    }
-
-    /* Hide text labels — keep only icons/emoji */
-    .dash-nav .nav-messages-link span:not(.unread-badge-nav),
     .dash-nav .profile-nav-name {
         display: none;
     }
-
-    .dash-nav .nav-messages-link {
-        padding: 0.4rem 0.5rem;
-        font-size: 0.85rem;
-    }
-
-    .dash-nav .profile-nav-btn {
-        padding: 0.2rem;
-        gap: 0;
-    }
-
     .dash-nav .role-badge {
-        display: none;
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
     }
-
     .dash-nav .logout-btn {
-        padding: 0.35rem 0.6rem;
-        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
     }
-
-    /* Hide the language label inside the translate button */
-    #customLangLabel {
-        display: none;
-    }
-
-    /* Landing page nav stacks too */
-    .nav {
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.75rem;
-    }
-    .nav .nav-right {
-        width: 100%;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-    .nav .logo { font-size: 1.3rem; }
-
-    /* Landing hero */
-    .hero { margin-top: 2rem; min-height: auto; }
-    .hero h1 { font-size: 2rem; line-height: 1.3; }
-    .typed-text { min-width: auto; display: inline; }
-    .cta-group { flex-direction: column; }
-    .btn { width: 100%; }
 }
