@@ -9,14 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/toast.css">
     <link rel="stylesheet" href="/static/messages.css">
+    <link rel="stylesheet" href="/static/toast.css?v=1.0">
+    <link rel="stylesheet" href="/static/messages.css?v=1.0">
 </head>
 <body>
 
 <nav class="dash-nav">
     <div class="nav-left">
         <span class="logo">Bhoomi Mitra</span>
-        <a href="javascript:history.back()" class="nav-messages-link">
-            ← <span data-i18n="nav.back">Back to Dashboard</span>
+        <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
+            ❓ <span>Help</span>
         </a>
     </div>
     <div class="nav-right">
@@ -226,11 +228,78 @@
             </div>
         </div>
     </div>
+    <!-- Farmer Help Modal -->
+    <div id="helpModalFarmer" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Farmer Help Center</h3>
+                <button class="close-help-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">🤝 How to manage offers?</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">You can <b>Accept</b> the deal or <b>Counter Offer</b> if you want a different price or quantity. Use the chat to discuss terms.</p>
+                </div>
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">✅ Closing the Deal</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">Once both parties accept, the deal is closed. You can then mark "Payment Received" when the contractor pays you.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary close-help-action" style="width: 100%;">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contractor Help Modal -->
+    <div id="helpModalContractor" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Contractor Help Center</h3>
+                <button class="close-help-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">📉 How to negotiate?</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">Use <b>Counter Offer</b> to propose new terms. If the farmer counters, you'll see a notification in the chat bar.</p>
+                </div>
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">✅ Finalizing</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">After the deal is accepted by both, use the chat to coordinate delivery. You can mark "Goods Received" once you get the crop.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary close-help-action" style="width: 100%;">Understood!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Help FAB -->
+    <button id="helpFAB" class="help-fab" title="Help Center" style="
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #059669, #064e3b);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    " onmouseover="this.style.transform='scale(1.1) rotate(15deg)';" onmouseout="this.style.transform='scale(1) rotate(0)';"
+    >❓</button>
 </main>
 
 <script src="/static/config.js"></script>
-<script src="/static/google_translate.js"></script>
-<script src="/static/toast.js"></script>
-<script src="/static/messages.js"></script>
+<script src="/static/google_translate.js?v=2"></script>
+<script src="/static/toast.js?v=2"></script>
+<script src="/static/messages.js?v=11"></script>
 </body>
 </html>
