@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Farmer Help Center - Bhoomi Mitra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <style>
+        .help-container {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+        .help-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .help-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--green-800), var(--green-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        .help-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+        }
+        .help-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--green-200);
+        }
+        .help-card h3 {
+            color: var(--green-700);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .help-card p {
+            color: var(--gray-600);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            color: var(--green-600);
+            text-decoration: none;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        .back-btn:hover {
+            transform: translateX(-5px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="dash-nav">
+        <div class="nav-left">
+            <span class="logo notranslate">Bhoomi Mitra</span>
+        </div>
+        <div class="nav-right">
+            <a href="{{ url_for('farmer_dashboard') }}" class="logout-btn" style="border-color: var(--green-200); color: var(--green-700);">Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="help-container">
+        <a href="{{ url_for('farmer_dashboard') }}" class="back-btn">← Back to Dashboard</a>
+        
+        <header class="help-header">
+            <h1>🌱 Farmer Help Center</h1>
+            <p>Everything you need to know about managing your crops and deals.</p>
+        </header>
+
+        <div class="help-grid">
+            <div class="help-card">
+                <h3>📢 Posting a Crop</h3>
+                <p>Click on <b>"Post Crop"</b> in your dashboard. Fill in the details like crop type, variety, and quantity. Setting a fair market price helps attract more buyers quickly. Your listing will be visible to all verified contractors immediately.</p>
+            </div>
+
+            <div class="help-card">
+                <h3>🤝 Managing Interests</h3>
+                <p>When a buyer is interested, you'll see them in your "Interested Contractors" list. You can view their profile and offered price. You have the power to <b>Accept</b>, <b>Reject</b>, or <b>Negotiate</b> the price through our secure chat.</p>
+            </div>
+
+            <div class="help-card">
+                <h3>💬 Secure Negotiation</h3>
+                <p>Use the built-in chat to discuss logistics, quality, and delivery dates. Never share your personal bank details or phone number outside the platform for your own safety. Our system logs all agreements to protect you.</p>
+            </div>
+
+            <div class="help-card">
+                <h3>✅ Finalizing Deals</h3>
+                <p>Once both parties agree, the deal is locked. After you deliver the goods and receive payment, mark the deal as <b>Completed</b>. This helps you build a high trust rating, making it easier to sell in the future.</p>
+            </div>
+
+            <div class="help-card">
+                <h3>🤖 AI Assistant</h3>
+                <p>Need to know the weather or MSP rates? Use our <b>Bhoomi Mitra Chatbot</b>. It speaks multiple Indian languages and can guide you on the best time to sell or what fertilizers to use.</p>
+            </div>
+
+            <div class="help-card">
+                <h3>🏛️ Government Schemes</h3>
+                <p>Check the <b>Gov Schemes</b> section regularly. We fetch the latest agricultural benefits and subsidies directly from official sources to ensure you don't miss out on financial aid.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='config.js') }}?v=3"></script>
+    <script src="{{ url_for('static', filename='google_translate.js') }}?v=3"></script>
+</body>
+</html>

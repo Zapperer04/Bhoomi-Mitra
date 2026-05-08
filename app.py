@@ -534,6 +534,12 @@ def messages_page():   return render_template("messages.html")
 @app.route("/profile")
 def profile_page():    return render_template("Profile.html")
 
+@app.route("/farmer/help")
+def farmer_help():     return render_template("farmer_help.html")
+
+@app.route("/contractor/help")
+def contractor_help(): return render_template("contractor_help.html")
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AUTH IDENTITY

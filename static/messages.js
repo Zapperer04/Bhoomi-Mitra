@@ -74,60 +74,68 @@ let lastMessageId     = 0;
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Session Check
   if (!localStorage.getItem("access_token")) { window.location.href = "/login"; return; }
 
-  await initUser();
-  await loadConversations();
-  setupEventListeners();
-  startPolling();
-
-  // Auto-open deal from URL ?deal=<id>
-  const urlParams = new URLSearchParams(window.location.search);
-  const dealId    = urlParams.get("deal");
-  if (dealId) {
-    // Rely on list load to populate currentInterestId later or just set it
-    currentInterestId = parseInt(dealId);
-    openConversationById(currentInterestId);
-    window.history.replaceState({}, "", "/messages");
-  }
-
-  document.getElementById("logoutBtn").onclick = () => {
-    stopPolling();
-    localStorage.removeItem("access_token");
-    window.location.href = "/login";
-  };
-
-  // Help Modal Logic
+  // 2. Help Modal Logic (Independent)
   const helpBtn = document.getElementById("helpBtn");
+  const helpFAB = document.getElementById("helpFAB");
   const helpFarmer = document.getElementById("helpModalFarmer");
   const helpContractor = document.getElementById("helpModalContractor");
 
-  if (helpBtn) {
-    helpBtn.onclick = async () => {
+  const closeHelp = () => {
+    helpFarmer?.classList.add("hidden");
+    helpContractor?.classList.add("hidden");
+  };
+
+  const openHelp = async () => {
+    try {
       const me = await apiCall("/api/me");
-      if (me.role === "farmer") {
-        helpFarmer.classList.remove("hidden");
-      } else {
-        helpContractor.classList.remove("hidden");
-      }
-    };
-  }
+      if (me.role === "farmer") window.location.href = "/farmer/help";
+      else window.location.href = "/contractor/help";
+    } catch (e) {
+      window.location.href = "/farmer/help"; // Fallback
+    }
+  };
+
+  if (helpBtn) helpBtn.onclick = (e) => { e.preventDefault(); openHelp(); };
+  if (helpFAB) helpFAB.onclick = openHelp;
 
   document.querySelectorAll(".close-help-btn, .close-help-action").forEach(btn => {
-    btn.onclick = () => {
-      helpFarmer?.classList.add("hidden");
-      helpContractor?.classList.add("hidden");
-    };
+    btn.onclick = closeHelp;
   });
 
   window.addEventListener("click", (e) => {
-    if (e.target === helpFarmer) helpFarmer.classList.add("hidden");
-    if (e.target === helpContractor) helpContractor.classList.add("hidden");
+    if (e.target === helpFarmer || e.target === helpContractor) closeHelp();
   });
 
-  const helpFAB = document.getElementById("helpFAB");
-  if (helpFAB && helpBtn) {
-    helpFAB.onclick = helpBtn.onclick;
+  // 3. Main Logic (Resilient)
+  try {
+    await initUser();
+    await loadConversations();
+    setupEventListeners();
+    startPolling();
+
+    // Auto-open deal from URL ?deal=<id>
+    const urlParams = new URLSearchParams(window.location.search);
+    const dealId    = urlParams.get("deal");
+    if (dealId) {
+      currentInterestId = parseInt(dealId);
+      openConversationById(currentInterestId);
+      window.history.replaceState({}, "", "/messages");
+    }
+  } catch (err) {
+    console.error("Messages Init Error:", err);
+  }
+
+  // 4. Logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.onclick = () => {
+      stopPolling();
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+    };
   }
 });
 

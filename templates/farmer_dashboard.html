@@ -24,7 +24,7 @@
             💬 <span data-i18n="nav.messages">Messages</span>
             <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
         </a>
-        <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
+        <a href="{{ url_for('farmer_help') }}" class="nav-messages-link" style="background: var(--green-50); border: 1px solid var(--green-100);">
             ❓ <span>Help</span>
         </a>
     </div>
@@ -90,44 +90,11 @@
 
 </main>
 
-<!-- Farmer Help Modal -->
-<div id="helpModal" class="modal-overlay hidden">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3>🌱 Farmer Help Center</h3>
-            <button id="closeHelp" class="close-btn">&times;</button>
-        </div>
-        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-            <div class="help-section">
-                <h4>1. How to Post a Crop</h4>
-                <p>Click on <b>"Post Crop"</b> in the quick actions. Enter details like crop name, variety, quantity (in quintals), and your expected price. This makes your crop visible to all contractors.</p>
-            </div>
-            <div class="help-section">
-                <h4>2. Managing Interests</h4>
-                <p>When a contractor is interested, you'll see a notification. You can view their offer in the <b>"Interested Contractors"</b> section. You can Accept, Reject, or Negotiate the price.</p>
-            </div>
-            <div class="help-section">
-                <h4>3. Closing a Deal</h4>
-                <p>Once you accept an offer, a chat opens. Use it to finalize transport and payment. After the transaction, mark it as completed to keep your records clean.</p>
-            </div>
-            <div class="help-section">
-                <h4>4. AI Farming Assistant</h4>
-                <p>Use the <b>"Open Chatbot"</b> button to ask about weather, crop diseases, or current government MSP rates in your local language.</p>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button id="closeHelpBtn" class="btn-primary">Got it!</button>
-        </div>
-    </div>
-</div>
 
-<!-- Floating Help FAB -->
-<button id="helpFAB" class="help-fab" title="Help Center">❓</button>
-
-<script src="{{ url_for('static', filename='config.js') }}?v=2"></script>
-<script src="{{ url_for('static', filename='google_translate.js') }}?v=2"></script>
-<script src="{{ url_for('static', filename='toast.js') }}?v=2"></script>
-<script src="{{ url_for('static', filename='i18n.js') }}?v=2"></script>
-<script src="{{ url_for('static', filename='dashboard.js') }}?v=11"></script>
+<script src="{{ url_for('static', filename='config.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='google_translate.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='toast.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='i18n.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='dashboard.js') }}?v=12"></script>
 </body>
 </html>

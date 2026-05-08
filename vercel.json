@@ -10,6 +10,8 @@
     { "source": "/profile", "destination": "/Profile.html" },
     { "source": "/post-crop", "destination": "/post_crop.html" },
     { "source": "/signup", "destination": "/Signup.html" },
-    { "source": "/login", "destination": "/login.html" }
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/farmer/help", "destination": "/farmer_help.html" },
+    { "source": "/contractor/help", "destination": "/contractor_help.html" }
   ]
 }

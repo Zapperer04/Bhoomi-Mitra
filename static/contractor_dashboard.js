@@ -61,42 +61,52 @@ let myInterests = [];
 let currentCropId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Session Check
   if (!localStorage.getItem("access_token")) { location.href = "/login"; return; }
-  await DT.ready;
 
-  await initHeader();
-  setupFilters();
-  setupModal();
-  setupCounterModal();
-  await loadData();
+  // 2. Help Modal & FAB Logic (Independent of API)
+  const helpBtn = document.getElementById("helpBtn");
+  const helpModal = document.getElementById("helpModal");
+  const helpFAB = document.getElementById("helpFAB");
+  const closeHelp = document.getElementById("closeHelp");
+  const closeHelpBtn = document.getElementById("closeHelpBtn");
 
+  const closeFn = () => helpModal?.classList.add("hidden");
+
+  if (helpBtn && helpModal) {
+    helpBtn.onclick = (e) => {
+      e.preventDefault();
+      helpModal.classList.remove("hidden");
+    };
+  }
+  if (helpFAB && helpModal) {
+    helpFAB.onclick = () => helpModal.classList.remove("hidden");
+  }
+  if (closeHelp) closeHelp.onclick = closeFn;
+  if (closeHelpBtn) closeHelpBtn.onclick = closeFn;
+  window.addEventListener("click", (e) => {
+    if (e.target === helpModal) closeFn();
+  });
+
+  // 3. i18n & UI Init (Resilient)
+  try {
+    await DT.ready;
+    await initHeader();
+    setupFilters();
+    setupModal();
+    setupCounterModal();
+    await loadData();
+  } catch (err) {
+    console.error("Dashboard Init Error:", err);
+  }
+
+  // 4. Logout Logic
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {
     logoutBtn.onclick = () => {
       localStorage.removeItem("access_token");
       location.href = "/login";
     };
-  }
-
-  // Help Modal Logic
-  const helpBtn = document.getElementById("helpBtn");
-  const helpModal = document.getElementById("helpModal");
-  const closeHelp = document.getElementById("closeHelp");
-  const closeHelpBtn = document.getElementById("closeHelpBtn");
-
-  if (helpBtn && helpModal) {
-    helpBtn.onclick = () => helpModal.classList.remove("hidden");
-    const closeFn = () => helpModal.classList.add("hidden");
-    if (closeHelp) closeHelp.onclick = closeFn;
-    if (closeHelpBtn) closeHelpBtn.onclick = closeFn;
-    window.addEventListener("click", (e) => {
-      if (e.target === helpModal) closeFn();
-    });
-  }
-
-  const helpFAB = document.getElementById("helpFAB");
-  if (helpFAB && helpModal) {
-    helpFAB.onclick = () => helpModal.classList.remove("hidden");
   }
 });
 
