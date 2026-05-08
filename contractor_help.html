@@ -244,24 +244,6 @@
             box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
         }
 
-        .back-btn {
-            position: absolute;
-            top: 2rem;
-            left: 2rem;
-            color: white;
-            text-decoration: none;
-            padding: 0.75rem 1.25rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 100px;
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-
-        .back-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(-5px);
-        }
-
         @media (max-width: 992px) {
             .main-help-grid { grid-template-columns: 1fr; }
             .complaint-box {
@@ -293,28 +275,28 @@
             .faq-item.active .faq-body {
                 padding: 0 1.5rem 1.25rem;
             }
-            .back-btn {
-                top: 1rem;
-                left: 1rem;
-                padding: 0.5rem 0.75rem;
-                font-size: 0.85rem;
-            }
-            #translate-widget-container {
-                top: 1rem !important;
-                right: 1rem !important;
-            }
             .help-hero {
-                padding: 6rem 1rem 3rem;
+                padding: 4rem 1rem 3rem;
             }
         }
     </style>
 </head>
 <body>
-    <div id="translate-widget-container" style="position: absolute; top: 2rem; right: 2rem; z-index: 9999;">
-        <div id="google_translate_element"></div>
-    </div>
+    <nav class="dash-nav">
+        <div class="nav-left">
+            <div class="logo"><i class="fas fa-leaf"></i> Support</div>
+            <a href="/contractor/dashboard" class="nav-messages-link">
+                <i class="fas fa-arrow-left"></i>
+                <span class="nav-messages-text">Dashboard</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <div class="lang-selector notranslate" style="position: relative; z-index: 9999;">
+                <div id="google_translate_element"></div>
+            </div>
+        </div>
+    </nav>
     <div class="help-hero">
-        <a href="/contractor/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
         <div class="hero-content">
             <h1>Contractor Support Center</h1>
             <p>Optimize your procurement and resolve trade issues efficiently.</p>
