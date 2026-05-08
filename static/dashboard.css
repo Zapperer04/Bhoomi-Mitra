@@ -864,7 +864,22 @@ h1, h2, h3, h4 {
     box-shadow: 0 15px 35px rgba(5, 150, 105, 0.4);
 }
 
-@media (max-width: 768px) {
+.hamburger-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--green-800);
+    cursor: pointer;
+    z-index: 9999;
+    padding: 0.5rem;
+}
+
+@media (max-width: 992px) {
+    .hamburger-btn {
+        display: block;
+    }
+
     .help-fab {
         width: 50px;
         height: 50px;
@@ -874,44 +889,107 @@ h1, h2, h3, h4 {
     }
     
     .dash-nav {
-        padding: 0.75rem 1rem;
-        flex-direction: column;
-        height: auto;
-        gap: 0.75rem;
-        align-items: stretch;
+        padding: 0 1.5rem !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        height: 70px !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        overflow: hidden;
+        transition: all 0.3s ease;
     }
     
     .nav-left {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
+        width: auto !important;
+        justify-content: flex-start !important;
+        gap: 1rem;
+    }
+
+    /* Hide links initially on mobile */
+    .nav-left > *:not(.logo) {
+        display: none !important;
     }
 
     .nav-right {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
+        display: none !important;
     }
     
     .logo {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
+        z-index: 10000;
     }
-    
-    .nav-messages-link, .profile-nav-btn, .logout-btn {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
+
+    /* ACTIVE MENU STATE */
+    body.nav-active {
+        overflow: hidden;
     }
-    
-    .profile-nav-avatar {
-        width: 24px;
-        height: 24px;
-        font-size: 0.7rem;
+
+    body.nav-active .dash-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh !important;
+        background: rgba(255,255,255,0.98);
+        backdrop-filter: blur(10px);
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 2rem !important;
+        z-index: 9998;
+        padding: 2rem !important;
+        overflow-y: auto;
     }
-    
+
+    body.nav-active .hamburger-btn {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.5rem;
+        z-index: 10000;
+    }
+
+    body.nav-active .logo {
+        position: absolute;
+        top: 1.25rem;
+        left: 1.5rem;
+    }
+
+    body.nav-active .nav-left,
+    body.nav-active .nav-right {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 300px;
+        align-items: stretch !important;
+        gap: 1rem !important;
+    }
+
+    body.nav-active .nav-left > *:not(.logo) {
+        display: flex !important;
+    }
+
+    /* Restore and enlarge text */
+    body.nav-active .nav-messages-text, 
+    body.nav-active .profile-nav-name,
+    body.nav-active #customLangLabel {
+        display: inline !important;
+    }
+
+    body.nav-active .nav-messages-link, 
+    body.nav-active .profile-nav-btn, 
+    body.nav-active .logout-btn,
+    body.nav-active .lang-btn {
+        padding: 1rem !important;
+        font-size: 1.1rem !important;
+        justify-content: center !important;
+        height: auto !important;
+    }
+
+    body.nav-active .profile-nav-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.9rem !important;
+    }
     .dashboard {
         padding: 0 1rem;
         margin: 1.5rem auto;
