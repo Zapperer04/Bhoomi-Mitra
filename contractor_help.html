@@ -396,7 +396,7 @@
     <script>
         // --- Authentication & Role Check ---
         const token = localStorage.getItem('access_token');
-        const role = localStorage.getItem('role');
+        const role = localStorage.getItem('user_role');
         if (!token || role !== 'contractor') {
             window.location.href = '/login';
         }

@@ -63,6 +63,11 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             font-size: 1.1rem;
             outline: none;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
         }
 
         .search-container i {
@@ -95,7 +100,7 @@
             border-radius: 24px;
             box-shadow: var(--card-shadow);
             border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
             text-align: center;
         }
 
@@ -114,6 +119,7 @@
             line-height: 80px;
             border-radius: 20px;
             display: inline-block;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
         }
 
         .main-help-grid {
@@ -139,19 +145,40 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            font-family: inherit;
+            color: inherit;
+            transition: background 0.2s;
+        }
+
+        .faq-header:hover {
+            background: #f8fafc;
+        }
+
+        .faq-header h4 {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 0;
         }
 
         .faq-body {
             padding: 0 2rem;
             max-height: 0;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: #64748b;
         }
 
         .faq-item.active .faq-body {
             padding: 0 2rem 1.5rem;
             max-height: 500px;
+        }
+
+        .faq-item.active .fa-chevron-down {
+            transform: rotate(180deg);
         }
 
         .complaint-box {
@@ -164,13 +191,39 @@
             top: 2rem;
         }
 
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
         .form-input, .form-textarea {
             width: 100%;
             padding: 1rem;
             border-radius: 12px;
             border: 2px solid #e2e8f0;
             background: #f8fafc;
-            margin-bottom: 1rem;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            border-color: var(--accent-blue);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
+        }
+
+        .form-textarea {
+            height: 150px;
+            resize: none;
         }
 
         .submit-btn {
@@ -181,7 +234,14 @@
             background: var(--primary-gradient);
             color: white;
             font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
         }
 
         .back-btn {
@@ -194,22 +254,57 @@
             background: rgba(255,255,255,0.1);
             border-radius: 100px;
             z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(-5px);
         }
 
         @media (max-width: 992px) {
             .main-help-grid { grid-template-columns: 1fr; }
+            .complaint-box {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-content h1 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+            .help-container {
+                padding: 0 1rem;
+            }
+            .quick-card {
+                padding: 1.5rem;
+            }
+            .complaint-box {
+                padding: 1.5rem;
+            }
+            .faq-header {
+                padding: 1.25rem 1.5rem;
+            }
+            .faq-body {
+                padding: 0 1.5rem;
+            }
+            .faq-item.active .faq-body {
+                padding: 0 1.5rem 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="help-hero">
-        <a href="/contractor/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        <a href="/contractor/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
         <div class="hero-content">
             <h1>Contractor Support Center</h1>
             <p>Optimize your procurement and resolve trade issues efficiently.</p>
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" class="search-input" placeholder="Search for procurement guides...">
+                <input type="text" class="search-input" id="faqSearch" placeholder="Search for procurement guides...">
             </div>
         </div>
     </div>
@@ -240,49 +335,57 @@
 
         <div class="main-help-grid">
             <div class="faq-section">
-                <h2 style="margin-bottom: 2rem;">Frequently Asked Questions</h2>
-                <div class="faq-accordion">
+                <h2 style="margin-bottom: 2rem;"><i class="fas fa-question-circle" style="color: var(--accent-blue)"></i> Frequently Asked Questions</h2>
+                <div class="faq-accordion" id="faqContainer">
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq1">
                             <h4>How can I verify crop quality before buying?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq1">
                             <p>Use the secure chat to request real-time photos or videos of the harvest. You can also arrange for a sample inspection. Once delivered, verify the goods before confirming receipt on the platform.</p>
                         </div>
                     </div>
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq2">
                             <h4>What if the farmer changes the price after acceptance?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq2">
                             <p>Prices are legally binding once both parties accept the deal. If a farmer attempts to change terms outside the platform, do not proceed and report the listing using the complaint box.</p>
                         </div>
                     </div>
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq3">
                             <h4>Can I cancel an offer I've sent?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq3">
                             <p>Yes, you can withdraw an interest as long as the farmer hasn't accepted it yet. Go to "My Interests" and click "Withdraw".</p>
                         </div>
                     </div>
                 </div>
+                <p id="noResults" style="display:none; text-align:center; margin-top:20px; color: #64748b;">
+                    No support topics found.
+                </p>
             </div>
 
             <div class="complaint-section">
                 <div class="complaint-box">
-                    <h2>Submit a Report</h2>
+                    <h2><i class="fas fa-headset" style="color: var(--accent-blue)"></i> File a Report</h2>
+                    <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Issue with a farmer or a transaction? Provide details below.</p>
                     <form id="supportForm">
-                        <label>Subject</label>
-                        <input type="text" id="subject" class="form-input" placeholder="e.g., Non-delivery of Wheat" required>
-                        <label>Description</label>
-                        <textarea id="description" class="form-textarea" placeholder="Provide details like Order ID and Farmer name..." required></textarea>
-                        <button type="submit" class="submit-btn">Submit Report</button>
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input type="text" id="subject" class="form-input" placeholder="e.g., Non-delivery of Wheat" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Detailed Description</label>
+                            <textarea id="description" class="form-textarea" placeholder="Provide details like Order ID and Farmer name..." required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Submit Report <i class="fas fa-paper-plane"></i></button>
                     </form>
-                    <div id="formStatus" style="margin-top: 1rem; text-align: center; display: none;"></div>
+                    <div id="formStatus" style="margin-top: 1rem; text-align: center; font-weight: 600; display: none;"></div>
                 </div>
             </div>
         </div>
@@ -291,35 +394,102 @@
     <script src="/static/config.js?v=3"></script>
     <script src="/static/toast.js?v=3"></script>
     <script>
+        // --- Authentication & Role Check ---
+        const token = localStorage.getItem('access_token');
+        const role = localStorage.getItem('user_role');
+        if (!token || role !== 'contractor') {
+            window.location.href = '/login';
+        }
+
+        // FAQ Accordion Logic
         document.querySelectorAll('.faq-header').forEach(header => {
-            header.onclick = () => {
-                header.parentElement.classList.toggle('active');
-            };
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                const isExpanded = item.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    faq.classList.remove('active');
+                    faq.querySelector('.faq-header').setAttribute('aria-expanded', 'false');
+                });
+                
+                // Toggle clicked
+                if (!isExpanded) {
+                    item.classList.add('active');
+                    header.setAttribute('aria-expanded', 'true');
+                }
+            });
         });
 
+        // Search Logic
+        const searchInput = document.getElementById('faqSearch');
+        const faqItems = document.querySelectorAll('.faq-item');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('input', function () {
+            const value = this.value.toLowerCase();
+            let visible = 0;
+
+            faqItems.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(value)) {
+                    item.style.display = 'block';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            noResults.style.display = visible === 0 ? 'block' : 'none';
+        });
+
+        // Form Submission Logic
         const supportForm = document.getElementById('supportForm');
+        const formStatus = document.getElementById('formStatus');
+
         supportForm.onsubmit = async (e) => {
             e.preventDefault();
+            const submitBtn = supportForm.querySelector('.submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
             const data = {
                 subject: document.getElementById('subject').value,
                 description: document.getElementById('description').value
             };
+
             try {
-                const response = await fetch(`${API_BASE_URL}/api/support`, {
+                // Determine if config.js patched fetch or if we need to manually prepend
+                const url = window.fetch.toString().includes('API_BASE_URL') ? '/api/support' : `${API_BASE_URL}/api/support`;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Ensure we use access_token
                     },
                     body: JSON.stringify(data)
                 });
-                if (response.ok) {
-                    showToast('Report submitted', 'success');
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showToast('Report submitted successfully!', 'success');
                     supportForm.reset();
-                    document.getElementById('formStatus').textContent = '✅ Report submitted!';
-                    document.getElementById('formStatus').style.display = 'block';
+                    formStatus.textContent = '✅ Ticket #'+ result.data.ticket.id +' submitted!';
+                    formStatus.style.color = 'var(--accent-blue)';
+                    formStatus.style.display = 'block';
+                } else {
+                    showToast(result.error || 'Failed to submit report', 'error');
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                console.error('Support error:', err);
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
         };
     </script>
 </body>

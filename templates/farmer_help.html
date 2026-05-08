@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Farmer Help Center | Bhoomi Mitra</title>
+    <title>Farmer Support Hub | Bhoomi Mitra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,7 +80,11 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             font-size: 1.1rem;
             outline: none;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
         }
 
         .search-container i {
@@ -115,7 +119,6 @@
             border: 1px solid #f1f5f9;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
-            cursor: pointer;
         }
 
         .quick-card:hover {
@@ -134,6 +137,7 @@
             line-height: 80px;
             border-radius: 20px;
             display: inline-block;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .quick-card h3 {
@@ -183,6 +187,12 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            font-family: inherit;
+            color: inherit;
             transition: background 0.2s;
         }
 
@@ -193,6 +203,7 @@
         .faq-header h4 {
             font-weight: 600;
             font-size: 1.1rem;
+            margin: 0;
         }
 
         .faq-body {
@@ -255,7 +266,7 @@
             border-color: var(--accent-green);
             background: white;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
         }
 
         .form-textarea {
@@ -309,14 +320,35 @@
         }
 
         @media (max-width: 992px) {
-            .main-help-grid {
-                grid-template-columns: 1fr;
+            .main-help-grid { grid-template-columns: 1fr; }
+            .complaint-box {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-content h1 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+            .help-container {
+                padding: 0 1rem;
+            }
+            .quick-card {
+                padding: 1.5rem;
             }
             .complaint-box {
-                position: static;
+                padding: 1.5rem;
             }
-            .hero-content h1 {
-                font-size: 2.5rem;
+            .faq-header {
+                padding: 1.25rem 1.5rem;
+            }
+            .faq-body {
+                padding: 0 1.5rem;
+            }
+            .faq-item.active .faq-body {
+                padding: 0 1.5rem 1.25rem;
             }
         }
     </style>
@@ -324,15 +356,14 @@
 <body>
     <div class="help-hero">
         <a href="/farmer/dashboard" class="back-btn">
-            <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
         <div class="hero-content">
             <h1>Farmer Support Hub</h1>
             <p>Everything you need to grow and sell with confidence on Bhoomi Mitra.</p>
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" class="search-input" placeholder="Search for guides, FAQs, or support...">
+                <input type="text" class="search-input" id="faqSearch" placeholder="Search for guides, FAQs, or support...">
             </div>
         </div>
     </div>
@@ -364,49 +395,52 @@
         <div class="main-help-grid">
             <div class="faq-section">
                 <h2 class="section-title"><i class="fas fa-question-circle" style="color: var(--accent-green)"></i> Frequently Asked Questions</h2>
-                <div class="faq-accordion">
+                <div class="faq-accordion" id="faqContainer">
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq1">
                             <h4>How do I set the right price for my crop?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq1">
                             <p>We recommend checking the current MSP (Minimum Support Price) using our Chatbot. Additionally, look at other similar listings in your region to ensure your price is competitive but fair.</p>
                         </div>
                     </div>
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq2">
                             <h4>What happens if a buyer doesn't pay?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq2">
                             <p>Never deliver goods before payment is confirmed or an escrow agreement is reached. If a buyer defaults, use the "File a Complaint" box on this page immediately. We track all user behavior and will ban fraudulent buyers.</p>
                         </div>
                     </div>
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq3">
                             <h4>Can I edit my crop listing after posting?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq3">
                             <p>Yes, you can edit the price and quantity from your dashboard at any time. Note that changing details might affect active negotiations.</p>
                         </div>
                     </div>
                     <div class="faq-item">
-                        <div class="faq-header">
+                        <button class="faq-header" aria-expanded="false" aria-controls="faq4">
                             <h4>How do I increase my Farmer Rating?</h4>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-body">
+                            <i class="fas fa-chevron-down transition-transform"></i>
+                        </button>
+                        <div class="faq-body" id="faq4">
                             <p>Ratings improve when you complete deals successfully. Providing accurate crop descriptions, being responsive in chat, and fulfilling orders on time are the best ways to get 5-star reviews.</p>
                         </div>
                     </div>
                 </div>
+                <p id="noResults" style="display:none; text-align:center; margin-top:20px; color: #64748b;">
+                    No support topics found.
+                </p>
 
                 <div style="margin-top: 4rem; background: #ecfdf5; padding: 2.5rem; border-radius: 24px; border: 1px solid #d1fae5;">
                     <h3 style="margin-bottom: 1rem;"><i class="fas fa-robot"></i> Need Instant Help?</h3>
                     <p style="color: #065f46; margin-bottom: 1.5rem;">Our AI Chatbot "Mitra" is available 24/7 to answer questions about weather, MSP, and platform features in 12+ languages.</p>
-                    <a href="/farmer/dashboard" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <a href="/chatbot" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.75rem 1.5rem; background: var(--primary-gradient); color: white; border-radius: 12px; font-weight: 600;">
                         Open Chatbot <i class="fas fa-external-link-alt"></i>
                     </a>
                 </div>
@@ -414,16 +448,16 @@
 
             <div class="complaint-section">
                 <div class="complaint-box">
-                    <h2><i class="fas fa-headset" style="color: var(--accent-green)"></i> File a Complaint</h2>
+                    <h2><i class="fas fa-headset" style="color: var(--accent-green)"></i> File a Report</h2>
                     <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Issue with a buyer or the platform? Tell us details and our team will investigate within 24 hours.</p>
                     
                     <form id="supportForm">
                         <div class="form-group">
-                            <label>Subject</label>
+                            <label for="subject">Subject</label>
                             <input type="text" id="subject" class="form-input" placeholder="e.g., Payment issue with Buyer X" required>
                         </div>
                         <div class="form-group">
-                            <label>Detailed Description</label>
+                            <label for="description">Detailed Description</label>
                             <textarea id="description" class="form-textarea" placeholder="Please provide order ID, buyer name, and exactly what happened..." required></textarea>
                         </div>
                         <button type="submit" class="submit-btn">
@@ -439,18 +473,53 @@
     <script src="/static/config.js?v=3"></script>
     <script src="/static/toast.js?v=3"></script>
     <script>
+        // --- Authentication & Role Check ---
+        const token = localStorage.getItem('access_token');
+        const role = localStorage.getItem('user_role');
+        if (!token || role !== 'farmer') {
+            window.location.href = '/login';
+        }
+
         // FAQ Accordion Logic
         document.querySelectorAll('.faq-header').forEach(header => {
-            header.onclick = () => {
+            header.addEventListener('click', () => {
                 const item = header.parentElement;
-                const wasActive = item.classList.contains('active');
+                const isExpanded = item.classList.contains('active');
                 
                 // Close all
-                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    faq.classList.remove('active');
+                    faq.querySelector('.faq-header').setAttribute('aria-expanded', 'false');
+                });
                 
-                // Open clicked if it wasn't active
-                if (!wasActive) item.classList.add('active');
-            };
+                // Toggle clicked
+                if (!isExpanded) {
+                    item.classList.add('active');
+                    header.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        // Search Logic
+        const searchInput = document.getElementById('faqSearch');
+        const faqItems = document.querySelectorAll('.faq-item');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('input', function () {
+            const value = this.value.toLowerCase();
+            let visible = 0;
+
+            faqItems.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(value)) {
+                    item.style.display = 'block';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            noResults.style.display = visible === 0 ? 'block' : 'none';
         });
 
         // Form Submission Logic
@@ -459,7 +528,7 @@
 
         supportForm.onsubmit = async (e) => {
             e.preventDefault();
-            const submitBtn = supportForm.querySelector('button');
+            const submitBtn = supportForm.querySelector('.submit-btn');
             const originalBtnText = submitBtn.innerHTML;
 
             submitBtn.disabled = true;
@@ -471,22 +540,24 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/support`, {
+                // Determine if config.js patched fetch or if we need to manually prepend
+                const url = window.fetch.toString().includes('API_BASE_URL') ? '/api/support' : `${API_BASE_URL}/api/support`;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Ensure we use access_token
                     },
                     body: JSON.stringify(data)
                 });
 
                 const result = await response.json();
 
-                if (response.ok) {
+                if (response.ok && result.success) {
                     showToast('Ticket submitted successfully!', 'success');
                     supportForm.reset();
                     formStatus.textContent = '✅ Ticket #'+ result.data.ticket.id +' submitted!';
-                    formStatus.style.color = '#059669';
+                    formStatus.style.color = 'var(--accent-green)';
                     formStatus.style.display = 'block';
                 } else {
                     showToast(result.error || 'Failed to submit ticket', 'error');
