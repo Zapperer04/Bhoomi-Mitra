@@ -1,6 +1,13 @@
 {
-  "cleanUrls": false,
+  "version": 2,
+  "cleanUrls": true,
   "trailingSlash": false,
+  "builds": [
+    {
+      "src": "{*.html,static/**,*.js,*.css,*.png,*.jpg,*.svg,*.ico}",
+      "use": "@vercel/static"
+    }
+  ],
   "rewrites": [
     { "source": "/farmer/dashboard", "destination": "/farmer_dashboard.html" },
     { "source": "/contractor/dashboard", "destination": "/contractor_dashboard.html" },
