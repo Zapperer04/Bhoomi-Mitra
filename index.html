@@ -35,15 +35,27 @@
 </head>
 <body>
 
-<nav class="nav">
-    <div class="logo notranslate">Bhoomi Mitra</div>
-    <div class="nav-right">
-        <a href="/" class="nav-link" data-i18n="home.nav_home">Home</a>
-        
-        <!-- Language Selector -->
-        <div id="google_translate_element"></div>
+<nav class="bm-nav">
+    <div class="bm-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="/" class="bm-logo">
+            <i class="fas fa-leaf"></i>
+            <span class="notranslate">Bhoomi Mitra</span>
+        </a>
+    </div>
 
-        <a href="/login" class="nav-link login" data-i18n="home.nav_login">Login</a>
+    <div class="bm-right">
+        <a href="/" class="nav-icon" title="Home">
+            <i class="fas fa-home"></i>
+        </a>
+        
+        <div id="google_translate_element" class="hide-mobile"></div>
+
+        <a href="/login" class="nav-icon" title="Login">
+            <i class="fas fa-user-circle"></i>
+        </a>
     </div>
 </nav>
 
