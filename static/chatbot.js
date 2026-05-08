@@ -147,7 +147,14 @@ document.addEventListener("DOMContentLoaded", () => {
       { label: "हिंदी", val: "hi" },
       { label: "বাংলা", val: "bn" },
       { label: "தமிழ்", val: "ta" },
-      { label: "తెలుగు", val: "te" }
+      { label: "తెలుగు", val: "te" },
+      { label: "मराठी", val: "mr" },
+      { label: "ગુજરાતી", val: "gu" },
+      { label: "اردو", val: "ur" },
+      { label: "ಕನ್ನಡ", val: "kn" },
+      { label: "ଓଡ଼ିଆ", val: "or" },
+      { label: "ਪੰਜਾਬੀ", val: "pa" },
+      { label: "മലയാളം", val: "ml" }
     ];
 
     renderOptions(langs.map(l => ({
