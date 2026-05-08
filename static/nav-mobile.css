@@ -1,0 +1,163 @@
+/* ============================================================
+   nav-mobile.css — Unified Mobile Navigation for ALL Pages
+   ============================================================
+   Single source of truth for mobile navbar behavior.
+   Included by every page that uses .dash-nav or .nav
+   ============================================================ */
+
+/* ── TABLET (≤ 992px) ─────────────────────────────────────── */
+@media (max-width: 992px) {
+
+    /* Dashboard-style nav (.dash-nav) */
+    .dash-nav {
+        padding: 0.6rem 1rem;
+        height: auto;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .dash-nav .nav-left {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .dash-nav .nav-right {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .dash-nav .logo {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .dash-nav .nav-messages-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+        gap: 0.3rem;
+    }
+
+    .dash-nav .profile-nav-btn {
+        padding: 0.25rem 0.6rem 0.25rem 0.25rem;
+        height: auto;
+    }
+
+    .dash-nav .profile-nav-avatar {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+    }
+
+    .dash-nav .profile-nav-name {
+        font-size: 0.8rem;
+    }
+
+    .dash-nav .role-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.65rem;
+    }
+
+    .dash-nav .logout-btn {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.8rem;
+    }
+
+    /* Landing-page nav (.nav) */
+    .nav {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .nav .nav-right {
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .nav .logo {
+        font-size: 1.3rem;
+    }
+}
+
+
+/* ── PHONE (≤ 576px) ──────────────────────────────────────── */
+@media (max-width: 576px) {
+
+    /* Stack nav into 2 rows */
+    .dash-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .dash-nav .nav-left,
+    .dash-nav .nav-right {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dash-nav .logo {
+        font-size: 1.1rem;
+    }
+
+    /* Hide text labels — keep only icons/emoji */
+    .dash-nav .nav-messages-link span:not(.unread-badge-nav),
+    .dash-nav .profile-nav-name {
+        display: none;
+    }
+
+    .dash-nav .nav-messages-link {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .dash-nav .profile-nav-btn {
+        padding: 0.2rem;
+        gap: 0;
+    }
+
+    .dash-nav .role-badge {
+        display: none;
+    }
+
+    .dash-nav .logout-btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    /* Hide the language label inside the translate button */
+    #customLangLabel {
+        display: none;
+    }
+
+    /* Landing page nav stacks too */
+    .nav {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+    .nav .nav-right {
+        width: 100%;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .nav .logo { font-size: 1.3rem; }
+
+    /* Landing hero */
+    .hero { margin-top: 2rem; min-height: auto; }
+    .hero h1 { font-size: 2rem; line-height: 1.3; }
+    .typed-text { min-width: auto; display: inline; }
+    .cta-group { flex-direction: column; }
+    .btn { width: 100%; }
+}

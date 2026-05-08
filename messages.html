@@ -7,37 +7,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/toast.css">
     <link rel="stylesheet" href="/static/messages.css">
+    <link rel="stylesheet" href="/static/toast.css?v=1.0">
+    <link rel="stylesheet" href="/static/messages.css?v=1.0">
+    <link rel="stylesheet" href="/static/nav-mobile.css">
 </head>
 <body>
 
-<nav class="bm-nav">
-    <div class="bm-left">
-        <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <a href="/" class="bm-logo">
-            <i class="fas fa-leaf"></i>
-            <span class="notranslate">Bhoomi Mitra</span>
+<nav class="dash-nav">
+    <div class="nav-left">
+        <span class="logo">Bhoomi Mitra</span>
+        <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
+            ❓ <span>Help</span>
         </a>
     </div>
-
-    <div class="bm-right">
-        <a href="javascript:void(0)" id="helpBtn" class="nav-icon" title="Help">
-            <i class="fas fa-question-circle"></i>
+    <div class="nav-right">
+        <div id="google_translate_element"></div>
+        <a href="/profile" class="profile-nav-btn" id="profileNavBtn" title="My Profile">
+            <span class="profile-nav-avatar" id="navAvatar">?</span>
+            <span class="profile-nav-name" id="navName">Profile</span>
         </a>
-        
-        <div id="google_translate_element" class="hide-mobile"></div>
-
-        <a href="/profile" class="profile-pill" id="profileNavBtn" title="My Profile">
-            <span id="navAvatar">?</span>
-        </a>
-        
-        <button id="logoutBtn" class="nav-icon" title="Logout">
-            <i class="fas fa-sign-out-alt"></i>
-        </button>
+        <span class="role-badge" id="roleBadge">User</span>
+        <button id="logoutBtn" class="logout-btn" data-i18n="nav.logout">Logout</button>
     </div>
 </nav>
 

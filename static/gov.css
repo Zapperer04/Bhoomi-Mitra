@@ -276,13 +276,10 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 }
 .scheme-link:hover { color: var(--green-900); transform: translateX(5px); }
 
-/* ── RESPONSIVE ──────────────────────────────────────────── */
+/* ── RESPONSIVE — nav handled by nav-mobile.css ─────────── */
 @media (max-width: 768px) {
-    .dash-nav { padding: 1rem; }
-    .logo { font-size: 1.25rem; }
-    .nav-messages-link span:not(.unread-badge-nav) { display: none; }
-    .profile-nav-name { display: none; }
     .gov-header { padding: 2.5rem; }
     .gov-header h1 { font-size: 1.75rem; }
     .scheme-grid { grid-template-columns: 1fr; }
+    .gov-page { padding: 0 1rem; margin: 2rem auto; }
 }

@@ -13,21 +13,3 @@ window.fetch = function (url, options) {
 
 console.log("🚀 Bhoomi Mitra Split-Hosting Bridge Active. Backend:", API_BASE_URL);
 
-// --- UNIVERSAL MENU TOGGLE ---
-document.addEventListener('DOMContentLoaded', () => {
-    const menuToggle = document.getElementById('menuToggle');
-    const navRight = document.querySelector('.bm-right');
-    
-    if (menuToggle && navRight) {
-        menuToggle.addEventListener('click', () => {
-            navRight.classList.toggle('nav-open');
-            // Toggle icon if needed
-            const icon = menuToggle.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-bars');
-                icon.classList.toggle('fa-times');
-            }
-        });
-    }
-});
-

@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://translate.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/nav-mobile.css">
     <style>
         /* Speed up: Hide Google widget artifacts immediately */
         .skiptranslate iframe, .goog-te-banner-frame, .goog-te-gadget-icon, .goog-te-gadget-simple img, .goog-te-gadget { 
@@ -35,27 +36,15 @@
 </head>
 <body>
 
-<nav class="bm-nav">
-    <div class="bm-left">
-        <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <a href="/" class="bm-logo">
-            <i class="fas fa-leaf"></i>
-            <span class="notranslate">Bhoomi Mitra</span>
-        </a>
-    </div>
-
-    <div class="bm-right">
-        <a href="/" class="nav-icon" title="Home">
-            <i class="fas fa-home"></i>
-        </a>
+<nav class="nav">
+    <div class="logo notranslate">Bhoomi Mitra</div>
+    <div class="nav-right">
+        <a href="/" class="nav-link" data-i18n="home.nav_home">Home</a>
         
-        <div id="google_translate_element" class="hide-mobile"></div>
+        <!-- Language Selector -->
+        <div id="google_translate_element"></div>
 
-        <a href="/login" class="nav-icon" title="Login">
-            <i class="fas fa-user-circle"></i>
-        </a>
+        <a href="/login" class="nav-link login" data-i18n="home.nav_login">Login</a>
     </div>
 </nav>
 

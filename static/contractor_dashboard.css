@@ -572,13 +572,8 @@ hr { border: none; border-top: 1px solid var(--gray-200); margin: 3rem 0; opacit
     color: var(--gray-800);
 }
 
-/* ── RESPONSIVE ───────────────────────────────────────────── */
+/* ── RESPONSIVE — nav handled by nav-mobile.css ──────────── */
 @media (max-width: 768px) {
-    .dash-nav { padding: 1rem; }
-    .logo { font-size: 1.25rem; }
-    .nav-messages-link span:not(.unread-badge-nav) { display: none; }
-    .profile-nav-name { display: none; }
-    
     .dashboard { padding: 0 1rem; margin-top: 2rem; }
     .intro-card { padding: 2rem; }
     .intro-card h2 { font-size: 1.5rem; }

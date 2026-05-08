@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/dashboard.css">
+    <link rel="stylesheet" href="/static/nav-mobile.css">
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -244,44 +245,56 @@
             box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
         }
 
-        .hero-content h1 {
-            font-size: clamp(2.2rem, 8vw, 3.5rem);
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            letter-spacing: -1px;
-        }
-
         @media (max-width: 992px) {
             .main-help-grid { grid-template-columns: 1fr; }
+            .complaint-box {
+                position: relative;
+                top: 0;
+            }
         }
 
         @media (max-width: 576px) {
             .hero-content h1 {
-                font-size: clamp(1.8rem, 10vw, 2.2rem);
+                font-size: 2rem;
                 line-height: 1.2;
             }
-            .help-container { padding: 0 1rem; }
-            .quick-card { padding: 1.5rem; }
-            .faq-header { padding: 1.25rem 1.5rem; }
+            .help-container {
+                padding: 0 1rem;
+            }
+            .quick-card {
+                padding: 1.5rem;
+            }
+            .complaint-box {
+                padding: 1.5rem;
+            }
+            .faq-header {
+                padding: 1.25rem 1.5rem;
+            }
+            .faq-body {
+                padding: 0 1.5rem;
+            }
+            .faq-item.active .faq-body {
+                padding: 0 1.5rem 1.25rem;
+            }
+            .help-hero {
+                padding: 4rem 1rem 3rem;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="bm-nav">
-        <div class="bm-left">
-            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <a href="/" class="bm-logo">
-                <i class="fas fa-leaf"></i>
-                <span class="notranslate">Bhoomi Mitra</span>
+    <nav class="dash-nav">
+        <div class="nav-left">
+            <div class="logo"><i class="fas fa-leaf"></i> Support</div>
+            <a href="/contractor/dashboard" class="nav-messages-link">
+                <i class="fas fa-arrow-left"></i>
+                <span class="nav-messages-text">Dashboard</span>
             </a>
         </div>
-        <div class="bm-right">
-            <a href="/contractor/dashboard" class="nav-icon" title="Back to Dashboard">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <div id="google_translate_element" class="hide-mobile"></div>
+        <div class="nav-right">
+            <div class="lang-selector notranslate" style="position: relative; z-index: 9999;">
+                <div id="google_translate_element"></div>
+            </div>
         </div>
     </nav>
     <div class="help-hero">
