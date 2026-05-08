@@ -1,5 +1,5 @@
 // Update this to your actual Render backend URL
-const API_BASE_URL = "https://bhoomi-mitra-backend.onrender.com";
+const API_BASE_URL = "https://bhoomi-mitra-5udh.onrender.com";
 
 // Standardized API wrapper
 async function apiCall(url, options = {}) {

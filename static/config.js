@@ -1,5 +1,5 @@
 // Central configuration for the split hosting (Frontend: Vercel, Backend: Render)
-const API_BASE_URL = "https://bhoomi-mitra-backend.onrender.com";
+const API_BASE_URL = "https://bhoomi-mitra-5udh.onrender.com";
 
 // Patch the fetch function to use the absolute URL if a relative path is provided.
 const originalFetch = window.fetch;
