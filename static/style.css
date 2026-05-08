@@ -340,7 +340,90 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 .card.highlight h3, .card.highlight p { color: white; }
 .card.highlight p { opacity: 0.9; }
 
+/* ── FOOTER ────────────────────────────────────────────── */
+.footer {
+    background: var(--gray-900);
+    color: white;
+    padding: 6rem 2rem 2rem;
+    margin-top: 4rem;
+}
+
+.footer-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 4rem;
+}
+
+.footer-brand .logo {
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.footer-brand p {
+    color: var(--gray-400);
+    max-width: 300px;
+}
+
+.footer-links h4, .footer-social h4 {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    color: white;
+}
+
+.footer-links a {
+    display: block;
+    color: var(--gray-400);
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+    transition: color var(--transition);
+}
+
+.footer-links a:hover {
+    color: var(--green-400);
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+    font-size: 1.5rem;
+}
+
+.social-icons a {
+    text-decoration: none;
+    transition: transform var(--transition);
+}
+
+.social-icons a:hover {
+    transform: scale(1.2);
+}
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 4rem auto 0;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 992px) {
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────── */
+
 @media (max-width: 768px) {
     .nav { padding: 1rem 1.5rem; }
     .logo { font-size: 1.25rem; }

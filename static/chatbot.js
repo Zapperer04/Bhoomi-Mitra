@@ -168,5 +168,59 @@ document.addEventListener("DOMContentLoaded", () => {
     sendAction(null);
   }
 
+  // ── VOICE INPUT ───────────────────────────────────────────
+  const voiceBtn = document.getElementById("voiceBtn");
+  let recognition = null;
+
+  if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRec();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    // Map internal lang codes to BCP-47 speech locales
+    const langMap = {
+      en: "en-IN", hi: "hi-IN", bn: "bn-IN", ta: "ta-IN",
+      te: "te-IN", mr: "mr-IN", gu: "gu-IN", ur: "ur-PK",
+      kn: "kn-IN", or: "or-IN", pa: "pa-IN", ml: "ml-IN"
+    };
+
+    recognition.onstart = () => {
+      voiceBtn.classList.add("listening");
+      userInput.placeholder = "Listening...";
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      userInput.value = transcript;
+      handleSend();
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech error", event.error);
+      stopListening();
+    };
+
+    recognition.onend = () => {
+      stopListening();
+    };
+
+    function stopListening() {
+      voiceBtn.classList.remove("listening");
+      userInput.placeholder = "Type here...";
+    }
+
+    voiceBtn.onclick = () => {
+      if (voiceBtn.classList.contains("listening")) {
+        recognition.stop();
+      } else {
+        recognition.lang = langMap[state.lang] || "en-IN";
+        recognition.start();
+      }
+    };
+  } else {
+    voiceBtn.style.display = "none";
+  }
+
   showLanguageSelection();
 });
