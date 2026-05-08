@@ -1,19 +1,34 @@
 {
-  "buildCommand": "echo 'Static Build Only'",
-  "outputDirectory": ".",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/farmer/dashboard", "destination": "/farmer_dashboard.html" },
-    { "source": "/contractor/dashboard", "destination": "/contractor_dashboard.html" },
-    { "source": "/chatbot", "destination": "/Chatbot.html" },
-    { "source": "/gov", "destination": "/gov.html" },
-    { "source": "/messages", "destination": "/messages.html" },
-    { "source": "/profile", "destination": "/Profile.html" },
-    { "source": "/post-crop", "destination": "/post_crop.html" },
-    { "source": "/signup", "destination": "/Signup.html" },
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/farmer/help", "destination": "/farmer_help.html" },
-    { "source": "/contractor/help", "destination": "/contractor_help.html" }
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/app.py"
+    },
+    { "src": "/farmer/dashboard", "dest": "/farmer_dashboard.html" },
+    { "src": "/contractor/dashboard", "dest": "/contractor_dashboard.html" },
+    { "src": "/chatbot", "dest": "/Chatbot.html" },
+    { "src": "/gov", "dest": "/gov.html" },
+    { "src": "/messages", "dest": "/messages.html" },
+    { "src": "/profile", "dest": "/Profile.html" },
+    { "src": "/post-crop", "dest": "/post_crop.html" },
+    { "src": "/signup", "dest": "/Signup.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/farmer/help", "dest": "/farmer_help.html" },
+    { "src": "/contractor/help", "dest": "/contractor_help.html" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
