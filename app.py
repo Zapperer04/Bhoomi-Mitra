@@ -1566,21 +1566,27 @@ def chat():
 # ================= SUPPORT =================
 @app.route("/api/support", methods=["POST"])
 @jwt_required()
+@with_db_retry()
 def submit_support():
-    """Submit a support ticket or complaint."""
-    user_id = int(get_jwt_identity())
+    """Submit a support ticket or complaint with sanitized inputs."""
+    user_id = _current_user_id()
     data = request.get_json() or {}
-    subject = data.get("subject")
-    description = data.get("description")
+    
+    # Sanitize inputs to prevent HTML/Script injection
+    subject = str(data.get("subject", "")).strip().replace("<", "&lt;").replace(">", "&gt;")[:200]
+    description = str(data.get("description", "")).strip().replace("<", "&lt;").replace(">", "&gt;")[:2000]
 
     if not subject or not description:
-        return api_response(success=False, error="Subject and description required", status=400)
+        return api_response(success=False, error="Subject and description are required", status=400)
 
-    ticket = SupportTicket(user_id=user_id, subject=subject, description=description)
-    db.session.add(ticket)
-    db.session.commit()
-
-    return api_response(data={"message": "Support ticket submitted successfully", "ticket": ticket.to_dict()})
+    try:
+        ticket = SupportTicket(user_id=user_id, subject=subject, description=description)
+        db.session.add(ticket)
+        db.session.commit()
+        return api_response(data={"message": "Support ticket submitted successfully", "ticket": ticket.to_dict()})
+    except Exception as e:
+        logger.error(f"[SUPPORT_ERROR] {str(e)}")
+        return api_response(success=False, error="Failed to submit ticket", status=500)
 
 
 @app.route("/api/interests/<int:interest_id>/confirm", methods=["POST"])
