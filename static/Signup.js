@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
                 const res = await fetch("/auth/register", {
                     method: "POST",
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for Render cold-starts
 
                 const res = await fetch("/auth/login", {
                     method: "POST",
