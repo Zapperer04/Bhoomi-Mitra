@@ -2,127 +2,325 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Contractor Help Center - Bhoomi Mitra</title>
+    <title>Contractor Support Center | Bhoomi Mitra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
     <style>
-        .help-container {
-            max-width: 900px;
-            margin: 4rem auto;
-            padding: 0 2rem;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            --accent-blue: #3b82f6;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
         }
-        .help-header {
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .help-hero {
+            background: var(--primary-gradient);
+            padding: 6rem 2rem 4rem;
             text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 2rem auto 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+            border-radius: 100px;
+            border: none;
+            background: white;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .help-container {
+            max-width: 1200px;
+            margin: -3rem auto 4rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 3;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
             margin-bottom: 4rem;
         }
-        .help-header h1 {
+
+        .quick-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-blue);
+        }
+
+        .quick-card i {
             font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--green-800), var(--green-600));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            background: #eff6ff;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 20px;
+            display: inline-block;
         }
-        .help-grid {
+
+        .main-help-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
         }
-        .help-card {
+
+        .faq-accordion {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .faq-header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .faq-body {
+            padding: 0 2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+
+        .faq-item.active .faq-body {
+            padding: 0 2rem 1.5rem;
+            max-height: 500px;
+        }
+
+        .complaint-box {
             background: white;
             padding: 2.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gray-100);
-            transition: all 0.3s ease;
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #e2e8f0;
+            position: sticky;
+            top: 2rem;
         }
-        .help-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--green-200);
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: #f8fafc;
+            margin-bottom: 1rem;
         }
-        .help-card h3 {
-            color: var(--green-700);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .help-card p {
-            color: var(--gray-600);
-            line-height: 1.7;
-            font-size: 0.95rem;
-        }
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            color: var(--green-600);
-            text-decoration: none;
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
             font-weight: 700;
-            transition: var(--transition);
+            cursor: pointer;
         }
-        .back-btn:hover {
-            transform: translateX(-5px);
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 100px;
+            z-index: 10;
+        }
+
+        @media (max-width: 992px) {
+            .main-help-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <nav class="dash-nav">
-        <div class="nav-left">
-            <span class="logo notranslate">Bhoomi Mitra</span>
-        </div>
-        <div class="nav-right">
-            <a href="{{ url_for('contractor_dashboard') }}" class="logout-btn" style="border-color: var(--green-200); color: var(--green-700);">Back to Dashboard</a>
-        </div>
-    </nav>
-
-    <div class="help-container">
-        <a href="{{ url_for('contractor_dashboard') }}" class="back-btn">← Back to Dashboard</a>
-        
-        <header class="help-header">
-            <h1>🤝 Contractor Help Center</h1>
-            <p>Your guide to sourcing quality crops and managing procurement deals.</p>
-        </header>
-
-        <div class="help-grid">
-            <div class="help-card">
-                <h3>🔍 Sourcing Crops</h3>
-                <p>Use the marketplace search and filters to find the exact crop and variety you need. You can see real-time listings from verified farmers across the region, including quantity and expected price.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>🙋 Showing Interest</h3>
-                <p>When you find a suitable crop, click <b>"Show Interest"</b>. You'll need to specify your procurement quantity and offer price. The farmer will receive an instant notification to review your proposal.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>📉 Negotiation Strategy</h3>
-                <p>Farmers may send counter-offers if they want to adjust the price or quantity. You can continue the negotiation in our secure chat. Keep an eye on your <b>Messages</b> for status updates.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>🛡️ Trust & Verification</h3>
-                <p>Bhoomi Mitra verifies all farmers on the platform. However, we recommend checking a farmer's history and ratings before finalizing large deals. This ensures a reliable supply chain for your procurement.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>📦 Finalizing Procurement</h3>
-                <p>Once a deal is accepted, coordinate the logistics through the chat. After you receive the goods and verify quality, mark the deal as <b>Completed</b> to finalize the transaction records.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>📊 Market Insights</h3>
-                <p>Use the <b>Chatbot</b> to get current market trends and MSP prices. This information can help you make more informed bidding decisions and manage your budget effectively.</p>
+    <div class="help-hero">
+        <a href="/contractor/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        <div class="hero-content">
+            <h1>Contractor Support Center</h1>
+            <p>Optimize your procurement and resolve trade issues efficiently.</p>
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Search for procurement guides...">
             </div>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='config.js') }}?v=3"></script>
-    <script src="{{ url_for('static', filename='google_translate.js') }}?v=3"></script>
+    <div class="help-container">
+        <div class="quick-links">
+            <div class="quick-card">
+                <i class="fas fa-search-location"></i>
+                <h3>Sourcing Guide</h3>
+                <p>Learn how to find specific crop varieties and grades.</p>
+            </div>
+            <div class="quick-card">
+                <i class="fas fa-comments-dollar"></i>
+                <h3>Bidding Rules</h3>
+                <p>Best practices for negotiating with farmers.</p>
+            </div>
+            <div class="quick-card">
+                <i class="fas fa-truck-ramp-box"></i>
+                <h3>Logistics</h3>
+                <p>Coordinating delivery and quality checks.</p>
+            </div>
+            <div class="quick-card">
+                <i class="fas fa-star"></i>
+                <h3>Trust Score</h3>
+                <p>How to maintain a high reputation as a buyer.</p>
+            </div>
+        </div>
+
+        <div class="main-help-grid">
+            <div class="faq-section">
+                <h2 style="margin-bottom: 2rem;">Frequently Asked Questions</h2>
+                <div class="faq-accordion">
+                    <div class="faq-item">
+                        <div class="faq-header">
+                            <h4>How can I verify crop quality before buying?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-body">
+                            <p>Use the secure chat to request real-time photos or videos of the harvest. You can also arrange for a sample inspection. Once delivered, verify the goods before confirming receipt on the platform.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-header">
+                            <h4>What if the farmer changes the price after acceptance?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-body">
+                            <p>Prices are legally binding once both parties accept the deal. If a farmer attempts to change terms outside the platform, do not proceed and report the listing using the complaint box.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-header">
+                            <h4>Can I cancel an offer I've sent?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-body">
+                            <p>Yes, you can withdraw an interest as long as the farmer hasn't accepted it yet. Go to "My Interests" and click "Withdraw".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="complaint-section">
+                <div class="complaint-box">
+                    <h2>Submit a Report</h2>
+                    <form id="supportForm">
+                        <label>Subject</label>
+                        <input type="text" id="subject" class="form-input" placeholder="e.g., Non-delivery of Wheat" required>
+                        <label>Description</label>
+                        <textarea id="description" class="form-textarea" placeholder="Provide details like Order ID and Farmer name..." required></textarea>
+                        <button type="submit" class="submit-btn">Submit Report</button>
+                    </form>
+                    <div id="formStatus" style="margin-top: 1rem; text-align: center; display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/config.js?v=3"></script>
+    <script src="/static/toast.js?v=3"></script>
+    <script>
+        document.querySelectorAll('.faq-header').forEach(header => {
+            header.onclick = () => {
+                header.parentElement.classList.toggle('active');
+            };
+        });
+
+        const supportForm = document.getElementById('supportForm');
+        supportForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('description').value
+            };
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/support`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (response.ok) {
+                    showToast('Report submitted', 'success');
+                    supportForm.reset();
+                    document.getElementById('formStatus').textContent = '✅ Report submitted!';
+                    document.getElementById('formStatus').style.display = 'block';
+                }
+            } catch (err) { console.error(err); }
+        };
+    </script>
 </body>
 </html>

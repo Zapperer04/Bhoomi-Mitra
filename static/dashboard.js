@@ -60,31 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 1. Critical Session Check
   if (!localStorage.getItem("access_token")) { location.href = "/login"; return; }
   
-  // 2. Help Modal & FAB Logic (Independent of API)
-  const helpBtn = document.getElementById("helpBtn");
-  const helpModal = document.getElementById("helpModal");
-  const helpFAB = document.getElementById("helpFAB");
-  const closeHelp = document.getElementById("closeHelp");
-  const closeHelpBtn = document.getElementById("closeHelpBtn");
-
-  const closeFn = () => helpModal?.classList.add("hidden");
-  
-  if (helpBtn && helpModal) {
-    helpBtn.onclick = (e) => {
-      e.preventDefault();
-      helpModal.classList.remove("hidden");
-    };
-  }
-  if (helpFAB && helpModal) {
-    helpFAB.onclick = () => helpModal.classList.remove("hidden");
-  }
-  if (closeHelp) closeHelp.onclick = closeFn;
-  if (closeHelpBtn) closeHelpBtn.onclick = closeFn;
-  window.addEventListener("click", (e) => {
-    if (e.target === helpModal) closeFn();
-  });
-
-  // 3. i18n & UI Init (Resilient)
+  // 2. UI Init (Resilient)
   try {
     await DT.ready;
     await initHeader();

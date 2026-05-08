@@ -2,127 +2,501 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Farmer Help Center - Bhoomi Mitra</title>
+    <title>Farmer Help Center | Bhoomi Mitra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/dashboard.css">
     <style>
-        .help-container {
-            max-width: 900px;
-            margin: 4rem auto;
-            padding: 0 2rem;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #059669 0%, #064e3b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            --accent-green: #10b981;
         }
-        .help-header {
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .help-hero {
+            background: var(--primary-gradient);
+            padding: 6rem 2rem 4rem;
             text-align: center;
-            margin-bottom: 4rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
         }
-        .help-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--green-800), var(--green-600));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        .help-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -10%;
+            width: 120%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s infinite alternate;
         }
-        .help-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.1); opacity: 0.5; }
         }
-        .help-card {
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 2rem auto 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.25rem 1.5rem 1.25rem 3.5rem;
+            border-radius: 100px;
+            border: none;
             background: white;
-            padding: 2.5rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gray-100);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            font-size: 1.1rem;
+            outline: none;
             transition: all 0.3s ease;
         }
-        .help-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--green-200);
+
+        .search-container i {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.2rem;
         }
-        .help-card h3 {
-            color: var(--green-700);
+
+        .help-container {
+            max-width: 1200px;
+            margin: -3rem auto 4rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 3;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .quick-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-green);
+            box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.1);
+        }
+
+        .quick-card i {
+            font-size: 2.5rem;
+            color: var(--accent-green);
             margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            background: #ecfdf5;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 20px;
+            display: inline-block;
         }
-        .help-card p {
-            color: var(--gray-600);
-            line-height: 1.7;
+
+        .quick-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .quick-card p {
+            color: #64748b;
             font-size: 0.95rem;
         }
+
+        .main-help-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .faq-accordion {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .faq-header:hover {
+            background: #f8fafc;
+        }
+
+        .faq-header h4 {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .faq-body {
+            padding: 0 2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #64748b;
+        }
+
+        .faq-item.active .faq-body {
+            padding: 0 2rem 1.5rem;
+            max-height: 500px;
+        }
+
+        .faq-item.active .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .complaint-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #f1f5f9;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .complaint-box h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid #f1f5f9;
+            background: #f8fafc;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            border-color: var(--accent-green);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-textarea {
+            height: 150px;
+            resize: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);
+        }
+
         .back-btn {
-            display: inline-flex;
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 2rem;
-            color: var(--green-600);
-            text-decoration: none;
-            font-weight: 700;
-            transition: var(--transition);
+            font-weight: 600;
+            z-index: 10;
+            padding: 0.75rem 1.25rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 100px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
+
         .back-btn:hover {
+            background: rgba(255,255,255,0.2);
             transform: translateX(-5px);
+        }
+
+        @media (max-width: 992px) {
+            .main-help-grid {
+                grid-template-columns: 1fr;
+            }
+            .complaint-box {
+                position: static;
+            }
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="dash-nav">
-        <div class="nav-left">
-            <span class="logo notranslate">Bhoomi Mitra</span>
+    <div class="help-hero">
+        <a href="/farmer/dashboard" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+        <div class="hero-content">
+            <h1>Farmer Support Hub</h1>
+            <p>Everything you need to grow and sell with confidence on Bhoomi Mitra.</p>
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Search for guides, FAQs, or support...">
+            </div>
         </div>
-        <div class="nav-right">
-            <a href="/farmer/dashboard" class="logout-btn" style="border-color: var(--green-200); color: var(--green-700);">Back to Dashboard</a>
-        </div>
-    </nav>
+    </div>
 
     <div class="help-container">
-        <a href="/farmer/dashboard" class="back-btn">← Back to Dashboard</a>
-        
-        <header class="help-header">
-            <h1>🌱 Farmer Help Center</h1>
-            <p>Everything you need to know about managing your crops and deals.</p>
-        </header>
+        <div class="quick-links">
+            <div class="quick-card">
+                <i class="fas fa-plus-circle"></i>
+                <h3>Posting Crops</h3>
+                <p>Step-by-step guide to listing your harvest.</p>
+            </div>
+            <div class="quick-card">
+                <i class="fas fa-handshake"></i>
+                <h3>Managing Offers</h3>
+                <p>How to negotiate and accept the best deals.</p>
+            </div>
+            <div class="quick-card">
+                <i class="fas fa-wallet"></i>
+                <h3>Payments</h3>
+                <p>Understanding the payment verification process.</p>
+            </div>
+            <div class="quick-card">
+                <i class="fas fa-shield-halved"></i>
+                <h3>Security</h3>
+                <p>How we keep your data and trades safe.</p>
+            </div>
+        </div>
 
-        <div class="help-grid">
-            <div class="help-card">
-                <h3>📢 Posting a Crop</h3>
-                <p>Click on <b>"Post Crop"</b> in your dashboard. Fill in the details like crop type, variety, and quantity. Setting a fair market price helps attract more buyers quickly. Your listing will be visible to all verified contractors immediately.</p>
+        <div class="main-help-grid">
+            <div class="faq-section">
+                <h2 class="section-title"><i class="fas fa-question-circle" style="color: var(--accent-green)"></i> Frequently Asked Questions</h2>
+                <div class="faq-accordion">
+                    <div class="faq-item">
+                        <div class="faq-header">
+                            <h4>How do I set the right price for my crop?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-body">
+                            <p>We recommend checking the current MSP (Minimum Support Price) using our Chatbot. Additionally, look at other similar listings in your region to ensure your price is competitive but fair.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-header">
+                            <h4>What happens if a buyer doesn't pay?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-body">
+                            <p>Never deliver goods before payment is confirmed or an escrow agreement is reached. If a buyer defaults, use the "File a Complaint" box on this page immediately. We track all user behavior and will ban fraudulent buyers.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <h4>Can I edit my crop listing after posting?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-body">
+                        <p>Yes, you can edit the price and quantity from your dashboard at any time. Note that changing details might affect active negotiations.</p>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-header">
+                            <h4>How do I increase my Farmer Rating?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-body">
+                            <p>Ratings improve when you complete deals successfully. Providing accurate crop descriptions, being responsive in chat, and fulfilling orders on time are the best ways to get 5-star reviews.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 4rem; background: #ecfdf5; padding: 2.5rem; border-radius: 24px; border: 1px solid #d1fae5;">
+                    <h3 style="margin-bottom: 1rem;"><i class="fas fa-robot"></i> Need Instant Help?</h3>
+                    <p style="color: #065f46; margin-bottom: 1.5rem;">Our AI Chatbot "Mitra" is available 24/7 to answer questions about weather, MSP, and platform features in 12+ languages.</p>
+                    <a href="/farmer/dashboard" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                        Open Chatbot <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
             </div>
 
-            <div class="help-card">
-                <h3>🤝 Managing Interests</h3>
-                <p>When a buyer is interested, you'll see them in your "Interested Contractors" list. You can view their profile and offered price. You have the power to <b>Accept</b>, <b>Reject</b>, or <b>Negotiate</b> the price through our secure chat.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>💬 Secure Negotiation</h3>
-                <p>Use the built-in chat to discuss logistics, quality, and delivery dates. Never share your personal bank details or phone number outside the platform for your own safety. Our system logs all agreements to protect you.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>✅ Finalizing Deals</h3>
-                <p>Once both parties agree, the deal is locked. After you deliver the goods and receive payment, mark the deal as <b>Completed</b>. This helps you build a high trust rating, making it easier to sell in the future.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>🤖 AI Assistant</h3>
-                <p>Need to know the weather or MSP rates? Use our <b>Bhoomi Mitra Chatbot</b>. It speaks multiple Indian languages and can guide you on the best time to sell or what fertilizers to use.</p>
-            </div>
-
-            <div class="help-card">
-                <h3>🏛️ Government Schemes</h3>
-                <p>Check the <b>Gov Schemes</b> section regularly. We fetch the latest agricultural benefits and subsidies directly from official sources to ensure you don't miss out on financial aid.</p>
+            <div class="complaint-section">
+                <div class="complaint-box">
+                    <h2><i class="fas fa-headset" style="color: var(--accent-green)"></i> File a Complaint</h2>
+                    <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Issue with a buyer or the platform? Tell us details and our team will investigate within 24 hours.</p>
+                    
+                    <form id="supportForm">
+                        <div class="form-group">
+                            <label>Subject</label>
+                            <input type="text" id="subject" class="form-input" placeholder="e.g., Payment issue with Buyer X" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Detailed Description</label>
+                            <textarea id="description" class="form-textarea" placeholder="Please provide order ID, buyer name, and exactly what happened..." required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            Submit Ticket <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <div id="formStatus" style="margin-top: 1rem; text-align: center; font-weight: 600; display: none;"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="/static/config.js?v=3"></script>
-    <script src="/static/google_translate.js?v=3"></script>
+    <script src="/static/toast.js?v=3"></script>
+    <script>
+        // FAQ Accordion Logic
+        document.querySelectorAll('.faq-header').forEach(header => {
+            header.onclick = () => {
+                const item = header.parentElement;
+                const wasActive = item.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                
+                // Open clicked if it wasn't active
+                if (!wasActive) item.classList.add('active');
+            };
+        });
+
+        // Form Submission Logic
+        const supportForm = document.getElementById('supportForm');
+        const formStatus = document.getElementById('formStatus');
+
+        supportForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const submitBtn = supportForm.querySelector('button');
+            const originalBtnText = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            const data = {
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/support`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Ticket submitted successfully!', 'success');
+                    supportForm.reset();
+                    formStatus.textContent = '✅ Ticket #'+ result.data.ticket.id +' submitted!';
+                    formStatus.style.color = '#059669';
+                    formStatus.style.display = 'block';
+                } else {
+                    showToast(result.error || 'Failed to submit ticket', 'error');
+                }
+            } catch (err) {
+                console.error('Support error:', err);
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        };
+    </script>
 </body>
 </html>

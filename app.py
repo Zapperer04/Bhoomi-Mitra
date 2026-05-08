@@ -24,7 +24,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 # ================= DB & MODELS =================
-from models import db, Crop, Interest, Message, User, Waitlist
+from models import db, Crop, Interest, Message, User, Waitlist, SupportTicket
 from routes.auth_routes import auth_bp
 
 # ================= DATA SERVICES =================
@@ -1561,6 +1561,26 @@ def chat():
 
     session["state"] = "START"
     return jsonify(menu_start(lang))
+
+
+# ================= SUPPORT =================
+@app.route("/api/support", methods=["POST"])
+@jwt_required()
+def submit_support():
+    """Submit a support ticket or complaint."""
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    subject = data.get("subject")
+    description = data.get("description")
+
+    if not subject or not description:
+        return api_response(success=False, error="Subject and description required", status=400)
+
+    ticket = SupportTicket(user_id=user_id, subject=subject, description=description)
+    db.session.add(ticket)
+    db.session.commit()
+
+    return api_response(data={"message": "Support ticket submitted successfully", "ticket": ticket.to_dict()})
 
 
 @app.route("/api/interests/<int:interest_id>/confirm", methods=["POST"])
