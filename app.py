@@ -1610,16 +1610,6 @@ def clear_old_memory():
             CHAT_SESSIONS.pop(sorted_sessions[i][0], None)
         logger.info(f"[MEMORY_PRUNE] Pruned 20 sessions. Active: {len(CHAT_SESSIONS)}")
 
-# ================= TRANSLATION API =================
-@app.route("/api/translations", methods=["GET"])
-def get_translations():
-    lang = request.args.get("lang", "en")
-    return jsonify({
-        "success": True,
-        "data": get_dashboard_strings(lang)
-    })
-
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
