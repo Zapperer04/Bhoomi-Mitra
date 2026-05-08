@@ -96,6 +96,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.removeItem("access_token");
     window.location.href = "/login";
   };
+
+  // Help Modal Logic
+  const helpBtn = document.getElementById("helpBtn");
+  const helpFarmer = document.getElementById("helpModalFarmer");
+  const helpContractor = document.getElementById("helpModalContractor");
+
+  if (helpBtn) {
+    helpBtn.onclick = async () => {
+      const me = await apiCall("/api/me");
+      if (me.role === "farmer") {
+        helpFarmer.classList.remove("hidden");
+      } else {
+        helpContractor.classList.remove("hidden");
+      }
+    };
+  }
+
+  document.querySelectorAll(".close-help-btn, .close-help-action").forEach(btn => {
+    btn.onclick = () => {
+      helpFarmer?.classList.add("hidden");
+      helpContractor?.classList.add("hidden");
+    };
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target === helpFarmer) helpFarmer.classList.add("hidden");
+    if (e.target === helpContractor) helpContractor.classList.add("hidden");
+  });
 });
 
 // ── USER INIT ─────────────────────────────────────────────────────────────────

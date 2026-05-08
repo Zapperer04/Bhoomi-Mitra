@@ -22,6 +22,9 @@
             💬 <span data-i18n="nav.messages">Messages</span>
             <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
         </a>
+        <button id="helpBtn" class="nav-messages-link" style="border:none; cursor:pointer;">
+            ❓ <span data-i18n="nav.help">Help</span>
+        </button>
     </div>
     <div class="nav-right">
         <div id="google_translate_element"></div>
@@ -79,6 +82,38 @@
         </div>
     </section>
 </main>
+
+<!-- Farmer Help Modal -->
+<div id="helpModal" class="modal hidden">
+    <div class="modal-content" style="max-width: 600px;">
+        <button id="closeHelp" class="modal-close">&times;</button>
+        <header class="modal-header">
+            <h3 data-i18n="farmer.help_title">Farmer Help Center</h3>
+            <p data-i18n="farmer.help_subtitle">Everything you need to know about selling on Bhoomi Mitra.</p>
+        </header>
+        <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">🌾 How to sell your crops?</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">Click the "Post Crop" button, enter your crop name, quantity, price, and location. Contractors will then see your listing and send you offers.</p>
+            </div>
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">🤝 How to manage offers?</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">When a contractor shows interest, it will appear under "Interested Contractors". You can <b>Accept</b> the deal or <b>Negotiate</b> a better price.</p>
+            </div>
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">💬 How to chat?</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">Click the "Messages" link in the top bar to see all your active conversations with contractors.</p>
+            </div>
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">🤖 What can the Chatbot do?</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">The chatbot provides weather updates, latest MSP prices, crop-specific sowing advice, and info on government schemes.</p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="closeHelpBtn" class="btn btn-primary" style="width: 100%;">Got it!</button>
+        </div>
+    </div>
+</div>
 
 <script src="/static/config.js"></script>
 <script src="/static/google_translate.js"></script>

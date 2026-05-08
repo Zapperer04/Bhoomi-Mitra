@@ -18,6 +18,9 @@
         <a href="javascript:history.back()" class="nav-messages-link">
             ← <span data-i18n="nav.back">Back to Dashboard</span>
         </a>
+        <button id="helpBtn" class="nav-messages-link" style="border:none; cursor:pointer;">
+            ❓ <span data-i18n="nav.help">Help</span>
+        </button>
     </div>
     <div class="nav-right">
         <!-- Language Selector (Simplified for Messages) -->
@@ -235,6 +238,51 @@
         </div>
     </div>
 
+    <!-- Farmer Help Modal -->
+    <div id="helpModalFarmer" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 data-i18n="farmer.help_title">Farmer Help Center</h3>
+                <button class="close-help-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">🤝 How to manage offers?</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">You can <b>Accept</b> the deal or <b>Counter Offer</b> if you want a different price or quantity. Use the chat to discuss terms.</p>
+                </div>
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">✅ Closing the Deal</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">Once both parties accept, the deal is closed. You can then mark "Payment Received" when the contractor pays you.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary close-help-action" style="width: 100%;">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contractor Help Modal -->
+    <div id="helpModalContractor" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 data-i18n="contractor.help_title">Contractor Help Center</h3>
+                <button class="close-help-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">📉 How to negotiate?</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">Use <b>Counter Offer</b> to propose new terms. If the farmer counters, you'll see a notification in the chat bar.</p>
+                </div>
+                <div class="help-item" style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">✅ Finalizing</h4>
+                    <p style="font-size: 0.9rem; color: #4b5563;">After the deal is accepted by both, use the chat to coordinate delivery. You can mark "Goods Received" once you get the crop.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary close-help-action" style="width: 100%;">Understood!</button>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>

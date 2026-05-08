@@ -77,6 +77,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       location.href = "/login";
     };
   }
+
+  // Help Modal Logic
+  const helpBtn = document.getElementById("helpBtn");
+  const helpModal = document.getElementById("helpModal");
+  const closeHelp = document.getElementById("closeHelp");
+  const closeHelpBtn = document.getElementById("closeHelpBtn");
+
+  if (helpBtn && helpModal) {
+    helpBtn.onclick = () => helpModal.classList.remove("hidden");
+    const closeFn = () => helpModal.classList.add("hidden");
+    if (closeHelp) closeHelp.onclick = closeFn;
+    if (closeHelpBtn) closeHelpBtn.onclick = closeFn;
+    window.addEventListener("click", (e) => {
+      if (e.target === helpModal) closeFn();
+    });
+  }
 });
 
 async function initHeader() {

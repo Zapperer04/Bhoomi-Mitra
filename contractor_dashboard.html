@@ -19,6 +19,9 @@
             💬 <span data-i18n="nav.messages">Messages</span>
             <span id="unreadBadge" class="unread-badge-nav hidden">0</span>
         </a>
+        <button id="helpBtn" class="nav-messages-link" style="border:none; cursor:pointer;">
+            ❓ <span data-i18n="nav.help">Help</span>
+        </button>
     </div>
     <div class="nav-right">
         <div id="google_translate_element"></div>
@@ -142,6 +145,39 @@
         </div>
     </div>
 </div>
+
+<!-- Contractor Help Modal -->
+<div id="helpModal" class="modal hidden">
+    <div class="modal-content" style="max-width: 600px;">
+        <button id="closeHelp" class="modal-close">&times;</button>
+        <header class="modal-header">
+            <h3 data-i18n="contractor.help_title">Contractor Help Center</h3>
+            <p data-i18n="contractor.help_subtitle">Guide to sourcing crops efficiently on Bhoomi Mitra.</p>
+        </header>
+        <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">🌾 How to find and buy crops?</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">Browse the "Available Crops" section. Click on a crop card to see details, then click "Show Interest" to submit your purchase quantity and price offer.</p>
+            </div>
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">📉 How to negotiate?</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">View your active offers in "My Interests". If a farmer proposes a counter-offer, you will see a notification. You can then accept their offer or send a new one.</p>
+            </div>
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">🔍 Using Filters</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">Use the search bar to find specific crops or locations. You can also sort results by price (Low to High or High to Low).</p>
+            </div>
+            <div class="help-item" style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--green-700); margin-bottom: 0.5rem;">✅ Closing a Deal</h4>
+                <p style="font-size: 0.9rem; color: var(--gray-600);">Once both you and the farmer accept the terms, the deal status changes to "Accepted". Use the Chat button to arrange logistics and confirm delivery.</p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button id="closeHelpBtn" class="btn btn-primary" style="width: 100%;">Understood!</button>
+        </div>
+    </div>
+</div>
+
 
 <script src="/static/config.js"></script>
 <script src="/static/google_translate.js"></script>
