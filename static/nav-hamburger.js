@@ -138,14 +138,18 @@ function buildDashPanelItems(nav, container) {
             }));
         }
 
-        const langSelector = navRight.querySelector('.lang-selector');
         const translateHost = navRight.querySelector('#google_translate_element');
-        if (useMobilePanel && langSelector) {
-            accountSection.body.appendChild(buildWidgetWrap('Language', langSelector));
-        } else if (useMobilePanel && translateHost) {
-            const customLang = translateHost.parentElement?.querySelector('.lang-selector');
-            if (customLang) {
-                accountSection.body.appendChild(buildWidgetWrap('Language', customLang));
+        if (translateHost) {
+            const langSection = createPanelSection('Language');
+            const placeholder = document.createElement('div');
+            placeholder.className = 'google-translate-placeholder';
+            // We want it to look like the navbar version but it will be styled by the panel CSS
+            langSection.body.appendChild(placeholder);
+            container.appendChild(langSection.root);
+            
+            // Initialize the new UI instance
+            if (window.buildCustomLangUI) {
+                window.buildCustomLangUI(placeholder);
             }
         }
 
@@ -178,11 +182,17 @@ function buildLandingPanelItems(nav, container) {
         container.appendChild(exploreSection.root);
     }
 
-    const langSelector = navRight.querySelector('.lang-selector');
-    if (useMobilePanel && langSelector) {
+    const translateHost = navRight.querySelector('#google_translate_element');
+    if (translateHost) {
         const languageSection = createPanelSection('Language');
-        languageSection.body.appendChild(buildWidgetWrap('', langSelector));
+        const placeholder = document.createElement('div');
+        placeholder.className = 'google-translate-placeholder';
+        languageSection.body.appendChild(placeholder);
         container.appendChild(languageSection.root);
+        
+        if (window.buildCustomLangUI) {
+            window.buildCustomLangUI(placeholder);
+        }
     }
 }
 

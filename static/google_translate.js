@@ -107,16 +107,21 @@ window.googleTranslateElementInit = function() {
 
 // 4. Fast UI initialization for the custom dropdown
 (function initFast() {
-    if (document.getElementById('google_translate_element')) {
-        buildCustomUI();
+    const googleDivs = document.querySelectorAll('#google_translate_element, .google-translate-placeholder');
+    if (googleDivs.length > 0) {
+        googleDivs.forEach(div => {
+            if (!div.dataset.uiReady) {
+                window.buildCustomLangUI(div);
+            }
+        });
     } else if (document.readyState !== 'complete') {
         setTimeout(initFast, 100); 
     }
 })();
 
-function buildCustomUI() {
-    const googleDiv = document.getElementById('google_translate_element');
-    if (!googleDiv) return;
+window.buildCustomLangUI = function(googleDiv) {
+    if (!googleDiv || googleDiv.dataset.uiReady === 'true') return;
+    googleDiv.dataset.uiReady = 'true';
 
     // Create wrapper and prevent Google from translating it
     const customWrapper = document.createElement('div');
@@ -129,9 +134,9 @@ function buildCustomUI() {
 
     // Create the clean CTA Button
     const btn = document.createElement('button');
-    btn.className = 'btn-secondary action-btn light'; // Try to hook into global CTA classes if available
+    btn.className = 'lang-btn btn-secondary action-btn light'; // Added lang-btn class
     btn.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; background: #ffffff; border: 1.5px solid #d1fae5; color: #047857; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: "DM Sans", sans-serif; transition: 0.2s; white-space: nowrap; height: 40px;';
-    btn.innerHTML = '🌐 <span id="customLangLabel">English</span>';
+    btn.innerHTML = `🌐 <span class="custom-lang-label">${googleDiv.dataset.currentLangName || 'English'}</span>`;
     
     // Create the Dropdown
     const dropdown = document.createElement('div');
@@ -169,7 +174,10 @@ function buildCustomUI() {
         });
         
         option.addEventListener('click', () => {
-            document.getElementById('customLangLabel').innerText = lang.name;
+            // Update all labels on the page
+            document.querySelectorAll('.custom-lang-label').forEach(el => {
+                el.innerText = lang.name;
+            });
             dropdown.style.display = 'none'; // close dropdown
             
             // 1. Set the cookie natively so it propagates
@@ -198,6 +206,8 @@ function buildCustomUI() {
     btn.addEventListener('click', (e) => {
         e.stopPropagation(); // prevent window click from closing immediately
         if (dropdown.style.display === 'none') {
+            // Close any other open dropdowns first
+            document.querySelectorAll('.lang-dropdown').forEach(d => d.style.display = 'none');
             dropdown.style.display = 'flex';
             btn.style.borderColor = '#10b981'; // Activate border
         } else {
@@ -226,7 +236,11 @@ function buildCustomUI() {
     const match = document.cookie.match(/googtrans=\/en\/([a-z]{2})/);
     if (match && match[1]) {
         const found = languages.find(l => l.code === match[1]);
-        if (found) document.getElementById('customLangLabel').innerText = found.name;
+        if (found) {
+            document.querySelectorAll('.custom-lang-label').forEach(el => {
+                el.innerText = found.name;
+            });
+        }
     }
 }
 

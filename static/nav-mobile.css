@@ -306,11 +306,11 @@
     padding: 0.15rem 0.5rem 0.5rem;
 }
 .nav-panel-lang .lang-selector {
-    width: 100%;
+    width: 100% !important;
 }
 .nav-panel-lang .lang-btn {
-    width: 100%;
-    justify-content: space-between;
+    width: 100% !important;
+    justify-content: space-between !important;
 }
 
 .nav-panel-lang .lang-dropdown {
