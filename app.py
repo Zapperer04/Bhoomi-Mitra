@@ -3,7 +3,7 @@ import re
 import hashlib
 import logging
 import time
-from datetime import timedelta, date, datetime, timezone, timedelta as py_timedelta
+from datetime import date, datetime, timezone, timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
 
@@ -98,7 +98,14 @@ INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
 os.makedirs(INSTANCE_DIR, exist_ok=True)
 
 DB_PATH   = os.path.join(INSTANCE_DIR, "db.sqlite3")
-db_url    = os.environ.get("DATABASE_URL", f"sqlite:///{DB_PATH.replace(chr(92), '/')}")
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    # Vercel filesystem is read-only. We must use /tmp/ for SQLite in production fallbacks.
+    if os.environ.get("VERCEL") == "1":
+        db_url = "sqlite:////tmp/db.sqlite3"
+    else:
+        db_url = f"sqlite:///{DB_PATH.replace(chr(92), '/')}"
+
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
@@ -136,13 +143,13 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 def unauthorized_callback(callback):
     if request.path.startswith("/api/") or request.path.startswith("/auth/"):
         return jsonify({"success": False, "error": "Missing or invalid token"}), 401
-    return redirect(url_for('login'))
+    return redirect('/login')
 
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
     if request.path.startswith("/api/") or request.path.startswith("/auth/"):
         return jsonify({"success": False, "error": "Token has expired"}), 401
-    return redirect(url_for('login'))
+    return redirect('/login')
 
 
 
