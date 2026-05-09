@@ -1,8 +1,8 @@
 /* ============================================================
-   nav-hamburger.js — Hamburger Menu Controller
+   nav-hamburger.js — Mobile Navigation Controller
    ============================================================
-   Reads existing .dash-nav / .nav items and builds a clean
-   slide-in panel for phone layouts. Self-initializing.
+   Builds a structured off-canvas menu for dashboard and
+   landing navs without disturbing the desktop layout.
    ============================================================ */
 
 (function initHamburger() {
@@ -15,74 +15,75 @@
 
 function buildHamburger() {
     const nav = document.querySelector('.dash-nav') || document.querySelector('.nav');
-    if (!nav) return;
+    if (!nav || nav.dataset.hamburgerReady === 'true') return;
+    nav.dataset.hamburgerReady = 'true';
 
     const isDashNav = nav.classList.contains('dash-nav');
 
-    // --- 1. Create the hamburger button ---
     const burger = document.createElement('button');
+    burger.type = 'button';
     burger.className = 'hamburger-toggle';
-    burger.setAttribute('aria-label', 'Open menu');
+    burger.setAttribute('aria-label', 'Open navigation menu');
+    burger.setAttribute('aria-expanded', 'false');
     burger.innerHTML = '<span></span><span></span><span></span>';
 
-    // --- 2. Create backdrop ---
     const backdrop = document.createElement('div');
     backdrop.className = 'nav-backdrop';
     document.body.appendChild(backdrop);
 
-    // --- 3. Create slide panel ---
-    const panel = document.createElement('div');
+    const panel = document.createElement('aside');
     panel.className = 'nav-slide-panel';
+    panel.setAttribute('aria-label', 'Mobile navigation');
 
-    // Panel header
     const header = document.createElement('div');
     header.className = 'nav-panel-header';
     header.innerHTML = `
-        <span class="panel-title notranslate">Bhoomi Mitra</span>
-        <button class="nav-panel-close" aria-label="Close menu">&times;</button>
+        <div class="nav-panel-header-copy">
+            <span class="panel-title notranslate">Bhoomi Mitra</span>
+            <span class="panel-subtitle">${isDashNav ? 'Dashboard menu' : 'Site menu'}</span>
+        </div>
+        <button type="button" class="nav-panel-close" aria-label="Close menu">&times;</button>
     `;
     panel.appendChild(header);
 
-    // --- 4. Build panel items from existing nav ---
-    const itemsContainer = document.createElement('div');
-    itemsContainer.className = 'nav-panel-items';
+    const content = document.createElement('div');
+    content.className = 'nav-panel-items';
 
     if (isDashNav) {
-        buildDashPanelItems(nav, itemsContainer, panel);
+        buildDashPanelItems(nav, content);
     } else {
-        buildLandingPanelItems(nav, itemsContainer);
+        buildLandingPanelItems(nav, content);
     }
 
-    panel.appendChild(itemsContainer);
+    panel.appendChild(content);
     document.body.appendChild(panel);
 
-    // --- 5. Insert hamburger into nav ---
     if (isDashNav) {
-        // Place hamburger at the end of nav-left (after logo)
         const navLeft = nav.querySelector('.nav-left');
         if (navLeft) navLeft.appendChild(burger);
         else nav.appendChild(burger);
     } else {
-        // Landing page: put burger in the nav directly
         nav.appendChild(burger);
     }
 
-    // --- 6. Toggle logic ---
     function openMenu() {
         panel.classList.add('open');
         backdrop.classList.add('visible');
         burger.classList.add('active');
+        burger.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';
     }
+
     function closeMenu() {
         panel.classList.remove('open');
         backdrop.classList.remove('visible');
         burger.classList.remove('active');
+        burger.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
     }
 
-    burger.addEventListener('click', (e) => {
-        e.stopPropagation();
+    burger.addEventListener('click', (event) => {
+        event.stopPropagation();
         if (panel.classList.contains('open')) closeMenu();
         else openMenu();
     });
@@ -90,131 +91,209 @@ function buildHamburger() {
     backdrop.addEventListener('click', closeMenu);
     header.querySelector('.nav-panel-close').addEventListener('click', closeMenu);
 
-    // Close on ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeMenu();
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeMenu();
     });
 
-    // Close when a panel link is clicked
-    panel.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', () => setTimeout(closeMenu, 150));
+    panel.addEventListener('click', (event) => {
+        const interactive = event.target.closest('a, button');
+        if (!interactive || interactive.classList.contains('nav-panel-close')) return;
+        if (interactive.closest('.lang-selector')) return;
+        setTimeout(closeMenu, 120);
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) closeMenu();
     });
 }
 
-/* ── Build panel items for dashboard-style navs ─────────── */
-function buildDashPanelItems(nav, container, panel) {
+function buildDashPanelItems(nav, container) {
     const navLeft = nav.querySelector('.nav-left');
     const navRight = nav.querySelector('.nav-right');
 
-    // Collect links from nav-left (skip logo)
-    if (navLeft) {
-        navLeft.querySelectorAll('a.nav-messages-link').forEach(link => {
-            const item = document.createElement('a');
-            item.href = link.href;
-            // Extract text content (emoji + text)
-            const emoji = link.childNodes[0]?.textContent?.trim() || '';
-            const spanText = link.querySelector('span')?.textContent?.trim() || '';
-            item.innerHTML = `<span class="panel-icon">${emoji}</span> ${spanText}`;
-            container.appendChild(item);
-        });
+    const quickLinks = collectLinks(navLeft, 'a.nav-messages-link');
+    if (quickLinks.length > 0) {
+        const section = createPanelSection('Quick links');
+        quickLinks.forEach((link) => section.body.appendChild(buildPanelLink(link)));
+        container.appendChild(section.root);
     }
 
-    container.appendChild(createDivider());
-
-    // Profile section
     if (navRight) {
+        const accountSection = createPanelSection('Account');
         const profileBtn = navRight.querySelector('.profile-nav-btn');
         const roleBadge = navRight.querySelector('.role-badge');
         const avatarEl = navRight.querySelector('.profile-nav-avatar');
         const nameEl = navRight.querySelector('.profile-nav-name');
 
         if (profileBtn) {
-            const profileSection = document.createElement('a');
-            profileSection.href = profileBtn.href || '/profile';
-            profileSection.className = 'nav-panel-profile';
-            profileSection.innerHTML = `
-                <span class="panel-avatar">${avatarEl?.textContent?.trim() || '?'}</span>
-                <span class="panel-profile-info">
-                    <span class="panel-profile-name">${nameEl?.textContent?.trim() || 'Profile'}</span>
-                    <span class="panel-profile-role">${roleBadge?.textContent?.trim() || ''}</span>
-                </span>
-            `;
-            container.appendChild(profileSection);
+            accountSection.body.appendChild(buildProfileCard({
+                href: profileBtn.href || '/profile',
+                avatar: avatarEl?.textContent?.trim() || '?',
+                name: nameEl?.textContent?.trim() || 'Profile',
+                role: roleBadge?.textContent?.trim() || ''
+            }));
         }
 
-        container.appendChild(createDivider());
-
-        // Language widget — move the actual widget into the panel
-        const translateEl = navRight.querySelector('#google_translate_element');
         const langSelector = navRight.querySelector('.lang-selector');
+        const translateHost = navRight.querySelector('#google_translate_element');
         if (langSelector) {
-            const langWrap = document.createElement('div');
-            langWrap.className = 'nav-panel-lang';
-            langWrap.appendChild(langSelector);
-            container.appendChild(langWrap);
-        } else if (translateEl) {
-            // The custom widget built by google_translate.js will be placed after this element
-            // We need to check if the custom lang-selector was already built
-            const customLang = translateEl.parentElement?.querySelector('.lang-selector');
+            accountSection.body.appendChild(buildWidgetWrap('Language', langSelector));
+        } else if (translateHost) {
+            const customLang = translateHost.parentElement?.querySelector('.lang-selector');
             if (customLang) {
-                const langWrap = document.createElement('div');
-                langWrap.className = 'nav-panel-lang';
-                langWrap.appendChild(customLang);
-                container.appendChild(langWrap);
+                accountSection.body.appendChild(buildWidgetWrap('Language', customLang));
             }
         }
 
-        container.appendChild(createDivider());
-
-        // Logout
         const logoutBtn = navRight.querySelector('.logout-btn, #logoutBtn');
         if (logoutBtn) {
-            const logoutItem = document.createElement('button');
-            logoutItem.className = 'panel-logout';
-            logoutItem.innerHTML = '<span class="panel-icon">🚪</span> Logout';
-            logoutItem.addEventListener('click', () => {
-                logoutBtn.click();
-            });
-            container.appendChild(logoutItem);
+            accountSection.body.appendChild(buildActionButton({
+                className: 'panel-logout',
+                icon: '🚪',
+                label: 'Logout',
+                onClick: () => logoutBtn.click()
+            }));
+        }
+
+        if (accountSection.body.childElementCount > 0) {
+            container.appendChild(accountSection.root);
         }
     }
 }
 
-/* ── Build panel items for landing page nav ─────────────── */
 function buildLandingPanelItems(nav, container) {
     const navRight = nav.querySelector('.nav-right');
     if (!navRight) return;
 
-    navRight.querySelectorAll('a.nav-link').forEach(link => {
-        const item = document.createElement('a');
-        item.href = link.href;
-        const isLogin = link.classList.contains('login');
-        const text = link.textContent.trim();
-        item.innerHTML = `<span class="panel-icon">${isLogin ? '🔐' : '🏠'}</span> ${text}`;
-        if (isLogin) {
-            item.style.color = '#047857';
-            item.style.fontWeight = '800';
-        }
-        container.appendChild(item);
+    const exploreSection = createPanelSection('Explore');
+    navRight.querySelectorAll('a.nav-link').forEach((link) => {
+        exploreSection.body.appendChild(buildPanelLink(link));
     });
+    if (exploreSection.body.childElementCount > 0) {
+        container.appendChild(exploreSection.root);
+    }
 
-    container.appendChild(createDivider());
-
-    // Language widget
-    const translateEl = navRight.querySelector('#google_translate_element');
     const langSelector = navRight.querySelector('.lang-selector');
     if (langSelector) {
-        const langWrap = document.createElement('div');
-        langWrap.className = 'nav-panel-lang';
-        langWrap.appendChild(langSelector);
-        container.appendChild(langWrap);
+        const languageSection = createPanelSection('Language');
+        languageSection.body.appendChild(buildWidgetWrap('', langSelector));
+        container.appendChild(languageSection.root);
     }
 }
 
-function createDivider() {
-    const d = document.createElement('div');
-    d.className = 'nav-panel-divider';
-    return d;
+function createPanelSection(title) {
+    const root = document.createElement('section');
+    root.className = 'nav-panel-section';
+
+    if (title) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'nav-panel-section-title';
+        titleEl.textContent = title;
+        root.appendChild(titleEl);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'nav-panel-section-body';
+    root.appendChild(body);
+
+    return { root, body };
+}
+
+function buildPanelLink(link) {
+    const item = document.createElement('a');
+    item.href = link.href;
+    item.className = 'nav-panel-link';
+
+    const label = extractNavLabel(link);
+    const icon = extractNavIcon(link, label);
+    const badgeText = extractBadgeText(link);
+
+    item.innerHTML = `
+        <span class="panel-icon" aria-hidden="true">${icon}</span>
+        <span class="panel-label">${label}</span>
+        ${badgeText ? `<span class="panel-badge">${badgeText}</span>` : ''}
+    `;
+
+    return item;
+}
+
+function buildProfileCard({ href, avatar, name, role }) {
+    const profileSection = document.createElement('a');
+    profileSection.href = href;
+    profileSection.className = 'nav-panel-profile nav-panel-link';
+    profileSection.innerHTML = `
+        <span class="panel-avatar">${avatar}</span>
+        <span class="panel-profile-info">
+            <span class="panel-profile-name">${name}</span>
+            ${role ? `<span class="panel-profile-role">${role}</span>` : ''}
+        </span>
+    `;
+    return profileSection;
+}
+
+function buildWidgetWrap(title, widget) {
+    const wrap = document.createElement('div');
+    wrap.className = 'nav-panel-lang';
+    if (title) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'nav-panel-section-title';
+        titleEl.textContent = title;
+        wrap.appendChild(titleEl);
+    }
+    wrap.appendChild(widget);
+    return wrap;
+}
+
+function buildActionButton({ className, icon, label, onClick }) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.innerHTML = `
+        <span class="panel-icon" aria-hidden="true">${icon}</span>
+        <span class="panel-label">${label}</span>
+    `;
+    button.addEventListener('click', onClick);
+    return button;
+}
+
+function extractNavLabel(link) {
+    const labelSpan = link.querySelector('span:not(.unread-badge-nav)');
+    if (labelSpan) return labelSpan.textContent.trim();
+    return link.textContent.replace(/\s+/g, ' ').trim();
+}
+
+function extractNavIcon(link, label) {
+    const hasExplicitLabel = Boolean(link.querySelector('span:not(.unread-badge-nav)'));
+    if (hasExplicitLabel) {
+        const prefixNode = Array.from(link.childNodes).find((node) => {
+            return node.nodeType === Node.TEXT_NODE && node.textContent.trim();
+        });
+        const prefix = prefixNode?.textContent.trim();
+        if (prefix && prefix.length <= 4) return prefix;
+    }
+
+    const normalized = label.toLowerCase();
+    if (normalized.includes('message')) return '💬';
+    if (normalized.includes('scheme') || normalized.includes('gov')) return '🏛️';
+    if (normalized.includes('help')) return '❓';
+    if (normalized.includes('dashboard') || normalized.includes('home')) return '🏠';
+    if (normalized.includes('profile')) return '👤';
+    if (normalized.includes('login') || normalized.includes('signin')) return '🔐';
+    return '•';
+}
+
+function extractBadgeText(link) {
+    const badge = link.querySelector('.unread-badge-nav');
+    if (!badge) return '';
+
+    const text = badge.textContent.trim();
+    if (!text || text === '0') return '';
+    return text;
+}
+
+function collectLinks(scope, selector) {
+    if (!scope) return [];
+    return Array.from(scope.querySelectorAll(selector));
 }
 
 /* ── Keep panel profile in sync with main nav ───────────── */
