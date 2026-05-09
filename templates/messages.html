@@ -16,7 +16,7 @@
 <nav class="dash-nav">
     <div class="nav-left">
         <span class="logo">Bhoomi Mitra</span>
-        <a href="javascript:history.back()" class="nav-messages-link">
+        <a href="#" id="messagesBackBtn" class="nav-messages-link">
             ← <span data-i18n="nav.back">Back to Dashboard</span>
         </a>
         <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
@@ -246,5 +246,13 @@
 <script src="{{ url_for('static', filename='nav-hamburger.js') }}"></script>
 <script src="{{ url_for('static', filename='toast.js') }}?v=3"></script>
 <script src="{{ url_for('static', filename='messages.js') }}?v=12"></script>
+<script>
+    (function setMessagesDashboardLink() {
+        const role = localStorage.getItem('user_role');
+        const backBtn = document.getElementById('messagesBackBtn');
+        if (!backBtn) return;
+        backBtn.href = role === 'contractor' ? '/contractor/dashboard' : '/farmer/dashboard';
+    })();
+</script>
 </body>
 </html>

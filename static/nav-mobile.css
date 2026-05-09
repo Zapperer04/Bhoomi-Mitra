@@ -332,15 +332,17 @@
         display: block;
     }
 
-    /* -- Dashboard nav (.dash-nav) -- */
-    .dash-nav {
+    /* -- Dashboard / profile navs -- */
+    .dash-nav,
+    .prof-nav {
         min-height: 68px;
         height: auto;
         padding: 0.65rem 1rem;
         gap: 0.65rem;
     }
 
-    .dash-nav .nav-left {
+    .dash-nav .nav-left,
+    .prof-nav .nav-left {
         flex: 1;
         min-width: 0;
         display: flex;
@@ -350,16 +352,19 @@
     }
 
     /* Hide everything except logo in nav-left */
-    .dash-nav .nav-left > *:not(.logo):not(.hamburger-toggle) {
+    .dash-nav .nav-left > *:not(.logo):not(.hamburger-toggle),
+    .prof-nav .nav-left > *:not(.nav-logo):not(.hamburger-toggle) {
         display: none !important;
     }
 
     /* Hide entire nav-right (moved into panel) */
-    .dash-nav .nav-right {
+    .dash-nav .nav-right,
+    .prof-nav .nav-right {
         display: none !important;
     }
 
-    .dash-nav .logo {
+    .dash-nav .logo,
+    .prof-nav .nav-logo {
         font-size: clamp(1.1rem, 4.3vw, 1.35rem);
         max-width: calc(100vw - 110px);
         white-space: nowrap;
@@ -387,6 +392,15 @@
 
     .nav > .hamburger-toggle {
         margin-left: auto;
+    }
+
+    .prof-nav .nav-left > .nav-back {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 45vw;
     }
 
     /* -- Page content adjustments -- */
@@ -420,6 +434,10 @@
 
     .nav-panel-profile {
         margin-inline: 0.4rem;
+    }
+
+    .prof-nav .nav-right {
+        justify-content: flex-end;
     }
 }
 

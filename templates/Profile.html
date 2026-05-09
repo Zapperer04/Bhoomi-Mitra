@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='nav-mobile.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='Profile.css') }}">
 </head>
 <body>
 
 <nav class="prof-nav">
-    <a href="javascript:history.back()" class="nav-back">← Back to Dashboard</a>
-    <span class="nav-logo">Bhoomi Mitra</span>
-    <div style="display: flex; gap: 1rem; align-items: center;">
+    <div class="nav-left">
+        <a href="#" id="profileBackBtn" class="nav-back">← Back to Dashboard</a>
+        <span class="nav-logo">Bhoomi Mitra</span>
+    </div>
+    <div class="nav-right">
         <div id="google_translate_element"></div>
         <button id="logoutBtn" class="nav-logout">Logout</button>
     </div>
@@ -120,7 +123,16 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='Profile.js') }}"></script>
 <script src="{{ url_for('static', filename='google_translate.js') }}"></script>
+<script src="{{ url_for('static', filename='nav-hamburger.js') }}"></script>
+<script src="{{ url_for('static', filename='Profile.js') }}"></script>
+<script>
+    (function setProfileDashboardLink() {
+        const role = localStorage.getItem('user_role');
+        const backBtn = document.getElementById('profileBackBtn');
+        if (!backBtn) return;
+        backBtn.href = role === 'contractor' ? '/contractor/dashboard' : '/farmer/dashboard';
+    })();
+</script>
 </body>
 </html>

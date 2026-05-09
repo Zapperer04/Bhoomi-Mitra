@@ -14,11 +14,13 @@
 })();
 
 function buildHamburger() {
-    const nav = document.querySelector('.dash-nav') || document.querySelector('.nav');
+    const nav = document.querySelector('.dash-nav') || document.querySelector('.prof-nav') || document.querySelector('.nav');
     if (!nav || nav.dataset.hamburgerReady === 'true') return;
     nav.dataset.hamburgerReady = 'true';
 
     const isDashNav = nav.classList.contains('dash-nav');
+    const isProfileNav = nav.classList.contains('prof-nav');
+    const navLabel = isProfileNav ? 'Profile menu' : (isDashNav ? 'Dashboard menu' : 'Site menu');
 
     const burger = document.createElement('button');
     burger.type = 'button';
@@ -40,7 +42,7 @@ function buildHamburger() {
     header.innerHTML = `
         <div class="nav-panel-header-copy">
             <span class="panel-title notranslate">Bhoomi Mitra</span>
-            <span class="panel-subtitle">${isDashNav ? 'Dashboard menu' : 'Site menu'}</span>
+            <span class="panel-subtitle">${navLabel}</span>
         </div>
         <button type="button" class="nav-panel-close" aria-label="Close menu">&times;</button>
     `;
@@ -49,7 +51,7 @@ function buildHamburger() {
     const content = document.createElement('div');
     content.className = 'nav-panel-items';
 
-    if (isDashNav) {
+    if (isDashNav || isProfileNav) {
         buildDashPanelItems(nav, content);
     } else {
         buildLandingPanelItems(nav, content);
@@ -58,7 +60,7 @@ function buildHamburger() {
     panel.appendChild(content);
     document.body.appendChild(panel);
 
-    if (isDashNav) {
+    if (isDashNav || isProfileNav) {
         const navLeft = nav.querySelector('.nav-left');
         if (navLeft) navLeft.appendChild(burger);
         else nav.appendChild(burger);
@@ -110,10 +112,11 @@ function buildHamburger() {
 function buildDashPanelItems(nav, container) {
     const navLeft = nav.querySelector('.nav-left');
     const navRight = nav.querySelector('.nav-right');
+    const isProfileNav = nav.classList.contains('prof-nav');
 
-    const quickLinks = collectLinks(navLeft, 'a.nav-messages-link');
+    const quickLinks = collectLinks(navLeft, isProfileNav ? 'a.nav-back' : 'a.nav-messages-link');
     if (quickLinks.length > 0) {
-        const section = createPanelSection('Quick links');
+        const section = createPanelSection(isProfileNav ? 'Navigation' : 'Quick links');
         quickLinks.forEach((link) => section.body.appendChild(buildPanelLink(link)));
         container.appendChild(section.root);
     }
@@ -145,7 +148,7 @@ function buildDashPanelItems(nav, container) {
             }
         }
 
-        const logoutBtn = navRight.querySelector('.logout-btn, #logoutBtn');
+        const logoutBtn = navRight.querySelector(isProfileNav ? '.nav-logout, #logoutBtn' : '.logout-btn, #logoutBtn');
         if (logoutBtn) {
             accountSection.body.appendChild(buildActionButton({
                 className: 'panel-logout',
