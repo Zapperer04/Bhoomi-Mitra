@@ -361,10 +361,13 @@
     .dash-nav .nav-left > #messagesBackBtn,
     .prof-nav .nav-left > #profileBackBtn,
     .dash-nav .nav-left > .nav-messages-link.back,
-    .prof-nav .nav-left > .nav-back {
+    .prof-nav .nav-left > .nav-back,
+    .dash-nav .nav-left > .nav-back-btn {
         display: flex !important;
         align-items: center;
         gap: 0.5rem;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     /* Hide entire nav-right (moved into panel) */
@@ -426,10 +429,12 @@
 @media (min-width: 769px) {
     .nav .nav-right .lang-selector,
     .dash-nav .nav-right .lang-selector,
-    .prof-nav .nav-right .lang-selector {
+    .prof-nav .nav-right .lang-selector,
+    .nav-right .lang-selector {
         display: flex !important;
         align-items: center;
         gap: 0.5rem;
+        visibility: visible !important;
     }
 
     .nav .nav-right #google_translate_element,

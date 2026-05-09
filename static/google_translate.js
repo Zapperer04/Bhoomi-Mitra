@@ -92,6 +92,13 @@ window.googleTranslateElementInit = function() {
             width: 0 !important;
             overflow: hidden !important;
         }
+
+        /* Custom Lang Selector Styles */
+        .lang-selector {
+            display: flex !important;
+            align-items: center;
+            gap: 0.5rem;
+        }
     `;
     const style = document.createElement('style');
     style.innerHTML = css;
@@ -117,6 +124,8 @@ function buildCustomUI() {
     customWrapper.setAttribute('translate', 'no');
     customWrapper.style.position = 'relative';
     customWrapper.style.zIndex = '9999';
+    customWrapper.style.display = 'flex';
+    customWrapper.style.alignItems = 'center';
 
     // Create the clean CTA Button
     const btn = document.createElement('button');
