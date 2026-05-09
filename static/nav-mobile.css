@@ -362,7 +362,8 @@
     .prof-nav .nav-left > #profileBackBtn,
     .dash-nav .nav-left > .nav-messages-link.back,
     .prof-nav .nav-left > .nav-back,
-    .dash-nav .nav-left > .nav-back-btn {
+    .dash-nav .nav-left > .nav-back-btn,
+    .dash-nav .nav-left > .nav-back.nav-messages-link {
         display: flex !important;
         align-items: center;
         gap: 0.5rem;

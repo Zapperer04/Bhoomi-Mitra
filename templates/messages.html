@@ -10,12 +10,41 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='toast.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='messages.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='nav-mobile.css') }}">
+    <style>
+        .nav-messages-link {
+            display: flex !important;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            color: var(--gray-700);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            transition: all var(--transition);
+            background: var(--gray-50);
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .nav-back.nav-messages-link {
+            background: var(--white);
+            border: 1.5px solid var(--gray-200);
+            font-weight: 800;
+            color: var(--green-700);
+        }
+
+        .nav-messages-link:hover {
+            background: var(--green-100);
+            color: var(--green-800);
+        }
+    </style>
 </head>
 <body>
 
 <nav class="dash-nav">
     <div class="nav-left">
-        <a href="#" id="messagesBackBtn" class="nav-messages-link" style="display: flex !important; align-items: center; gap: 0.4rem; cursor: pointer; background: var(--white); border: 1.5px solid var(--gray-200); font-weight: 800; color: var(--green-700);">
+        <a href="#" id="messagesBackBtn" class="nav-back nav-messages-link">
             ← <span data-i18n="nav.back">Back to Dashboard</span>
         </a>
         <span class="logo notranslate">Bhoomi Mitra</span>
