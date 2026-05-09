@@ -4,13 +4,8 @@ __pycache__/
 *.pyc
 .env
 .gitignore
-Backend/
-advisory/
-schemes/
-fertilizer/
-services/
-data/
 uploads/
+
 bhoomimitra.db
 init_db.py
 migrate_constraints.py

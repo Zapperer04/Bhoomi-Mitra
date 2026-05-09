@@ -8,11 +8,7 @@ from collections import defaultdict
 from dotenv import load_dotenv
 
 # ================= LOGGING SETUP =================
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.StreamHandler()]
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for
@@ -91,7 +87,9 @@ if WhiteNoise:
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
 # ================= CORS & HOSTING =================
 # Allowing all origins for the frontend split (Vercel -> Render)
-CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
+# CORS: Wildcard origins (*) cannot be used with supports_credentials=True in production.
+# We default to allowing the same-origin and specific Vercel subdomains.
+CORS(app, supports_credentials=True)
 
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
@@ -135,9 +133,9 @@ if IS_DEV:
 else:
     logger.info("🚀 Running in PRODUCTION mode")
 
+# ── INITIALIZATION ──────────────────────────────────────────────────────────
 db.init_app(app)
 jwt = JWTManager(app)
-app.register_blueprint(auth_bp, url_prefix="/auth")
 
 @jwt.unauthorized_loader
 def unauthorized_callback(callback):
@@ -150,6 +148,9 @@ def expired_token_callback(jwt_header, jwt_payload):
     if request.path.startswith("/api/") or request.path.startswith("/auth/"):
         return jsonify({"success": False, "error": "Token has expired"}), 401
     return redirect('/login')
+
+# Register blueprints AFTER JWT/DB setup
+app.register_blueprint(auth_bp, url_prefix="/auth")
 
 
 
@@ -540,19 +541,19 @@ def api_me():
 @app.route("/farmer/dashboard")
 @jwt_required()
 def farmer_dashboard():
-    if get_jwt().get("role") != "farmer": return redirect(url_for('chatbot_page'))
+    if get_jwt().get("role") != "farmer": return redirect('/chatbot')
     return render_template("farmer_dashboard.html")
 
 @app.route("/farmer/post-crop")
 @jwt_required()
 def post_crop():
-    if get_jwt().get("role") != "farmer": return redirect(url_for('chatbot_page'))
+    if get_jwt().get("role") != "farmer": return redirect('/chatbot')
     return render_template("post_crop.html")
 
 @app.route("/contractor/dashboard")
 @jwt_required()
 def contractor_dashboard():
-    if get_jwt().get("role") != "contractor": return redirect(url_for('chatbot_page'))
+    if get_jwt().get("role") != "contractor": return redirect('/chatbot')
     return render_template("contractor_dashboard.html")
 
 @app.route("/chatbot")
