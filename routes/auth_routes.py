@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, set_access_cookies
 from models import db, User
 
 auth_bp = Blueprint("auth_bp", __name__)
@@ -85,7 +85,9 @@ def login():
         return api_response(success=False, error="Invalid credentials", status=401)
 
     access_token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
-    return api_response(data={"access_token": access_token, "role": user.role})
+    resp, code = api_response(data={"access_token": access_token, "role": user.role})
+    set_access_cookies(resp, access_token)
+    return resp, code
 
 
 @auth_bp.route("/protected", methods=["GET"])

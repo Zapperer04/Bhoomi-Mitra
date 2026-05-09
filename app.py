@@ -115,6 +115,10 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 # Required >= 32 chars for JWT to prevent InsecureKeyLengthWarning -> 502 crashes in strict envs
 app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "fallback-dev-extra-long-secret-key-at-least-32-chars")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"]    = timedelta(days=30)
+app.config["JWT_TOKEN_LOCATION"]          = ["headers", "cookies"]
+app.config["JWT_COOKIE_SECURE"]           = False # Set to False for now to support both HTTP and HTTPS without complex cert handling
+app.config["JWT_COOKIE_CSRF_PROTECT"]      = False 
+
 
 # ── ENVIRONMENT DETECTION ────────────────────────────────────────────────────
 IS_DEV = os.environ.get("FLASK_ENV") == "development" or "localhost" in db_url or "127.0.0.1" in db_url
@@ -127,6 +131,19 @@ else:
 db.init_app(app)
 jwt = JWTManager(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
+
+@jwt.unauthorized_loader
+def unauthorized_callback(callback):
+    if request.path.startswith("/api/") or request.path.startswith("/auth/"):
+        return jsonify({"success": False, "error": "Missing or invalid token"}), 401
+    return redirect(url_for('login'))
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    if request.path.startswith("/api/") or request.path.startswith("/auth/"):
+        return jsonify({"success": False, "error": "Token has expired"}), 401
+    return redirect(url_for('login'))
+
 
 
 # ── DB INIT (HANDLED BY init_db.py) ───────────────────────────────────────────
@@ -514,13 +531,22 @@ def api_me():
     })
 
 @app.route("/farmer/dashboard")
-def farmer_dashboard(): return render_template("farmer_dashboard.html")
+@jwt_required()
+def farmer_dashboard():
+    if get_jwt().get("role") != "farmer": return redirect(url_for('chatbot_page'))
+    return render_template("farmer_dashboard.html")
 
 @app.route("/farmer/post-crop")
-def post_crop():       return render_template("post_crop.html")
+@jwt_required()
+def post_crop():
+    if get_jwt().get("role") != "farmer": return redirect(url_for('chatbot_page'))
+    return render_template("post_crop.html")
 
 @app.route("/contractor/dashboard")
-def contractor_dashboard(): return render_template("contractor_dashboard.html")
+@jwt_required()
+def contractor_dashboard():
+    if get_jwt().get("role") != "contractor": return redirect(url_for('chatbot_page'))
+    return render_template("contractor_dashboard.html")
 
 @app.route("/chatbot")
 def chatbot_page():    return render_template("Chatbot.html")
@@ -529,16 +555,21 @@ def chatbot_page():    return render_template("Chatbot.html")
 def gov_page():        return render_template("gov.html")
 
 @app.route("/messages")
+@jwt_required()
 def messages_page():   return render_template("messages.html")
 
 @app.route("/profile")
+@jwt_required()
 def profile_page():    return render_template("Profile.html")
 
 @app.route("/farmer/help")
+@jwt_required()
 def farmer_help():     return render_template("farmer_help.html")
 
 @app.route("/contractor/help")
+@jwt_required()
 def contractor_help(): return render_template("contractor_help.html")
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -900,9 +931,11 @@ def create_interest():
         existing.price_offered      = float(data.get("price", crop.price))
         if existing.price_offered < 0:
             return api_response(success=False, error="Price cannot be negative", status=400)
+        existing.message            = data.get("message", "") # Allow updating message on re-submit
         existing.status             = "pending"
         existing.accepted_by        = None
         existing.created_at         = datetime.utcnow()
+
         db.session.add(Message(
             interest_id = existing.id,
             sender_id   = user_id,

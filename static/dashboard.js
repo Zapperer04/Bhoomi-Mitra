@@ -10,17 +10,26 @@ async function apiCall(url, options = {}) {
     ...(options.headers || {}),
   };
 
-  const res = await fetch(url, { ...options, headers });
-  const json = await res.json();
+  try {
+    const res = await fetch(url, { ...options, headers });
+    
+    // Handle specific status codes before parsing JSON
+    if (res.status === 401) {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+      return;
+    }
+    
+    if (res.status === 404) throw new Error("Endpoint not found (404)");
+    if (res.status >= 500) throw new Error("Server error (500). Please try again later.");
 
-  if (res.status === 401) {
-    localStorage.removeItem("access_token");
-    window.location.href = "/login";
-    return;
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || "Request failed");
+    return json.data;
+  } catch (err) {
+    console.error(`API Error [${url}]:`, err);
+    throw err; // Re-throw to be handled by the caller
   }
-
-  if (!json.success) throw new Error(json.error || "Request failed");
-  return json.data;
 }
 
 const STATUS_MAP = {
