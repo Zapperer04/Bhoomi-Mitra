@@ -357,6 +357,16 @@
         display: none !important;
     }
 
+    /* Exception: keep explicit back buttons visible on small screens */
+    .dash-nav .nav-left > #messagesBackBtn,
+    .prof-nav .nav-left > #profileBackBtn,
+    .dash-nav .nav-left > .nav-messages-link.back,
+    .prof-nav .nav-left > .nav-back {
+        display: flex !important;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
     /* Hide entire nav-right (moved into panel) */
     .dash-nav .nav-right,
     .prof-nav .nav-right {
@@ -407,6 +417,31 @@
     .dashboard {
         padding: 0 1rem;
         margin: 1.5rem auto;
+    }
+}
+
+/* Ensure language selector is visible on laptop/desktop sizes
+   The Google widget hides its own host element; our custom UI
+   (`.lang-selector`) must be shown on larger screens. */
+@media (min-width: 769px) {
+    .nav .nav-right .lang-selector,
+    .dash-nav .nav-right .lang-selector,
+    .prof-nav .nav-right .lang-selector {
+        display: flex !important;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav .nav-right #google_translate_element,
+    .dash-nav .nav-right #google_translate_element,
+    .prof-nav .nav-right #google_translate_element {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: auto !important;
+        height: auto !important;
     }
 }
 
