@@ -93,7 +93,8 @@ CORS(app, supports_credentials=True)
 
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
-os.makedirs(INSTANCE_DIR, exist_ok=True)
+if os.environ.get("VERCEL") != "1":
+    os.makedirs(INSTANCE_DIR, exist_ok=True)
 
 DB_PATH   = os.path.join(INSTANCE_DIR, "db.sqlite3")
 db_url = os.environ.get("DATABASE_URL")
