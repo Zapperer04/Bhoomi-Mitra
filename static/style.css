@@ -392,11 +392,16 @@ h1,h2,h3,h4 { font-family: 'Sora', sans-serif; color: var(--gray-900); }
 
 .social-icons a {
     text-decoration: none;
-    transition: transform var(--transition);
+    color: var(--gray-400);
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .social-icons a:hover {
-    transform: scale(1.2);
+    transform: scale(1.1);
+    color: var(--white);
 }
 
 .footer-bottom {
