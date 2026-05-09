@@ -534,7 +534,11 @@ def signup():          return render_template("Signup.html")
 @app.route("/api/me")
 @jwt_required()
 def api_me():
-    user = User.query.get_or_404(_current_user_id())
+    user = User.query.get(_current_user_id())
+    if not user:
+        # User exists in token but not in DB (likely a DB wipe on Vercel)
+        return api_response(success=False, error="Session expired or user deleted", status=401)
+    
     return api_response(data={
         "id":   user.id,
         "name": user.name,

@@ -130,10 +130,14 @@ function buildDashPanelItems(nav, container) {
         const nameEl = navRight.querySelector('.profile-nav-name');
 
         if (profileBtn) {
+            // Late-joiner check: If dashboard.js already loaded the name into the desktop nav, use it.
+            const currentAvatar = avatarEl?.textContent?.trim() || '❓';
+            const currentName = nameEl?.textContent?.trim() || 'Profile';
+            
             accountSection.body.appendChild(buildProfileCard({
                 href: profileBtn.href || '/profile',
-                avatar: avatarEl?.textContent?.trim() || '?',
-                name: nameEl?.textContent?.trim() || 'Profile',
+                avatar: (currentAvatar === '?' || !currentAvatar) ? '❓' : currentAvatar,
+                name: (currentName === 'Profile' || currentName === 'Loading...') ? 'My Profile' : currentName,
                 role: roleBadge?.textContent?.trim() || ''
             }));
         }
@@ -300,24 +304,31 @@ function collectLinks(scope, selector) {
 }
 
 /* ── Keep panel profile in sync with main nav ───────────── */
-// The dashboard.js sets #navAvatar and #navName after API calls.
-// This observer keeps the panel copy in sync.
+// dashboard.js / Profile.js set #navAvatar, #navName, #displayName after API calls.
 const avatarObserver = new MutationObserver(() => {
-    const src = document.getElementById('navAvatar');
-    const name = document.getElementById('navName');
+    // Check all possible source elements (Dashboard vs Profile Page)
+    const srcAvatar = document.getElementById('navAvatar') || document.getElementById('avatarInitial');
+    const srcName = document.getElementById('navName') || document.getElementById('displayName');
+    
     const panelAvatar = document.querySelector('.panel-avatar');
     const panelName = document.querySelector('.panel-profile-name');
-    if (src && panelAvatar) panelAvatar.textContent = src.textContent;
-    if (name && panelName) panelName.textContent = name.textContent;
+
+    if (srcAvatar && panelAvatar) {
+        const val = srcAvatar.textContent.trim();
+        if (val && val !== '?' && val !== 'Loading...') panelAvatar.textContent = val;
+    }
+    if (srcName && panelName) {
+        const val = srcName.textContent.trim();
+        if (val && val !== 'Profile' && val !== 'Loading...') panelName.textContent = val;
+    }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const target = document.getElementById('navAvatar');
-    if (target) {
-        avatarObserver.observe(target, { childList: true, characterData: true, subtree: true });
-    }
-    const nameTarget = document.getElementById('navName');
-    if (nameTarget) {
-        avatarObserver.observe(nameTarget, { childList: true, characterData: true, subtree: true });
-    }
+    // Observe both Dashboard and Profile page elements
+    ['navAvatar', 'navName', 'avatarInitial', 'displayName'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            avatarObserver.observe(el, { childList: true, characterData: true, subtree: true });
+        }
+    });
 });
