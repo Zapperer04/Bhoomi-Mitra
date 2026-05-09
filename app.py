@@ -157,10 +157,10 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 
 
 
-# ── DB INIT (HANDLED BY init_db.py) ───────────────────────────────────────────
-# We no longer run db.create_all() here to avoid startup crashes on Render.
-# The build command 'python init_db.py' handles table creation.
-
+# ── DB INIT ──────────────────────────────────────────────────────────────────
+with app.app_context():
+    # On Vercel, the /tmp/db.sqlite3 starts empty. We must create tables at runtime.
+    db.create_all()
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}, "last_activity": time.time()})
 
