@@ -3,15 +3,19 @@ import re
 import hashlib
 import logging
 import time
-from datetime import date, datetime, timezone, timedelta
+from datetime import timedelta, date, datetime, timezone, timedelta as py_timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
 
 # ================= LOGGING SETUP =================
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[logging.StreamHandler()]
+)
 logger = logging.getLogger(__name__)
 
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from flask_jwt_extended import (
     JWTManager, jwt_required, get_jwt_identity, get_jwt, create_access_token
@@ -83,30 +87,18 @@ CONFIRMATION_TIMEOUT_MINS = 4320 # 3 days (TC-41: Duration before a confirmed de
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 if WhiteNoise:
-    # Use WhiteNoise to serve static files reliably across Render and Vercel
+    # Industry-standard prefix to avoid routing collisions with API endpoints
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
-else:
-    logger.warning("⚠️ WhiteNoise not found. Static files may not serve correctly in production.")
 # ================= CORS & HOSTING =================
 # Allowing all origins for the frontend split (Vercel -> Render)
-# CORS: Wildcard origins (*) cannot be used with supports_credentials=True in production.
-# We default to allowing the same-origin and specific Vercel subdomains.
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
-if os.environ.get("VERCEL") != "1":
-    os.makedirs(INSTANCE_DIR, exist_ok=True)
+os.makedirs(INSTANCE_DIR, exist_ok=True)
 
 DB_PATH   = os.path.join(INSTANCE_DIR, "db.sqlite3")
-db_url = os.environ.get("DATABASE_URL")
-if not db_url:
-    # Vercel filesystem is read-only. We must use /tmp/ for SQLite in production fallbacks.
-    if os.environ.get("VERCEL") == "1":
-        db_url = "sqlite:////tmp/db.sqlite3"
-    else:
-        db_url = f"sqlite:///{DB_PATH.replace(chr(92), '/')}"
-
+db_url    = os.environ.get("DATABASE_URL", f"sqlite:///{DB_PATH.replace(chr(92), '/')}")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
@@ -123,10 +115,6 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 # Required >= 32 chars for JWT to prevent InsecureKeyLengthWarning -> 502 crashes in strict envs
 app.config["JWT_SECRET_KEY"]              = os.environ.get("JWT_SECRET_KEY", "fallback-dev-extra-long-secret-key-at-least-32-chars")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"]    = timedelta(days=30)
-app.config["JWT_TOKEN_LOCATION"]          = ["headers", "cookies"]
-app.config["JWT_COOKIE_SECURE"]           = False # Set to False for now to support both HTTP and HTTPS without complex cert handling
-app.config["JWT_COOKIE_CSRF_PROTECT"]      = False 
-
 
 # ── ENVIRONMENT DETECTION ────────────────────────────────────────────────────
 IS_DEV = os.environ.get("FLASK_ENV") == "development" or "localhost" in db_url or "127.0.0.1" in db_url
@@ -136,31 +124,15 @@ if IS_DEV:
 else:
     logger.info("🚀 Running in PRODUCTION mode")
 
-# ── INITIALIZATION ──────────────────────────────────────────────────────────
 db.init_app(app)
 jwt = JWTManager(app)
-
-@jwt.unauthorized_loader
-def unauthorized_callback(callback):
-    if request.path.startswith("/api/") or request.path.startswith("/auth/"):
-        return jsonify({"success": False, "error": "Missing or invalid token"}), 401
-    return redirect('/login')
-
-@jwt.expired_token_loader
-def expired_token_callback(jwt_header, jwt_payload):
-    if request.path.startswith("/api/") or request.path.startswith("/auth/"):
-        return jsonify({"success": False, "error": "Token has expired"}), 401
-    return redirect('/login')
-
-# Register blueprints AFTER JWT/DB setup
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
 
+# ── DB INIT (HANDLED BY init_db.py) ───────────────────────────────────────────
+# We no longer run db.create_all() here to avoid startup crashes on Render.
+# The build command 'python init_db.py' handles table creation.
 
-# ── DB INIT ──────────────────────────────────────────────────────────────────
-with app.app_context():
-    # On Vercel, the /tmp/db.sqlite3 starts empty. We must create tables at runtime.
-    db.create_all()
 
 CHAT_SESSIONS = defaultdict(lambda: {"state": "START", "context": {"lang": "en"}, "last_activity": time.time()})
 
@@ -534,11 +506,7 @@ def signup():          return render_template("Signup.html")
 @app.route("/api/me")
 @jwt_required()
 def api_me():
-    user = User.query.get(_current_user_id())
-    if not user:
-        # User exists in token but not in DB (likely a DB wipe on Vercel)
-        return api_response(success=False, error="Session expired or user deleted", status=401)
-    
+    user = User.query.get_or_404(_current_user_id())
     return api_response(data={
         "id":   user.id,
         "name": user.name,
@@ -546,22 +514,13 @@ def api_me():
     })
 
 @app.route("/farmer/dashboard")
-@jwt_required()
-def farmer_dashboard():
-    if get_jwt().get("role") != "farmer": return redirect('/chatbot')
-    return render_template("farmer_dashboard.html")
+def farmer_dashboard(): return render_template("farmer_dashboard.html")
 
 @app.route("/farmer/post-crop")
-@jwt_required()
-def post_crop():
-    if get_jwt().get("role") != "farmer": return redirect('/chatbot')
-    return render_template("post_crop.html")
+def post_crop():       return render_template("post_crop.html")
 
 @app.route("/contractor/dashboard")
-@jwt_required()
-def contractor_dashboard():
-    if get_jwt().get("role") != "contractor": return redirect('/chatbot')
-    return render_template("contractor_dashboard.html")
+def contractor_dashboard(): return render_template("contractor_dashboard.html")
 
 @app.route("/chatbot")
 def chatbot_page():    return render_template("Chatbot.html")
@@ -570,21 +529,16 @@ def chatbot_page():    return render_template("Chatbot.html")
 def gov_page():        return render_template("gov.html")
 
 @app.route("/messages")
-@jwt_required()
 def messages_page():   return render_template("messages.html")
 
 @app.route("/profile")
-@jwt_required()
 def profile_page():    return render_template("Profile.html")
 
 @app.route("/farmer/help")
-@jwt_required()
 def farmer_help():     return render_template("farmer_help.html")
 
 @app.route("/contractor/help")
-@jwt_required()
 def contractor_help(): return render_template("contractor_help.html")
-
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -946,11 +900,9 @@ def create_interest():
         existing.price_offered      = float(data.get("price", crop.price))
         if existing.price_offered < 0:
             return api_response(success=False, error="Price cannot be negative", status=400)
-        existing.message            = data.get("message", "") # Allow updating message on re-submit
         existing.status             = "pending"
         existing.accepted_by        = None
         existing.created_at         = datetime.utcnow()
-
         db.session.add(Message(
             interest_id = existing.id,
             sender_id   = user_id,
