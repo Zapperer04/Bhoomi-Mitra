@@ -13,7 +13,7 @@
 
 <nav class="prof-nav">
     <div class="nav-left">
-        <a href="#" id="profileBackBtn" class="nav-back">← Back to Dashboard</a>
+        <a href="#" id="profileBackBtn" class="nav-back" style="display: flex !important; align-items: center; gap: 0.4rem; cursor: pointer;">← Back to Dashboard</a>
         <span class="nav-logo">Bhoomi Mitra</span>
     </div>
     <div class="nav-right">
@@ -130,8 +130,15 @@
     (function setProfileDashboardLink() {
         const role = localStorage.getItem('user_role');
         const backBtn = document.getElementById('profileBackBtn');
-        if (!backBtn) return;
-        backBtn.href = role === 'contractor' ? '/contractor/dashboard' : '/farmer/dashboard';
+        if (!backBtn) {
+            console.warn('profileBackBtn not found');
+            return;
+        }
+        const dashboardUrl = role === 'contractor' ? '/contractor/dashboard' : '/farmer/dashboard';
+        backBtn.href = dashboardUrl;
+        backBtn.setAttribute('role', 'button');
+        backBtn.setAttribute('aria-label', 'Go back to dashboard');
+        console.log('Profile back button configured to:', dashboardUrl);
     })();
 </script>
 </body>

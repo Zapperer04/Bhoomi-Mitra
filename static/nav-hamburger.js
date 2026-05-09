@@ -113,6 +113,7 @@ function buildDashPanelItems(nav, container) {
     const navLeft = nav.querySelector('.nav-left');
     const navRight = nav.querySelector('.nav-right');
     const isProfileNav = nav.classList.contains('prof-nav');
+    const useMobilePanel = window.innerWidth <= 768;
 
     const quickLinks = collectLinks(navLeft, isProfileNav ? 'a.nav-back' : 'a.nav-messages-link');
     if (quickLinks.length > 0) {
@@ -139,9 +140,9 @@ function buildDashPanelItems(nav, container) {
 
         const langSelector = navRight.querySelector('.lang-selector');
         const translateHost = navRight.querySelector('#google_translate_element');
-        if (langSelector) {
+        if (useMobilePanel && langSelector) {
             accountSection.body.appendChild(buildWidgetWrap('Language', langSelector));
-        } else if (translateHost) {
+        } else if (useMobilePanel && translateHost) {
             const customLang = translateHost.parentElement?.querySelector('.lang-selector');
             if (customLang) {
                 accountSection.body.appendChild(buildWidgetWrap('Language', customLang));
@@ -167,6 +168,7 @@ function buildDashPanelItems(nav, container) {
 function buildLandingPanelItems(nav, container) {
     const navRight = nav.querySelector('.nav-right');
     if (!navRight) return;
+    const useMobilePanel = window.innerWidth <= 768;
 
     const exploreSection = createPanelSection('Explore');
     navRight.querySelectorAll('a.nav-link').forEach((link) => {
@@ -177,7 +179,7 @@ function buildLandingPanelItems(nav, container) {
     }
 
     const langSelector = navRight.querySelector('.lang-selector');
-    if (langSelector) {
+    if (useMobilePanel && langSelector) {
         const languageSection = createPanelSection('Language');
         languageSection.body.appendChild(buildWidgetWrap('', langSelector));
         container.appendChild(languageSection.root);

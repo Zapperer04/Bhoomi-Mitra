@@ -16,7 +16,7 @@
 <nav class="dash-nav">
     <div class="nav-left">
         <span class="logo">Bhoomi Mitra</span>
-        <a href="#" id="messagesBackBtn" class="nav-messages-link">
+        <a href="#" id="messagesBackBtn" class="nav-messages-link" style="display: flex !important; align-items: center; gap: 0.4rem; cursor: pointer;">
             ← <span data-i18n="nav.back">Back to Dashboard</span>
         </a>
         <a href="javascript:void(0)" id="helpBtn" class="nav-messages-link" style="cursor:pointer; background: var(--green-50); border: 1px solid var(--green-100);">
@@ -250,8 +250,15 @@
     (function setMessagesDashboardLink() {
         const role = localStorage.getItem('user_role');
         const backBtn = document.getElementById('messagesBackBtn');
-        if (!backBtn) return;
-        backBtn.href = role === 'contractor' ? '/contractor/dashboard' : '/farmer/dashboard';
+        if (!backBtn) {
+            console.warn('messagesBackBtn not found');
+            return;
+        }
+        const dashboardUrl = role === 'contractor' ? '/contractor/dashboard' : '/farmer/dashboard';
+        backBtn.href = dashboardUrl;
+        backBtn.setAttribute('role', 'button');
+        backBtn.setAttribute('aria-label', 'Go back to dashboard');
+        console.log('Back button configured to:', dashboardUrl);
     })();
 </script>
 </body>
