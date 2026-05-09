@@ -83,8 +83,10 @@ CONFIRMATION_TIMEOUT_MINS = 4320 # 3 days (TC-41: Duration before a confirmed de
 app = Flask(__name__)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 if WhiteNoise:
-    # Industry-standard prefix to avoid routing collisions with API endpoints
+    # Use WhiteNoise to serve static files reliably across Render and Vercel
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=STATIC_DIR, prefix="static/")
+else:
+    logger.warning("⚠️ WhiteNoise not found. Static files may not serve correctly in production.")
 # ================= CORS & HOSTING =================
 # Allowing all origins for the frontend split (Vercel -> Render)
 # CORS: Wildcard origins (*) cannot be used with supports_credentials=True in production.
