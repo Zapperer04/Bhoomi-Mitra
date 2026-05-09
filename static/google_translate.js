@@ -105,18 +105,37 @@ window.googleTranslateElementInit = function() {
     document.head.appendChild(style);
 })();
 
-// 4. Fast UI initialization for the custom dropdown
-(function initFast() {
-    const googleDivs = document.querySelectorAll('#google_translate_element, .google-translate-placeholder');
-    if (googleDivs.length > 0) {
+// 4. Robust initialization using MutationObserver to catch dynamically added placeholders (like in the hamburger menu)
+(function initRobust() {
+    const findAndInit = () => {
+        const googleDivs = document.querySelectorAll('#google_translate_element, .google-translate-placeholder');
         googleDivs.forEach(div => {
             if (!div.dataset.uiReady) {
                 window.buildCustomLangUI(div);
             }
         });
-    } else if (document.readyState !== 'complete') {
-        setTimeout(initFast, 100); 
+    };
+
+    // Initial check
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', findAndInit);
+    } else {
+        findAndInit();
     }
+
+    // Observe the body for any new placeholders being added (by nav-hamburger.js or others)
+    const observer = new MutationObserver((mutations) => {
+        let shouldCheck = false;
+        for (const mutation of mutations) {
+            if (mutation.addedNodes.length) {
+                shouldCheck = true;
+                break;
+            }
+        }
+        if (shouldCheck) findAndInit();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
 
 window.buildCustomLangUI = function(googleDiv) {

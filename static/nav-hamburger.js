@@ -140,17 +140,9 @@ function buildDashPanelItems(nav, container) {
 
         const translateHost = navRight.querySelector('#google_translate_element');
         if (translateHost) {
-            const langSection = createPanelSection('Language');
             const placeholder = document.createElement('div');
             placeholder.className = 'google-translate-placeholder';
-            // We want it to look like the navbar version but it will be styled by the panel CSS
-            langSection.body.appendChild(placeholder);
-            container.appendChild(langSection.root);
-            
-            // Initialize the new UI instance
-            if (window.buildCustomLangUI) {
-                window.buildCustomLangUI(placeholder);
-            }
+            accountSection.body.appendChild(buildWidgetWrap('Language', placeholder));
         }
 
         const logoutBtn = navRight.querySelector(isProfileNav ? '.nav-logout, #logoutBtn' : '.logout-btn, #logoutBtn');
@@ -189,10 +181,6 @@ function buildLandingPanelItems(nav, container) {
         placeholder.className = 'google-translate-placeholder';
         languageSection.body.appendChild(placeholder);
         container.appendChild(languageSection.root);
-        
-        if (window.buildCustomLangUI) {
-            window.buildCustomLangUI(placeholder);
-        }
     }
 }
 
